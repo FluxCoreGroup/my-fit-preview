@@ -111,7 +111,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          clerk_id: string
           created_at: string
           email: string
           id: string
@@ -119,7 +118,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          clerk_id: string
           created_at?: string
           email: string
           id?: string
@@ -127,7 +125,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          clerk_id?: string
           created_at?: string
           email?: string
           id?: string

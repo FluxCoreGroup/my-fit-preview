@@ -21,10 +21,9 @@ Architecture "branchable" avec placeholders pour faciliter l'intégration future
 
 ## 🔧 Variables d'environnement à configurer
 
-```env
-# Clerk (Auth) - À configurer via "Add API Key"
-VITE_CLERK_PUBLISHABLE_KEY=pk_...
+**Note :** L'authentification utilise maintenant **Supabase Auth** (plus besoin de Clerk).
 
+```env
 # Stripe (Paiements) - À configurer via "Add API Key"  
 VITE_STRIPE_PUBLISHABLE_KEY=pk_...
 STRIPE_SECRET_KEY=sk_...
@@ -33,6 +32,17 @@ STRIPE_PRICE_ID=price_...
 # Resend (Emails) - À configurer via "Add API Key"
 RESEND_API_KEY=re_...
 ```
+
+### Configuration Supabase Auth
+
+1. **Dans le Dashboard Supabase**, va dans `Authentication > URL Configuration`
+2. Configure :
+   - **Site URL** : ton URL de production ou preview Lovable
+   - **Redirect URLs** : ajoute ton URL de preview Lovable
+3. **Dans `Authentication > Providers`** :
+   - Email : Activé par défaut ✅
+   - Désactive temporairement "Confirm email" pour faciliter les tests
+4. **IMPORTANT** : Pour éviter l'erreur "requested path is invalid", assure-toi que Site URL et Redirect URLs sont bien configurés
 
 ## 🏗️ Architecture "branchable"
 

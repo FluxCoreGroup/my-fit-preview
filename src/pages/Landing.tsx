@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dumbbell, Target, Zap, Clock, Check } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Landing = () => {
+  const { user } = useAuth();
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -20,14 +22,26 @@ const Landing = () => {
               Commence gratuitement en 2 minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              <Link to="/start">
-                <Button size="lg" variant="hero" className="text-lg">
-                  Commencer gratuitement
-                </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="text-lg border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                Voir un exemple
-              </Button>
+              {user ? (
+                <Link to="/dashboard">
+                  <Button size="lg" variant="hero" className="text-lg">
+                    Aller au Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/start">
+                    <Button size="lg" variant="hero" className="text-lg">
+                      Commencer gratuitement
+                    </Button>
+                  </Link>
+                  <Link to="/preview">
+                    <Button size="lg" variant="outline" className="text-lg border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                      Voir un exemple
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
             <p className="text-sm text-primary-foreground/70">
               1ère séance offerte • Sans engagement • Résultats garantis
