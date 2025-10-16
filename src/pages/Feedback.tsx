@@ -8,10 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ThumbsUp } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Feedback = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [completed, setCompleted] = useState<string>("");
   const [rpe, setRpe] = useState<string>("");
   const [hadPain, setHadPain] = useState(false);
@@ -31,28 +34,36 @@ const Feedback = () => {
 
     setLoading(true);
 
-    // Simuler l'enregistrement
-    const feedbackData = {
-      completed: completed === "yes",
-      rpe: parseInt(rpe),
-      hadPain,
-      painZones,
-      comments,
-      timestamp: new Date().toISOString(),
-    };
+    try {
+      if (user) {
+        // Sauvegarder dans Supabase
+        const { error } = await supabase.from('feedback').insert({
+          user_id: user.id,
+          completed: completed === "yes",
+          rpe: parseInt(rpe),
+          had_pain: hadPain,
+          pain_zones: painZones,
+          comments: comments || null,
+        });
 
-    // Sauvegarder dans localStorage pour l'instant
-    const existingFeedbacks = JSON.parse(localStorage.getItem("feedbacks") || "[]");
-    existingFeedbacks.push(feedbackData);
-    localStorage.setItem("feedbacks", JSON.stringify(existingFeedbacks));
+        if (error) throw error;
+      }
 
-    setTimeout(() => {
       toast({
         title: "Merci pour ton retour ! 🎉",
         description: "Tes feedbacks nous aident à améliorer ton programme.",
       });
-      navigate("/paywall");
-    }, 500);
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Error saving feedback:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder ton feedback. Réessaye.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

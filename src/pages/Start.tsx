@@ -9,10 +9,16 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import type { OnboardingInput } from "@/services/planner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Start = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const totalSteps = 5;
 
   const [formData, setFormData] = useState<Partial<OnboardingInput>>({
@@ -34,13 +40,41 @@ const Start = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      // Save to localStorage and navigate to preview
-      localStorage.setItem("onboardingData", JSON.stringify(formData));
-      navigate("/preview");
+      setLoading(true);
+      
+      try {
+        if (user) {
+          // Si connecté, sauvegarder dans Supabase
+          const { error } = await supabase.from('goals').insert({
+            user_id: user.id,
+            goal_type: formData.goal || 'maintenance',
+            horizon: formData.goalHorizon || '',
+            frequency: formData.frequency,
+            session_duration: formData.sessionDuration,
+            location: formData.location,
+            equipment: formData.equipment,
+          });
+
+          if (error) throw error;
+        }
+        
+        // Toujours sauvegarder dans localStorage pour l'aperçu (même si non connecté)
+        localStorage.setItem("onboardingData", JSON.stringify(formData));
+        navigate("/preview");
+      } catch (error) {
+        console.error("Error saving goals:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de sauvegarder tes objectifs. Réessaye.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -311,8 +345,9 @@ const Start = () => {
             size="lg"
             variant={step === totalSteps ? "hero" : "default"}
             className={step === 1 ? "ml-auto" : ""}
+            disabled={loading}
           >
-            {step === totalSteps ? "Voir mon aperçu" : "Suivant"}
+            {loading ? "Enregistrement..." : step === totalSteps ? "Voir mon aperçu" : "Suivant"}
             <ChevronRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

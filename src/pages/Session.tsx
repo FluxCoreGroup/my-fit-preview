@@ -5,33 +5,60 @@ import { trainingPlanner, type Exercise } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
 import { Play, Pause, ChevronRight, RefreshCw, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Session = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
   const [isResting, setIsResting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    const dataStr = localStorage.getItem("onboardingData");
-    if (!dataStr) {
-      navigate("/start");
-      return;
-    }
+    const initSession = async () => {
+      const dataStr = localStorage.getItem("onboardingData");
+      if (!dataStr) {
+        navigate("/start");
+        return;
+      }
 
-    try {
-      const data = JSON.parse(dataStr);
-      const plan = trainingPlanner.getPreview(data);
-      setExercises(plan.exercises);
-    } catch (error) {
-      console.error("Error loading session:", error);
-      navigate("/start");
-    }
-  }, [navigate]);
+      try {
+        const data = JSON.parse(dataStr);
+        const plan = trainingPlanner.getPreview(data);
+        setExercises(plan.exercises);
+
+        // Créer une session dans Supabase si connecté
+        if (user) {
+          const { data: session, error } = await supabase
+            .from('sessions')
+            .insert([{
+              user_id: user.id,
+              exercises: plan.exercises as any,
+              completed: false,
+            }])
+            .select()
+            .single();
+
+          if (error) {
+            console.error("Error creating session:", error);
+          } else {
+            setSessionId(session.id);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading session:", error);
+        navigate("/start");
+      }
+    };
+
+    initSession();
+  }, [navigate, user]);
 
   useEffect(() => {
     if (!isPaused && timeLeft > 0) {
@@ -56,7 +83,7 @@ const Session = () => {
     setIsPaused(false);
   };
 
-  const handleSetComplete = () => {
+  const handleSetComplete = async () => {
     if (currentSet < totalSets) {
       setCurrentSet(currentSet + 1);
       startRest();
@@ -70,7 +97,35 @@ const Session = () => {
           description: "Prends une petite pause et passe au suivant.",
         });
       } else {
-        // Fin de la séance
+        // Fin de la séance - Marquer comme complétée
+        if (user && sessionId) {
+          await supabase
+            .from('sessions')
+            .update({ completed: true })
+            .eq('id', sessionId);
+
+          // Vérifier si c'est la première séance complétée
+          const { count } = await supabase
+            .from('sessions')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('completed', true);
+
+          // Vérifier l'abonnement
+          const { data: subscription } = await supabase
+            .from('subscriptions')
+            .select('status')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .maybeSingle();
+
+          // Si première séance ET pas d'abonnement actif → paywall
+          if (count === 1 && !subscription) {
+            navigate("/paywall");
+            return;
+          }
+        }
+        
         navigate("/feedback");
       }
     }

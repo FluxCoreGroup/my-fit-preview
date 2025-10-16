@@ -8,10 +8,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Weekly = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -31,7 +34,7 @@ const Weekly = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validation basique
     if (!formData.weight1 || !formData.sessionsPlanned || !formData.sessionsDone) {
       toast({
@@ -44,30 +47,45 @@ const Weekly = () => {
 
     setLoading(true);
 
-    // Calculer poids moyen
-    const weights = [formData.weight1, formData.weight2, formData.weight3]
-      .filter(w => w)
-      .map(w => parseFloat(w));
-    const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
+    try {
+      // Calculer poids moyen
+      const weights = [formData.weight1, formData.weight2, formData.weight3]
+        .filter(w => w)
+        .map(w => parseFloat(w));
+      const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
 
-    const checkInData = {
-      ...formData,
-      averageWeight: avgWeight.toFixed(1),
-      timestamp: new Date().toISOString(),
-    };
+      if (user) {
+        // Sauvegarder dans Supabase
+        const { error } = await supabase.from('weekly_checkins').insert({
+          user_id: user.id,
+          average_weight: avgWeight,
+          sessions_planned: parseInt(formData.sessionsPlanned),
+          sessions_done: parseInt(formData.sessionsDone),
+          adherence_diet: formData.adherenceDiet ? parseInt(formData.adherenceDiet) : null,
+          hunger: formData.hunger || null,
+          energy: formData.energy || null,
+          sleep: formData.sleep || null,
+          blockers: formData.blockers || null,
+        });
 
-    // Sauvegarder dans localStorage pour l'instant
-    const existingCheckIns = JSON.parse(localStorage.getItem("weeklyCheckIns") || "[]");
-    existingCheckIns.push(checkInData);
-    localStorage.setItem("weeklyCheckIns", JSON.stringify(existingCheckIns));
+        if (error) throw error;
+      }
 
-    setTimeout(() => {
       toast({
         title: "Check-in enregistré ! 📊",
         description: "Ton programme sera ajusté en fonction de tes retours.",
       });
       navigate("/dashboard");
-    }, 500);
+    } catch (error) {
+      console.error("Error saving check-in:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder ton check-in. Réessaye.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
