@@ -18,21 +18,33 @@ export interface OnboardingInput {
   weight: number; // kg
   goal: 'weight-loss' | 'muscle-gain' | 'maintenance';
   goalHorizon: string; // ex: "3 mois"
+  targetWeightLoss?: number; // kg à perdre (optionnel)
+  activityLevel: 'sedentary' | 'light' | 'moderate' | 'high';
   frequency: number; // séances/semaine
   sessionDuration: number; // minutes
   location: 'home' | 'gym';
   equipment: string[];
   allergies: string[];
   restrictions: string[];
+  mealsPerDay: number; // 2-5
+  hasBreakfast: boolean;
+  healthConditions: string[];
 }
 
 export interface NutritionPreview {
+  bmi: number;
+  bmiCategory: string;
+  bmr: number;
+  tdee: number;
   calories: number;
+  deficit: number;
   macros: {
     protein: number;
     carbs: number;
     fat: number;
   };
+  fiber: number;
+  hydration: number;
   mealsPerDay: number;
   sampleDay: {
     meal: string;
@@ -72,47 +84,125 @@ export const nutritionPlanner = {
       throw new Error("Le moteur de nutrition n'est pas encore branché. Activer MODE_DEMO.");
     }
 
-    // Calculs simplifiés pour la démo
+    // 1. BMI = poids(kg) / (taille(m))²
+    const heightInMeters = input.height / 100;
+    const bmi = parseFloat((input.weight / (heightInMeters * heightInMeters)).toFixed(1));
+    
+    let bmiCategory = "Normal";
+    if (bmi < 18.5) bmiCategory = "Sous-poids";
+    else if (bmi >= 25 && bmi < 30) bmiCategory = "Surpoids";
+    else if (bmi >= 30) bmiCategory = "Obésité";
+
+    // 2. BMR (Mifflin-St Jeor)
     const bmr = input.sex === 'male'
       ? 10 * input.weight + 6.25 * input.height - 5 * input.age + 5
       : 10 * input.weight + 6.25 * input.height - 5 * input.age - 161;
     
-    const activityFactor = 1.4 + (input.frequency * 0.1);
+    // 3. TDEE = BMR × facteur activité
+    const activityFactors = {
+      sedentary: 1.2,
+      light: 1.375,
+      moderate: 1.55,
+      high: 1.725,
+    };
+    const activityFactor = activityFactors[input.activityLevel];
     const tdee = Math.round(bmr * activityFactor);
     
-    let targetCalories = tdee;
-    if (input.goal === 'weight-loss') targetCalories = Math.round(tdee * 0.8);
-    if (input.goal === 'muscle-gain') targetCalories = Math.round(tdee * 1.1);
+    // 4. Déficit calorique selon objectif et IMC
+    let deficitPercent = 0.15; // -15% par défaut
+    
+    if (input.goal === 'weight-loss') {
+      if (bmi >= 30 || bmi < 20) {
+        deficitPercent = 0.10; // -10% si IMC élevé ou faible (adhérence > vitesse)
+      }
+    } else if (input.goal === 'muscle-gain') {
+      deficitPercent = -0.10; // +10% surplus
+    } else {
+      deficitPercent = 0; // maintenance
+    }
+    
+    const targetCalories = Math.round(tdee * (1 - deficitPercent));
+    const deficit = tdee - targetCalories;
 
-    const protein = Math.round(input.weight * 2); // 2g/kg
-    const fat = Math.round(targetCalories * 0.25 / 9); // 25% des calories
-    const carbs = Math.round((targetCalories - (protein * 4) - (fat * 9)) / 4);
+    // 5. Macros
+    const protein = Math.round(input.weight * 1.8); // 1.8 g/kg
+    const fat = Math.round(input.weight * 0.8); // 0.8 g/kg
+    const remainingCalories = targetCalories - (protein * 4) - (fat * 9);
+    const carbs = Math.round(remainingCalories / 4);
+
+    // 6. Fibres : 14g / 1000 kcal
+    const fiber = Math.round((targetCalories / 1000) * 14);
+
+    // 7. Hydratation : 30-35 ml/kg/j + 300-500ml par 30min d'effort
+    const baseHydration = Math.round(input.weight * 32.5); // 32.5 ml/kg (moyenne)
+    const trainingHydration = Math.round((input.sessionDuration / 30) * 400); // 400ml par 30min
+    const dailyTrainingHydration = Math.round((trainingHydration * input.frequency) / 7);
+    const hydration = baseHydration + dailyTrainingHydration;
+
+    // Génération exemple de journée
+    const mealsPerDay = input.mealsPerDay;
+    const sampleDay = generateSampleDay(targetCalories, mealsPerDay, input.hasBreakfast, input.restrictions, input.allergies);
 
     return {
+      bmi,
+      bmiCategory,
+      bmr: Math.round(bmr),
+      tdee,
       calories: targetCalories,
+      deficit,
       macros: { protein, carbs, fat },
-      mealsPerDay: 3,
-      sampleDay: [
-        {
-          meal: "Petit-déjeuner",
-          foods: ["Flocons d'avoine (60g)", "Banane", "Beurre de cacahuète (20g)", "Lait (200ml)"],
-          approxCalories: Math.round(targetCalories * 0.3),
-        },
-        {
-          meal: "Déjeuner",
-          foods: ["Poulet grillé (150g)", "Riz basmati (80g sec)", "Brocolis vapeur", "Huile d'olive (1 c.à.s)"],
-          approxCalories: Math.round(targetCalories * 0.4),
-        },
-        {
-          meal: "Dîner",
-          foods: ["Saumon (120g)", "Patate douce (150g)", "Haricots verts", "Amandes (20g)"],
-          approxCalories: Math.round(targetCalories * 0.3),
-        },
-      ],
-      explanation: `D'après tes infos, ton besoin estimé est d'environ ${tdee} kcal/jour. Pour ${input.goal === 'weight-loss' ? 'perdre du poids' : input.goal === 'muscle-gain' ? 'prendre du muscle' : 'maintenir ton poids'}, on vise ${targetCalories} kcal avec ${protein}g de protéines, ${carbs}g de glucides et ${fat}g de lipides.`,
+      fiber,
+      hydration,
+      mealsPerDay,
+      sampleDay,
+      explanation: `Ton IMC est de ${bmi} (${bmiCategory}). Ton métabolisme de base (BMR) est d'environ ${Math.round(bmr)} kcal/jour. Avec ton niveau d'activité (${input.activityLevel}), ton besoin total (TDEE) est d'environ ${tdee} kcal/jour. Pour ${input.goal === 'weight-loss' ? 'perdre du poids de manière saine' : input.goal === 'muscle-gain' ? 'prendre du muscle' : 'maintenir ton poids'}, on vise ${targetCalories} kcal${deficit !== 0 ? ` (${deficit > 0 ? 'déficit' : 'surplus'} de ${Math.abs(deficit)} kcal)` : ''} avec ${protein}g de protéines, ${carbs}g de glucides, ${fat}g de lipides et ${fiber}g de fibres par jour. Hydratation recommandée : ${(hydration / 1000).toFixed(1)}L/jour.`,
     };
   },
 };
+
+// Fonction helper pour générer un exemple de journée
+function generateSampleDay(
+  targetCalories: number,
+  mealsPerDay: number,
+  hasBreakfast: boolean,
+  restrictions: string[],
+  allergies: string[]
+): NutritionPreview['sampleDay'] {
+  const meals = [];
+  const caloriesPerMeal = Math.round(targetCalories / mealsPerDay);
+  
+  const mealNames = hasBreakfast 
+    ? ["Petit-déjeuner", "Déjeuner", "Collation", "Dîner", "Collation du soir"]
+    : ["Déjeuner", "Collation", "Dîner", "Collation du soir"];
+
+  // Aliments de base (à filtrer selon restrictions/allergies)
+  const breakfastFoods = ["Flocons d'avoine (60g)", "Banane", "Beurre de cacahuète (20g)", "Lait (200ml)"];
+  const lunchFoods = ["Poulet grillé (150g)", "Riz basmati (80g sec)", "Brocolis vapeur", "Huile d'olive (1 c.à.s)"];
+  const snackFoods = ["Yaourt grec (150g)", "Fruits rouges", "Amandes (20g)"];
+  const dinnerFoods = ["Saumon (120g)", "Patate douce (150g)", "Haricots verts", "Avocat (1/2)"];
+
+  for (let i = 0; i < mealsPerDay; i++) {
+    let foods: string[] = [];
+    
+    if (i === 0 && hasBreakfast) {
+      foods = breakfastFoods;
+    } else if ((i === 0 && !hasBreakfast) || (i === 1 && hasBreakfast)) {
+      foods = lunchFoods;
+    } else if (i === mealsPerDay - 1 || (i === mealsPerDay - 2 && mealsPerDay >= 4)) {
+      foods = dinnerFoods;
+    } else {
+      foods = snackFoods;
+    }
+
+    meals.push({
+      meal: mealNames[i] || `Repas ${i + 1}`,
+      foods,
+      approxCalories: caloriesPerMeal,
+    });
+  }
+
+  return meals.slice(0, mealsPerDay);
+}
 
 // ============= TRAINING PLANNER (PLACEHOLDER) =============
 

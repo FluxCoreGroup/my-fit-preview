@@ -19,7 +19,7 @@ const Start = () => {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const totalSteps = 5;
+  const totalSteps = 7;
 
   const [formData, setFormData] = useState<Partial<OnboardingInput>>({
     age: undefined,
@@ -28,12 +28,17 @@ const Start = () => {
     weight: undefined,
     goal: undefined,
     goalHorizon: "",
+    targetWeightLoss: undefined,
+    activityLevel: undefined,
     frequency: undefined,
     sessionDuration: undefined,
     location: undefined,
     equipment: [],
     allergies: [],
     restrictions: [],
+    mealsPerDay: 3,
+    hasBreakfast: true,
+    healthConditions: [],
   });
 
   const updateField = (field: keyof OnboardingInput, value: any) => {
@@ -57,6 +62,11 @@ const Start = () => {
             session_duration: formData.sessionDuration,
             location: formData.location,
             equipment: formData.equipment,
+            target_weight_loss: formData.targetWeightLoss,
+            activity_level: formData.activityLevel,
+            meals_per_day: formData.mealsPerDay,
+            has_breakfast: formData.hasBreakfast,
+            health_conditions: formData.healthConditions,
           });
 
           if (error) throw error;
@@ -190,8 +200,49 @@ const Start = () => {
           </Card>
         )}
 
-        {/* Step 3: Fréquence */}
+        {/* Step 3: Niveau d'activité & objectif précis */}
         {step === 3 && (
+          <Card className="p-8 animate-in">
+            <h2 className="text-2xl font-bold mb-6">Ton niveau d'activité quotidien</h2>
+            <div className="space-y-4 mb-6">
+              <Label>Hors entraînement, tu es plutôt...</Label>
+              {[
+                { value: "sedentary", label: "Sédentaire", desc: "Bureau, peu de déplacements" },
+                { value: "light", label: "Légèrement actif", desc: "Marche quotidienne, quelques déplacements" },
+                { value: "moderate", label: "Modérément actif", desc: "Travail physique léger, beaucoup de marche" },
+                { value: "high", label: "Très actif", desc: "Travail physique intense, très mobile" }
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => updateField("activityLevel", option.value)}
+                  className={`w-full p-4 rounded-lg border-2 text-left transition-all hover:border-primary ${
+                    formData.activityLevel === option.value ? "border-primary bg-primary/5" : "border-border"
+                  }`}
+                >
+                  <div className="font-semibold">{option.label}</div>
+                  <div className="text-sm text-muted-foreground">{option.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            {formData.goal === 'weight-loss' && (
+              <div>
+                <Label htmlFor="targetWeightLoss">Combien de kg veux-tu perdre ? (optionnel)</Label>
+                <Input
+                  id="targetWeightLoss"
+                  type="number"
+                  placeholder="ex: 5"
+                  value={formData.targetWeightLoss || ""}
+                  onChange={(e) => updateField("targetWeightLoss", parseInt(e.target.value))}
+                  className="mt-2"
+                />
+              </div>
+            )}
+          </Card>
+        )}
+
+        {/* Step 4: Fréquence */}
+        {step === 4 && (
           <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Combien de fois peux-tu t'entraîner ?</h2>
             <div className="space-y-6">
@@ -236,8 +287,8 @@ const Start = () => {
           </Card>
         )}
 
-        {/* Step 4: Lieu & Matériel */}
-        {step === 4 && (
+        {/* Step 5: Lieu & Matériel */}
+        {step === 5 && (
           <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Où vas-tu t'entraîner ?</h2>
             <div className="space-y-6">
@@ -293,8 +344,46 @@ const Start = () => {
           </Card>
         )}
 
-        {/* Step 5: Restrictions */}
-        {step === 5 && (
+        {/* Step 6: Préférences alimentaires */}
+        {step === 6 && (
+          <Card className="p-8 animate-in">
+            <h2 className="text-2xl font-bold mb-6">Tes habitudes alimentaires</h2>
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="mealsPerDay">Combien de repas par jour préfères-tu ?</Label>
+                <Select
+                  value={formData.mealsPerDay?.toString()}
+                  onValueChange={(value) => updateField("mealsPerDay", parseInt(value))}
+                >
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Choisir..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[2, 3, 4, 5].map((n) => (
+                      <SelectItem key={n} value={n.toString()}>
+                        {n} repas par jour
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="hasBreakfast"
+                  checked={formData.hasBreakfast}
+                  onCheckedChange={(checked) => updateField("hasBreakfast", checked)}
+                />
+                <Label htmlFor="hasBreakfast" className="font-normal cursor-pointer">
+                  Je prends un petit-déjeuner
+                </Label>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Step 7: Restrictions & santé */}
+        {step === 7 && (
           <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Dernières infos</h2>
             <div className="space-y-6">
@@ -317,6 +406,18 @@ const Start = () => {
                   placeholder="ex: poisson, viande rouge..."
                   value={formData.restrictions?.join(", ") || ""}
                   onChange={(e) => updateField("restrictions", e.target.value.split(",").map(s => s.trim()))}
+                  className="mt-2"
+                />
+                <p className="text-sm text-muted-foreground mt-1">Sépare par des virgules</p>
+              </div>
+
+              <div>
+                <Label htmlFor="healthConditions">Conditions de santé particulières (optionnel)</Label>
+                <Input
+                  id="healthConditions"
+                  placeholder="ex: diabète, hypertension..."
+                  value={formData.healthConditions?.join(", ") || ""}
+                  onChange={(e) => updateField("healthConditions", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
                   className="mt-2"
                 />
                 <p className="text-sm text-muted-foreground mt-1">Sépare par des virgules</p>

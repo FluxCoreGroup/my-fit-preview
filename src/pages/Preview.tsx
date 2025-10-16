@@ -36,10 +36,20 @@ const Preview = () => {
 
   if (loading || !nutritionPlan || !trainingPlan) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Génération de ton plan personnalisé...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background">
+        <div className="text-center max-w-md px-4">
+          <div className="relative mb-8">
+            <div className="w-24 h-24 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 border-4 border-secondary/20 border-t-secondary rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <h2 className="text-2xl font-bold mb-3">Calcul de ton plan personnalisé</h2>
+          <div className="space-y-2 text-muted-foreground">
+            <p className="animate-pulse">📊 Calcul de ton BMR et TDEE...</p>
+            <p className="animate-pulse delay-150">🥗 Optimisation des macros...</p>
+            <p className="animate-pulse delay-300">💪 Adaptation des exercices...</p>
+          </div>
         </div>
       </div>
     );
@@ -65,18 +75,51 @@ const Preview = () => {
             <h2 className="text-2xl font-bold">Ton plan nutrition</h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <Card className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <div className="text-sm text-muted-foreground mb-1">IMC (BMI)</div>
+              <div className="text-3xl font-bold text-primary">{nutritionPlan.bmi}</div>
+              <div className="text-xs text-muted-foreground mt-1">{nutritionPlan.bmiCategory}</div>
+            </Card>
+            <Card className="p-4 bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
+              <div className="text-sm text-muted-foreground mb-1">TDEE</div>
+              <div className="text-3xl font-bold text-secondary">{nutritionPlan.tdee} kcal</div>
+              <div className="text-xs text-muted-foreground mt-1">Besoin total journalier</div>
+            </Card>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-4 mb-6">
             <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Calories/jour</div>
+              <div className="text-sm text-muted-foreground">Cible</div>
               <div className="text-2xl font-bold text-primary">{nutritionPlan.calories} kcal</div>
+              {nutritionPlan.deficit !== 0 && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  {nutritionPlan.deficit > 0 ? '−' : '+'}{Math.abs(nutritionPlan.deficit)} kcal
+                </div>
+              )}
             </Card>
             <Card className="p-4 bg-muted/50">
               <div className="text-sm text-muted-foreground">Protéines</div>
               <div className="text-2xl font-bold text-secondary">{nutritionPlan.macros.protein}g</div>
             </Card>
             <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Glucides / Lipides</div>
-              <div className="text-2xl font-bold text-accent">{nutritionPlan.macros.carbs}g / {nutritionPlan.macros.fat}g</div>
+              <div className="text-sm text-muted-foreground">Glucides</div>
+              <div className="text-2xl font-bold text-accent">{nutritionPlan.macros.carbs}g</div>
+            </Card>
+            <Card className="p-4 bg-muted/50">
+              <div className="text-sm text-muted-foreground">Lipides</div>
+              <div className="text-2xl font-bold text-accent">{nutritionPlan.macros.fat}g</div>
+            </Card>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            <Card className="p-3 bg-muted/30">
+              <div className="text-xs text-muted-foreground">Fibres recommandées</div>
+              <div className="text-lg font-semibold">{nutritionPlan.fiber}g/jour</div>
+            </Card>
+            <Card className="p-3 bg-muted/30">
+              <div className="text-xs text-muted-foreground">Hydratation</div>
+              <div className="text-lg font-semibold">{(nutritionPlan.hydration / 1000).toFixed(1)}L/jour</div>
             </Card>
           </div>
 
