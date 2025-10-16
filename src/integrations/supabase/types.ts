@@ -14,7 +14,257 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      feedback: {
+        Row: {
+          comments: string | null
+          completed: boolean | null
+          created_at: string
+          had_pain: boolean | null
+          id: string
+          pain_zones: string[] | null
+          rpe: number | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          comments?: string | null
+          completed?: boolean | null
+          created_at?: string
+          had_pain?: boolean | null
+          id?: string
+          pain_zones?: string[] | null
+          rpe?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          comments?: string | null
+          completed?: boolean | null
+          created_at?: string
+          had_pain?: boolean | null
+          id?: string
+          pain_zones?: string[] | null
+          rpe?: number | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goals: {
+        Row: {
+          created_at: string
+          equipment: string[] | null
+          frequency: number | null
+          goal_type: string
+          horizon: string | null
+          id: string
+          location: string | null
+          session_duration: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          equipment?: string[] | null
+          frequency?: number | null
+          goal_type: string
+          horizon?: string | null
+          id?: string
+          location?: string | null
+          session_duration?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          equipment?: string[] | null
+          frequency?: number | null
+          goal_type?: string
+          horizon?: string | null
+          id?: string
+          location?: string | null
+          session_duration?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          clerk_id: string
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          clerk_id: string
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clerk_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sessions: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          exercises: Json | null
+          id: string
+          session_date: string
+          user_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          exercises?: Json | null
+          id?: string
+          session_date?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          exercises?: Json | null
+          id?: string
+          session_date?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          plan_type: string | null
+          started_at: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          plan_type?: string | null
+          started_at?: string | null
+          status: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          plan_type?: string | null
+          started_at?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weekly_checkins: {
+        Row: {
+          adherence_diet: number | null
+          average_weight: number | null
+          blockers: string | null
+          created_at: string
+          energy: string | null
+          hunger: string | null
+          id: string
+          sessions_done: number | null
+          sessions_planned: number | null
+          sleep: string | null
+          user_id: string | null
+        }
+        Insert: {
+          adherence_diet?: number | null
+          average_weight?: number | null
+          blockers?: string | null
+          created_at?: string
+          energy?: string | null
+          hunger?: string | null
+          id?: string
+          sessions_done?: number | null
+          sessions_planned?: number | null
+          sleep?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          adherence_diet?: number | null
+          average_weight?: number | null
+          blockers?: string | null
+          created_at?: string
+          energy?: string | null
+          hunger?: string | null
+          id?: string
+          sessions_done?: number | null
+          sessions_planned?: number | null
+          sleep?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_checkins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
