@@ -149,8 +149,10 @@ const Preview = () => {
                     IMC (Indice de Masse Corporelle)
                   </div>
                   <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-auto p-1">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       L'IMC est un indicateur rapide pour évaluer si ton poids est adapté à ta taille. 
@@ -169,8 +171,10 @@ const Preview = () => {
                     TDEE (Dépense Énergétique Totale)
                   </div>
                   <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="w-4 h-4 text-muted-foreground" />
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-auto p-1">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       Le TDEE est le nombre de calories que tu brûles chaque jour (métabolisme de base + activité).
@@ -189,8 +193,10 @@ const Preview = () => {
             <div className="flex items-center gap-2 mb-6">
               <h3 className="text-xl font-bold">🎯 Ta cible calorique journalière</h3>
               <Tooltip>
-                <TooltipTrigger>
-                  <Info className="w-5 h-5 text-muted-foreground" />
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-auto p-1">
+                    <Info className="w-5 h-5 text-muted-foreground" />
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm">
                   Pour {input.goal === 'weight-loss' ? 'perdre du poids' : input.goal === 'muscle-gain' ? 'prendre du muscle' : 'te maintenir'}, 
@@ -254,6 +260,23 @@ const Preview = () => {
               </div>
             </Card>
           </div>
+
+          {/* CTA intermédiaire */}
+          <Card className="p-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30 animate-in">
+            <div className="text-center space-y-4">
+              <h3 className="text-2xl font-bold">Ton plan est prêt ! 🎉</h3>
+              <p className="text-muted-foreground">
+                Crée ton compte maintenant pour débloquer ta première séance d'entraînement personnalisée
+              </p>
+              <Button 
+                size="lg" 
+                onClick={handleCreateAccount}
+                className="bg-gradient-to-r from-primary to-secondary"
+              >
+                Créer mon compte gratuitement
+              </Button>
+            </div>
+          </Card>
 
           {/* Exemple de journée */}
           <Card className="p-6 animate-in">
