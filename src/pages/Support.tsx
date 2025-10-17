@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, MessageCircle, HelpCircle, Home } from "lucide-react";
+import { Mail, MessageCircle, HelpCircle } from "lucide-react";
+import { Header } from "@/components/Header";
 
 const Support = () => {
   const { toast } = useToast();
@@ -34,23 +35,16 @@ const Support = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <Link to="/">
-            <Button variant="outline" size="sm">
-              <Home className="w-4 h-4 mr-2" />
-              Retour à l'accueil
-            </Button>
-          </Link>
-        </div>
-
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">Centre d'aide</h1>
-          <p className="text-xl text-muted-foreground">
-            On est là pour t'aider ! Pose ta question ou consulte notre FAQ.
-          </p>
-        </div>
+    <>
+      <Header variant="marketing" />
+      <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4">Centre d'aide</h1>
+            <p className="text-xl text-muted-foreground">
+              On est là pour t'aider ! Pose ta question ou consulte notre FAQ.
+            </p>
+          </div>
 
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           {/* FAQ Quick Links */}
@@ -225,8 +219,9 @@ const Support = () => {
             </a>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

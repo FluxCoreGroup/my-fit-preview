@@ -6,6 +6,7 @@ import { nutritionPlanner, type OnboardingInput, type NutritionPreview } from "@
 import { useNavigate } from "react-router-dom";
 import { Utensils, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Header } from "@/components/Header";
 
 const loadingSteps = [
   { progress: 0, text: "📊 Analyse de ton profil..." },
@@ -122,7 +123,8 @@ const Preview = () => {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-muted/30 py-8 px-4">
+      <Header variant="onboarding" showBack onBack={() => navigate("/start")} />
+      <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center animate-in">

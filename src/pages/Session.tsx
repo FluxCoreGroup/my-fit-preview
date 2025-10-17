@@ -7,6 +7,7 @@ import { Play, Pause, ChevronRight, RefreshCw, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Header } from "@/components/Header";
 
 const Session = () => {
   const navigate = useNavigate();
@@ -191,10 +192,12 @@ const Session = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Progress Bar */}
-        <div className="bg-card rounded-lg p-4">
+    <>
+      <Header variant="app" />
+      <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Progress Bar */}
+          <div className="bg-card rounded-lg p-4">
           <div className="flex justify-between text-sm mb-2">
             <span className="font-medium">Exercice {currentExerciseIndex + 1}/{exercises.length}</span>
             <span className="text-muted-foreground">{Math.round(progress)}% complété</span>
@@ -311,8 +314,9 @@ const Session = () => {
             Terminer la séance
           </Button>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { Mail, Lock, User } from "lucide-react";
 import { z } from "zod";
+import { Header } from "@/components/Header";
 
 const loginSchema = z.object({
   email: z.string().email("Email invalide").max(255),
@@ -111,14 +112,16 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-8">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">Pulse.ai</h1>
-          <p className="text-muted-foreground">Ton coach fitness personnalisé</p>
-        </div>
+    <>
+      <Header variant="onboarding" />
+      <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-8 pt-24">
+        <div className="max-w-md w-full">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-2">Pulse.ai</h1>
+            <p className="text-muted-foreground">Ton coach fitness personnalisé</p>
+          </div>
 
-        <Card className="p-8">
+          <Card className="p-8">
           <Tabs defaultValue="login" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Connexion</TabsTrigger>
@@ -283,8 +286,9 @@ const Auth = () => {
             </TabsContent>
           </Tabs>
         </Card>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,10 +11,13 @@ import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import type { OnboardingInput } from "@/services/planner";
 import { useToast } from "@/hooks/use-toast";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { Header } from "@/components/Header";
 
 const Start = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data, saveProgress } = useOnboarding();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const totalSteps = 5;
@@ -39,10 +42,19 @@ const Start = () => {
     healthConditions: [],
   });
 
+  // Load saved progress on mount
+  useEffect(() => {
+    if (Object.keys(data).length > 0) {
+      setFormData(prev => ({ ...prev, ...data }));
+    }
+  }, []);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const updateField = (field: keyof OnboardingInput, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    const updated = { ...formData, [field]: value };
+    setFormData(updated);
+    saveProgress(updated); // Save to localStorage
     // Clear error when field is updated
     if (errors[field]) {
       setErrors(prev => {
@@ -160,8 +172,10 @@ const Start = () => {
   const progress = (step / totalSteps) * 100;
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <>
+      <Header variant="onboarding" showBack={step > 1} onBack={handleBack} />
+      <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
+        <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold mb-2">Ton évaluation</h1>
@@ -532,8 +546,9 @@ const Start = () => {
             Remplis tous les champs obligatoires (*) pour continuer
           </p>
         )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

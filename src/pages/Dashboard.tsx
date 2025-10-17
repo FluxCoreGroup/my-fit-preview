@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Calendar, Dumbbell, TrendingUp, Settings, PlayCircle, LogOut } from "lucide-react";
+import { Calendar, Dumbbell, TrendingUp, PlayCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Header } from "@/components/Header";
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   // Mock data - sera remplacé par des vraies données de Supabase
   const upcomingSessions = [
     { id: 1, name: "Full Body #2", date: "Aujourd'hui", time: "18:00" },
@@ -21,34 +22,18 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
+    <>
+      <Header variant="app" />
+      <div className="min-h-screen bg-muted/30 pt-16">
+      {/* Hero Section */}
       <div className="gradient-primary text-primary-foreground py-8 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">
-                Salut {user?.user_metadata?.name || 'Champion'} ! 👋
-              </h1>
-              <p className="text-primary-foreground/90">
-                Bienvenue sur ton tableau de bord Pulse.ai
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Link to="/legal">
-                <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
-                  <Settings className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                className="text-primary-foreground hover:bg-primary-foreground/10"
-                onClick={signOut}
-              >
-                <LogOut className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold mb-2">
+            Salut {user?.user_metadata?.name || 'Champion'} ! 👋
+          </h1>
+          <p className="text-primary-foreground/90">
+            Bienvenue sur ton tableau de bord Pulse.ai
+          </p>
         </div>
       </div>
 
@@ -167,7 +152,7 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Quick Links */}
+      {/* Quick Links */}
         <div className="flex flex-wrap gap-4 justify-center">
           <Link to="/weekly">
             <Button variant="outline">Check-in hebdomadaire</Button>
@@ -180,7 +165,8 @@ const Dashboard = () => {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

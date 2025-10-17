@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ThumbsUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Header } from "@/components/Header";
 
 const Feedback = () => {
   const navigate = useNavigate();
@@ -67,8 +68,10 @@ const Feedback = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <>
+      <Header variant="app" />
+      <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
+        <div className="max-w-2xl mx-auto space-y-6">
         <div className="text-center animate-in">
           <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <ThumbsUp className="w-8 h-8 text-accent" />
@@ -193,7 +196,8 @@ const Feedback = () => {
           </Button>
         </Card>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
