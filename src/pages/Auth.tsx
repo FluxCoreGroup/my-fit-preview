@@ -122,7 +122,7 @@ const Auth = () => {
           </div>
 
           <Card className="p-8">
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={new URLSearchParams(window.location.search).get('tab') || 'login'} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6">
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Inscription</TabsTrigger>

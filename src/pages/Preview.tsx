@@ -111,9 +111,8 @@ const Preview = () => {
       // Déjà connecté → aller directement à la séance
       navigate("/session");
     } else {
-      // Pas connecté → sauvegarder flag de redirection puis aller vers auth
-      localStorage.setItem("redirectAfterAuth", "/session");
-      navigate("/auth");
+      // Pas connecté → rediriger vers l'onglet inscription
+      navigate("/auth?tab=signup");
     }
   };
 
@@ -148,11 +147,9 @@ const Preview = () => {
                   <div className="text-sm text-muted-foreground">
                     IMC (Indice de Masse Corporelle)
                   </div>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-auto p-1">
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </Button>
+                      <Info className="w-4 h-4 text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       L'IMC est un indicateur rapide pour évaluer si ton poids est adapté à ta taille. 
@@ -170,11 +167,9 @@ const Preview = () => {
                   <div className="text-sm text-muted-foreground">
                     TDEE (Dépense Énergétique Totale)
                   </div>
-                  <Tooltip>
+                  <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-auto p-1">
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </Button>
+                      <Info className="w-4 h-4 text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors" />
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       Le TDEE est le nombre de calories que tu brûles chaque jour (métabolisme de base + activité).
@@ -192,11 +187,9 @@ const Preview = () => {
           <Card className="p-6 animate-in">
             <div className="flex items-center gap-2 mb-6">
               <h3 className="text-xl font-bold">🎯 Ta cible calorique journalière</h3>
-              <Tooltip>
+              <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-auto p-1">
-                    <Info className="w-5 h-5 text-muted-foreground" />
-                  </Button>
+                  <Info className="w-5 h-5 text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-sm">
                   Pour {input.goal === 'weight-loss' ? 'perdre du poids' : input.goal === 'muscle-gain' ? 'prendre du muscle' : 'te maintenir'}, 

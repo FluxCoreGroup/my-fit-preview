@@ -4,9 +4,11 @@ import { Link } from "react-router-dom";
 import { Calendar, Dumbbell, TrendingUp, PlayCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
+import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  useSaveOnboardingData(); // Sauvegarder les données du questionnaire si nécessaire
   // Mock data - sera remplacé par des vraies données de Supabase
   const upcomingSessions = [
     { id: 1, name: "Full Body #2", date: "Aujourd'hui", time: "18:00" },

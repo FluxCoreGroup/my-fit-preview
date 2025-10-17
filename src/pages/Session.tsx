@@ -8,11 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
+import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 
 const Session = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  useSaveOnboardingData(); // Sauvegarder les données du questionnaire si nécessaire
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
