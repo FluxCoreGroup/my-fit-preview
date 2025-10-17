@@ -53,7 +53,31 @@ const Start = () => {
     }
   };
 
-  // Validation par étape
+  // Vérifie si l'étape est valide SANS modifier le state (pour le bouton)
+  const isStepValid = (): boolean => {
+    switch(step) {
+      case 1:
+        return !!(formData.age && formData.age >= 15 && formData.age <= 100 &&
+                  formData.sex &&
+                  formData.height && formData.height >= 120 && formData.height <= 250 &&
+                  formData.weight && formData.weight >= 30 && formData.weight <= 300);
+      case 2:
+        return !!(formData.goal && formData.goalHorizon &&
+                  (formData.goal !== 'weight-loss' || !formData.targetWeightLoss || 
+                   (formData.targetWeightLoss >= 1 && formData.targetWeightLoss <= 50)));
+      case 3:
+        return !!formData.activityLevel;
+      case 4:
+        return !!(formData.frequency && formData.sessionDuration && formData.location && 
+                  formData.equipment && formData.equipment.length > 0);
+      case 5:
+        return true; // Toujours valide
+      default:
+        return false;
+    }
+  };
+
+  // Validation par étape avec messages d'erreur (appelé au clic)
   const validateStep = (): boolean => {
     const newErrors: Record<string, string> = {};
     
@@ -134,7 +158,6 @@ const Start = () => {
   };
 
   const progress = (step / totalSteps) * 100;
-  const canProceed = validateStep();
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
@@ -496,15 +519,15 @@ const Start = () => {
           )}
           <Button
             onClick={handleNext}
-            disabled={loading || !canProceed}
-            className={`ml-auto ${!canProceed ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={loading || !isStepValid()}
+            className={`ml-auto ${!isStepValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {loading ? "Chargement..." : step === totalSteps ? "Voir mon plan" : "Suivant"}
             {!loading && <ChevronRight className="w-4 h-4 ml-2" />}
           </Button>
         </div>
 
-        {!canProceed && step < 5 && (
+        {!isStepValid() && step < 5 && (
           <p className="text-sm text-destructive text-center mt-4">
             Remplis tous les champs obligatoires (*) pour continuer
           </p>
