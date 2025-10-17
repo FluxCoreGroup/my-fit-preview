@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -220,69 +220,16 @@ const Auth = () => {
 
             {/* Signup Tab */}
             <TabsContent value="signup">
-              <form onSubmit={handleSignup} className="space-y-4">
-                <div>
-                  <Label htmlFor="signup-name">Prénom</Label>
-                  <div className="relative mt-2">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="signup-name"
-                      type="text"
-                      placeholder="Alex"
-                      value={signupName}
-                      onChange={(e) => setSignupName(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="signup-email">Email</Label>
-                  <div className="relative mt-2">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      placeholder="ton@email.com"
-                      value={signupEmail}
-                      onChange={(e) => setSignupEmail(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="signup-password">Mot de passe</Label>
-                  <div className="relative mt-2">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={signupPassword}
-                      onChange={(e) => setSignupPassword(e.target.value)}
-                      className="pl-10"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Au moins 6 caractères</p>
-                </div>
-
-                <div className="text-xs text-muted-foreground">
-                  En t'inscrivant, tu acceptes nos{" "}
-                  <a href="/legal" className="text-primary hover:underline">
-                    conditions générales
-                  </a>
-                  .
-                </div>
-
-                <Button type="submit" size="lg" variant="hero" className="w-full" disabled={loading}>
-                  {loading ? "Création..." : "Créer mon compte"}
-                </Button>
-              </form>
+              <div className="text-center py-8 space-y-4">
+                <p className="text-muted-foreground">
+                  Pour créer ton compte, commence par répondre à quelques questions afin de personnaliser ton programme.
+                </p>
+                <Link to="/start">
+                  <Button size="lg" variant="default" className="w-full">
+                    Commencer le questionnaire
+                  </Button>
+                </Link>
+              </div>
             </TabsContent>
           </Tabs>
         </Card>
