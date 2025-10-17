@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Calendar, Dumbbell, TrendingUp, PlayCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
@@ -8,6 +8,9 @@ import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const subscriptionSuccess = searchParams.get('subscription') === 'success';
+  
   useSaveOnboardingData(); // Sauvegarder les données du questionnaire si nécessaire
   // Mock data - sera remplacé par des vraies données de Supabase
   const upcomingSessions = [
@@ -40,6 +43,16 @@ const Dashboard = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Success Message */}
+        {subscriptionSuccess && (
+          <Card className="p-6 bg-accent/10 border-accent">
+            <h2 className="text-xl font-bold mb-2">🎉 Bienvenue dans Pulse.ai Premium !</h2>
+            <p className="text-muted-foreground">
+              Ton abonnement est activé. Tu as maintenant accès à toutes les fonctionnalités !
+            </p>
+          </Card>
+        )}
+
         {/* Quick Stats */}
         <div className="grid md:grid-cols-4 gap-4">
           <Card className="p-6">

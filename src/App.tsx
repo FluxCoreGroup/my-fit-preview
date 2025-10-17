@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import Landing from "./pages/Landing";
 import Start from "./pages/Start";
 import Preview from "./pages/Preview";
@@ -41,12 +42,12 @@ const App = () => (
             <Route path="/support" element={<Support />} />
             
             {/* Protected routes */}
-            <Route path="/generating-session" element={<ProtectedRoute><GeneratingSession /></ProtectedRoute>} />
-            <Route path="/session" element={<ProtectedRoute><Session /></ProtectedRoute>} />
-            <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-            <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
-            <Route path="/weekly" element={<ProtectedRoute><Weekly /></ProtectedRoute>} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/generating-session" element={<ProtectedRoute><GeneratingSession /></ProtectedRoute>} />
+          <Route path="/session" element={<ProtectedRoute><SubscriptionGuard><Session /></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+          <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
+          <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><Weekly /></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><SubscriptionGuard><Dashboard /></SubscriptionGuard></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

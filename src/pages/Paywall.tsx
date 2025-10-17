@@ -1,18 +1,37 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, Sparkles, CreditCard } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Paywall = () => {
   const { toast } = useToast();
 
-  const handleSubscribe = () => {
-    // Placeholder - Sera remplacé par l'intégration Stripe réelle
-    toast({
-      title: "Intégration Stripe à venir",
-      description: "Cette fonctionnalité sera activée prochainement.",
-    });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async (planType: 'monthly' | 'yearly' = 'monthly') => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { planType }
+      });
+
+      if (error) throw error;
+
+      // Rediriger vers Stripe Checkout
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Stripe error:', error);
+      toast({
+        title: "Erreur de paiement",
+        description: "Impossible de créer la session de paiement. Réessaye.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,11 +80,12 @@ const Paywall = () => {
           <Button
             size="lg"
             variant="hero"
-            onClick={handleSubscribe}
+            onClick={() => handleSubscribe('monthly')}
+            disabled={loading}
             className="w-full text-lg"
           >
             <CreditCard className="w-5 h-5 mr-2" />
-            S'abonner maintenant
+            {loading ? "Redirection..." : "S'abonner maintenant"}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground mt-4">
