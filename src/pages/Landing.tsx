@@ -3,9 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles, ShieldCheck, ArrowRight } from "lucide-react";
+import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles, ShieldCheck, ArrowRight, X, Smartphone, Apple, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { Header } from "@/components/Header";
 
 const testimonials = [
   {
@@ -67,8 +68,10 @@ const Landing = () => {
   const { user } = useAuth();
   return (
     <div className="min-h-screen">
+      <Header />
+      
       {/* Hero Section - Amélioré */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pt-16">
         <div className="gradient-hero min-h-[90vh] flex items-center justify-center px-4 py-20">
           <div className="max-w-4xl mx-auto text-center text-primary-foreground space-y-8 animate-in">
             <Badge variant="secondary" className="mb-4">
@@ -385,8 +388,146 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Comparaison Section */}
+      <section className="py-20 px-4 bg-muted/30" id="features">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="mb-4">Pourquoi choisir Pulse.ai ?</h2>
+            <p className="text-muted-foreground text-lg">
+              Compare notre approche avec les alternatives traditionnelles
+            </p>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full bg-card rounded-lg overflow-hidden">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-6 px-6 font-semibold"></th>
+                  <th className="text-center py-6 px-6 bg-primary/5">
+                    <div className="font-bold text-primary text-lg">Pulse.ai</div>
+                  </th>
+                  <th className="text-center py-6 px-6">
+                    <div className="font-semibold text-muted-foreground">Coach personnel</div>
+                  </th>
+                  <th className="text-center py-6 px-6">
+                    <div className="font-semibold text-muted-foreground">Apps génériques</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Prix mensuel</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <span className="font-bold text-primary">9,90€</span>
+                  </td>
+                  <td className="text-center py-4 px-6 text-muted-foreground">50-150€</td>
+                  <td className="text-center py-4 px-6 text-muted-foreground">0-15€</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Personnalisation IA</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Ajustements automatiques</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Disponibilité 24/7</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Plans nutrition + sport</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium">Support 7j/7</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link to="/start">
+              <Button size="lg">
+                Essayer Pulse.ai gratuitement <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Intégrations Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="mb-4">Synchronise avec tes apps préférées</h2>
+          <p className="text-muted-foreground text-lg mb-12">
+            Connecte Pulse.ai à tes applications de santé et fitness pour un suivi optimal
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
+              <Apple className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="font-semibold">Apple Health</p>
+            </Card>
+            <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
+              <Smartphone className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="font-semibold">Google Fit</p>
+            </Card>
+            <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
+              <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="font-semibold">Fitbit</p>
+            </Card>
+            <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
+              <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="font-semibold">Strava</p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ Section - Améliorée avec Accordion */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section className="py-20 px-4 bg-muted/30" id="faq">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-center mb-4">Questions fréquentes</h2>
           <p className="text-center text-muted-foreground mb-12">
@@ -455,17 +596,102 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t py-8 px-4 bg-muted/20">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-          <p>© 2025 Pulse.ai - Tous droits réservés</p>
-          <div className="flex gap-6">
-            <Link to="/legal" className="hover:text-foreground transition-colors">
-              Mentions légales
-            </Link>
-            <Link to="/support" className="hover:text-foreground transition-colors">
-              Support
-            </Link>
+      {/* Footer Amélioré */}
+      <footer className="border-t py-16 px-4 bg-card">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            {/* Logo + Tagline */}
+            <div className="space-y-4">
+              <Link to="/" className="flex items-center gap-2 font-bold text-xl">
+                <Dumbbell className="w-6 h-6 text-primary" />
+                <span>Pulse.ai</span>
+              </Link>
+              <p className="text-sm text-muted-foreground">
+                Ton coach fitness IA, disponible 24/7 pour transformer ton corps.
+              </p>
+              <div className="flex gap-4 pt-2">
+                <Badge variant="outline" className="text-xs">
+                  🔒 Paiement sécurisé
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  ✓ RGPD
+                </Badge>
+              </div>
+            </div>
+
+            {/* Produit */}
+            <div>
+              <h4 className="font-semibold mb-4">Produit</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <a href="#features" className="hover:text-foreground transition-colors">
+                    Fonctionnalités
+                  </a>
+                </li>
+                <li>
+                  <Link to="/preview" className="hover:text-foreground transition-colors">
+                    Voir une démo
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/start" className="hover:text-foreground transition-colors">
+                    Commencer
+                  </Link>
+                </li>
+                <li>
+                  <a href="#faq" className="hover:text-foreground transition-colors">
+                    FAQ
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Ressources */}
+            <div>
+              <h4 className="font-semibold mb-4">Ressources</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link to="/support" className="hover:text-foreground transition-colors">
+                    Support
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/feedback" className="hover:text-foreground transition-colors">
+                    Feedback
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Légal */}
+            <div>
+              <h4 className="font-semibold mb-4">Légal</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link to="/legal" className="hover:text-foreground transition-colors">
+                    Mentions légales
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/legal" className="hover:text-foreground transition-colors">
+                    CGU
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/legal" className="hover:text-foreground transition-colors">
+                    Confidentialité
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+            <p>© 2025 Pulse.ai - Tous droits réservés</p>
+            <div className="flex gap-4">
+              <span>Fait avec ❤️ pour ta transformation</span>
+            </div>
           </div>
         </div>
       </footer>
