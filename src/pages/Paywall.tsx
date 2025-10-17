@@ -53,10 +53,10 @@ const Paywall = () => {
         <Card className="p-8 md:p-12 animate-in max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <div className="flex items-baseline justify-center gap-2 mb-2">
-              <span className="text-5xl font-bold">9,90€</span>
+              <span className="text-5xl font-bold">29,99€</span>
               <span className="text-xl text-muted-foreground">/mois</span>
             </div>
-            <p className="text-muted-foreground">ou 89€/an (2 mois offerts)</p>
+            <p className="text-muted-foreground">ou 299,90€/an (économise 60€)</p>
           </div>
 
           <div className="space-y-4 mb-8">

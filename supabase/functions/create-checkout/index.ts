@@ -46,8 +46,8 @@ serve(async (req) => {
 
     const { planType = 'monthly' } = await req.json();
     const priceId = planType === 'monthly' 
-      ? 'price_1SJEfVFHkkJtNHC3yGKC9xbc' // 9,90€/mois
-      : 'price_1SJEfVFHkkJtNHC3yGKC9xbc'; // TODO: Créer prix annuel si besoin
+      ? 'price_1SJEiuFHkkJtNHC3MV242ab4' // 29,99€/mois
+      : 'price_1SJEjAFHkkJtNHC3WE3Di3IZ'; // 299,90€/an
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -73,8 +73,9 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    logStep("ERROR", { message: error.message });
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
