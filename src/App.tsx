@@ -9,6 +9,7 @@ import Landing from "./pages/Landing";
 import Start from "./pages/Start";
 import Preview from "./pages/Preview";
 import Auth from "./pages/Auth";
+import Signup from "./pages/Signup";
 import Session from "./pages/Session";
 import Feedback from "./pages/Feedback";
 import Paywall from "./pages/Paywall";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/start" element={<Start />} />
             <Route path="/preview" element={<Preview />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/support" element={<Support />} />
             

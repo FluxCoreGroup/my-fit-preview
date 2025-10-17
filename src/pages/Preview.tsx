@@ -111,8 +111,8 @@ const Preview = () => {
       // Déjà connecté → aller directement à la séance
       navigate("/session");
     } else {
-      // Pas connecté → rediriger vers l'onglet inscription
-      navigate("/auth?tab=signup");
+      // Pas connecté → rediriger vers la page d'inscription
+      navigate("/signup");
     }
   };
 
