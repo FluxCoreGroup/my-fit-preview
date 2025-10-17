@@ -1,0 +1,155 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+const steps = [
+  { icon: "📋", text: "Analyse de tes objectifs..." },
+  { icon: "💪", text: "Sélection des exercices adaptés..." },
+  { icon: "🎯", text: "Optimisation des séries et répétitions..." },
+  { icon: "🔥", text: "Ajustement de l'intensité..." },
+  { icon: "✅", text: "Ta séance est prête !" }
+];
+
+const GeneratingSession = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    // Animation des étapes
+    const stepInterval = setInterval(() => {
+      setCurrentStep(prev => {
+        if (prev < steps.length - 1) return prev + 1;
+        return prev;
+      });
+    }, 3000);
+
+    // Animation de la barre de progression
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev < 100) return prev + 2;
+        return prev;
+      });
+    }, 300);
+
+    // Appel à l'edge function
+    const generateSession = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error("User not authenticated");
+        }
+
+        const { data, error } = await supabase.functions.invoke('generate-training-session', {
+          headers: {
+            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+          }
+        });
+
+        if (error) throw error;
+
+        // Sauvegarder dans localStorage
+        localStorage.setItem('generatedSession', JSON.stringify(data));
+
+        // Attendre que l'animation soit terminée
+        setTimeout(() => {
+          navigate('/session');
+        }, 15000);
+
+      } catch (error) {
+        console.error('Error generating session:', error);
+        clearInterval(stepInterval);
+        clearInterval(progressInterval);
+        
+        toast({
+          title: "Erreur de génération",
+          description: "Impossible de générer ta séance. Réessaie dans quelques instants.",
+          variant: "destructive"
+        });
+
+        // Fallback vers une séance démo
+        setTimeout(() => {
+          navigate('/session');
+        }, 2000);
+      }
+    };
+
+    generateSession();
+
+    return () => {
+      clearInterval(stepInterval);
+      clearInterval(progressInterval);
+    };
+  }, [navigate, toast]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+      <div className="max-w-md w-full space-y-8 text-center">
+        {/* Logo animé */}
+        <div className="relative">
+          <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
+            <span className="text-5xl">🏋️</span>
+          </div>
+          <div className="absolute inset-0 w-24 h-24 mx-auto border-4 border-primary/20 rounded-full animate-spin" 
+               style={{ borderTopColor: 'hsl(var(--primary))' }}></div>
+        </div>
+
+        {/* Titre */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-foreground">
+            Création de ta séance
+          </h1>
+          <p className="text-muted-foreground">
+            Nous analysons tes données pour créer un entraînement parfait pour toi
+          </p>
+        </div>
+
+        {/* Barre de progression */}
+        <div className="space-y-2">
+          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <p className="text-sm text-muted-foreground">{progress}%</p>
+        </div>
+
+        {/* Étapes */}
+        <div className="space-y-4 pt-4">
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
+                index === currentStep
+                  ? 'bg-primary/10 scale-105'
+                  : index < currentStep
+                  ? 'bg-secondary/50 opacity-60'
+                  : 'opacity-30'
+              }`}
+            >
+              <span className="text-2xl">{step.icon}</span>
+              <span className={`text-sm font-medium ${
+                index === currentStep ? 'text-primary' : 'text-foreground'
+              }`}>
+                {step.text}
+              </span>
+              {index < currentStep && (
+                <span className="ml-auto text-green-500">✓</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Message de patience */}
+        <p className="text-xs text-muted-foreground pt-4">
+          ⏱️ Cela prend environ 15 secondes...
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default GeneratingSession;

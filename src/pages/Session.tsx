@@ -24,76 +24,60 @@ const Session = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    const initSession = async () => {
-      const dataStr = localStorage.getItem("onboardingData");
-      if (!dataStr) {
-        navigate("/start");
+    const loadSession = async () => {
+      // 1. Vérifier si une session générée existe dans localStorage
+      const generatedSessionStr = localStorage.getItem("generatedSession");
+      
+      if (generatedSessionStr) {
+        try {
+          const generatedSession = JSON.parse(generatedSessionStr);
+          setExercises(generatedSession.exercises);
+          localStorage.removeItem("generatedSession");
+
+          // Sauvegarder la session en DB
+          if (user) {
+            const { data: session, error } = await supabase
+              .from("sessions")
+              .insert({
+                user_id: user.id,
+                exercises: generatedSession.exercises,
+                completed: false
+              })
+              .select()
+              .single();
+
+            if (session) setSessionId(session.id);
+          }
+          return;
+        } catch (error) {
+          console.error("Error loading generated session:", error);
+        }
+      }
+
+      // 2. Fallback : récupérer la dernière session depuis Supabase
+      if (!user) {
+        navigate("/auth");
         return;
       }
 
-      try {
-        const data = JSON.parse(dataStr);
-        const plan = trainingPlanner.getPreview(data);
-        setExercises(plan.exercises);
-
-        // Sauvegarder les goals dans Supabase à la première connexion
-        if (user) {
-          // Vérifier si les goals existent déjà
-          const { data: existingGoals } = await supabase
-            .from('goals')
-            .select('id')
-            .eq('user_id', user.id)
-            .maybeSingle();
-
-          // Si pas de goals existants, sauvegarder depuis localStorage
-          if (!existingGoals) {
-            const { error: goalsError } = await supabase.from('goals').insert({
-              user_id: user.id,
-              goal_type: data.goal || 'maintenance',
-              horizon: data.goalHorizon || '3-months',
-              frequency: data.frequency,
-              session_duration: data.sessionDuration,
-              location: data.location,
-              equipment: data.equipment,
-              target_weight_loss: data.targetWeightLoss,
-              activity_level: data.activityLevel,
-              meals_per_day: data.mealsPerDay,
-              has_breakfast: data.hasBreakfast,
-              health_conditions: data.healthConditions,
-            });
-
-            if (goalsError) {
-              console.error("Error saving goals:", goalsError);
-            } else {
-              // Nettoyer localStorage après sauvegarde réussie
-              localStorage.removeItem("onboardingData");
-            }
-          }
-
-          // Créer une session dans Supabase
-          const { data: session, error } = await supabase
-            .from('sessions')
-            .insert([{
-              user_id: user.id,
-              exercises: plan.exercises as any,
-              completed: false,
-            }])
-            .select()
-            .single();
-
-          if (error) {
-            console.error("Error creating session:", error);
-          } else {
-            setSessionId(session.id);
-          }
-        }
-      } catch (error) {
-        console.error("Error loading session:", error);
-        navigate("/start");
+      const { data: lastSession } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (lastSession?.exercises && Array.isArray(lastSession.exercises)) {
+        setExercises(lastSession.exercises as any);
+        setSessionId(lastSession.id);
+      } else {
+        // 3. Pas de session trouvée → rediriger vers training-setup
+        navigate("/training-setup");
       }
     };
 
-    initSession();
+    loadSession();
   }, [navigate, user]);
 
   useEffect(() => {

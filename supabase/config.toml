@@ -1,1 +1,4 @@
 project_id = "nsowlnpntphxwykzbwmc"
+
+[functions.generate-training-session]
+verify_jwt = true

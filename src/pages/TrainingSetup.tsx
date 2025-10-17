@@ -132,9 +132,9 @@ const TrainingSetup = () => {
       clearTrainingSetup();
       toast({
         title: "Profil d'entraînement créé ! 🎉",
-        description: "Ton plan personnalisé est prêt.",
+        description: "Génération de ta séance personnalisée...",
       });
-      navigate("/session");
+      navigate("/generating-session");
     } catch (error: any) {
       toast({
         title: "Erreur",
