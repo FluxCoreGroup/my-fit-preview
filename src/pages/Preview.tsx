@@ -1,15 +1,86 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { nutritionPlanner, trainingPlanner, type OnboardingInput, type NutritionPreview, type TrainingPreview } from "@/services/planner";
-import { Link, useNavigate } from "react-router-dom";
-import { Utensils, Dumbbell, ChevronRight, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { nutritionPlanner, type OnboardingInput, type NutritionPreview } from "@/services/planner";
+import { useNavigate } from "react-router-dom";
+import { Utensils, Info } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+
+const loadingSteps = [
+  { progress: 0, text: "📊 Analyse de ton profil..." },
+  { progress: 15, text: "🔢 Calcul du BMI et BMR..." },
+  { progress: 35, text: "🔥 Estimation du TDEE selon ton activité..." },
+  { progress: 50, text: "🎯 Détermination de la cible calorique..." },
+  { progress: 65, text: "🥗 Optimisation des macronutriments..." },
+  { progress: 80, text: "💧 Calcul de l'hydratation recommandée..." },
+  { progress: 95, text: "💪 Finalisation de ton plan..." },
+  { progress: 100, text: "✅ Ton plan est prêt !" }
+];
+
+const LoadingAnalysis = () => {
+  const [progress, setProgress] = useState(0);
+  const [currentText, setCurrentText] = useState(loadingSteps[0].text);
+
+  useEffect(() => {
+    const totalDuration = 15000; // 15 secondes
+    const startTime = Date.now();
+
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const calculatedProgress = Math.min((elapsed / totalDuration) * 100, 100);
+      
+      setProgress(calculatedProgress);
+      
+      // Update text based on progress
+      const currentStep = loadingSteps.reduce((acc, step) => {
+        return calculatedProgress >= step.progress ? step : acc;
+      }, loadingSteps[0]);
+      
+      setCurrentText(currentStep.text);
+
+      if (calculatedProgress >= 100) {
+        clearInterval(timer);
+      }
+    }, 150); // Update every 150ms for smooth animation
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background">
+      <div className="text-center max-w-md px-4">
+        {/* Animated spinner */}
+        <div className="relative mb-8">
+          <div className="w-32 h-32 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-2xl font-bold text-primary">{Math.round(progress)}%</div>
+          </div>
+        </div>
+        
+        <h2 className="text-2xl font-bold mb-4">Calcul de ton plan personnalisé</h2>
+        
+        <div className="mb-6">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+        
+        <p className="text-lg text-muted-foreground animate-pulse">{currentText}</p>
+      </div>
+    </div>
+  );
+};
 
 const Preview = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPreview | null>(null);
-  const [trainingPlan, setTrainingPlan] = useState<TrainingPreview | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingPhase, setLoadingPhase] = useState<'loading' | 'results'>('loading');
+  const [input, setInput] = useState<OnboardingInput | null>(null);
 
   useEffect(() => {
     const dataStr = localStorage.getItem("onboardingData");
@@ -20,114 +91,174 @@ const Preview = () => {
 
     try {
       const data: OnboardingInput = JSON.parse(dataStr);
+      setInput(data);
       
-      // Générer les plans avec les services placeholders
-      const nutrition = nutritionPlanner.getPreview(data);
-      const training = trainingPlanner.getPreview(data);
-      
-      setNutritionPlan(nutrition);
-      setTrainingPlan(training);
-      setLoading(false);
+      // Start 15-second loading
+      setTimeout(() => {
+        const nutrition = nutritionPlanner.getPreview(data);
+        setNutritionPlan(nutrition);
+        setLoadingPhase('results');
+      }, 15000);
     } catch (error) {
       console.error("Error generating preview:", error);
       navigate("/start");
     }
   }, [navigate]);
 
-  if (loading || !nutritionPlan || !trainingPlan) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background">
-        <div className="text-center max-w-md px-4">
-          <div className="relative mb-8">
-            <div className="w-24 h-24 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 border-4 border-secondary/20 border-t-secondary rounded-full animate-spin"></div>
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold mb-3">Calcul de ton plan personnalisé</h2>
-          <div className="space-y-2 text-muted-foreground">
-            <p className="animate-pulse">📊 Calcul de ton BMR et TDEE...</p>
-            <p className="animate-pulse delay-150">🥗 Optimisation des macros...</p>
-            <p className="animate-pulse delay-300">💪 Adaptation des exercices...</p>
-          </div>
-        </div>
-      </div>
-    );
+  const handleCreateAccount = () => {
+    if (user) {
+      // Déjà connecté → aller directement à la séance
+      navigate("/session");
+    } else {
+      // Pas connecté → sauvegarder flag de redirection puis aller vers auth
+      localStorage.setItem("redirectAfterAuth", "/session");
+      navigate("/auth");
+    }
+  };
+
+  if (loadingPhase === 'loading' || !nutritionPlan || !input) {
+    return <LoadingAnalysis />;
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 py-8 px-4">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center animate-in">
-          <h1 className="text-4xl font-bold mb-4">Ton aperçu personnalisé 🎯</h1>
-          <p className="text-lg text-muted-foreground">
-            Voici un aperçu de ce que Pulse.ai peut faire pour toi. Ce n'est qu'un début !
-          </p>
-        </div>
-
-        {/* Nutrition Plan */}
-        <Card className="p-8 animate-in">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Utensils className="w-6 h-6 text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold">Ton plan nutrition</h2>
+    <TooltipProvider>
+      <div className="min-h-screen bg-muted/30 py-8 px-4">
+        <div className="max-w-4xl mx-auto space-y-8">
+          {/* Header */}
+          <div className="text-center animate-in">
+            <h1 className="text-4xl font-bold mb-4">📊 Ton analyse personnalisée</h1>
+            <p className="text-lg text-muted-foreground">
+              Voici ton plan nutrition détaillé basé sur tes réponses
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <Card className="p-4 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-              <div className="text-sm text-muted-foreground mb-1">IMC (BMI)</div>
-              <div className="text-3xl font-bold text-primary">{nutritionPlan.bmi}</div>
-              <div className="text-xs text-muted-foreground mt-1">{nutritionPlan.bmiCategory}</div>
-            </Card>
-            <Card className="p-4 bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
-              <div className="text-sm text-muted-foreground mb-1">TDEE</div>
-              <div className="text-3xl font-bold text-secondary">{nutritionPlan.tdee} kcal</div>
-              <div className="text-xs text-muted-foreground mt-1">Besoin total journalier</div>
-            </Card>
-          </div>
-
-          <div className="grid md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Cible</div>
-              <div className="text-2xl font-bold text-primary">{nutritionPlan.calories} kcal</div>
-              {nutritionPlan.deficit !== 0 && (
-                <div className="text-xs text-muted-foreground mt-1">
-                  {nutritionPlan.deficit > 0 ? '−' : '+'}{Math.abs(nutritionPlan.deficit)} kcal
+          {/* Métriques de base */}
+          <Card className="p-6 border-2 border-primary/20 animate-in">
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Utensils className="w-7 h-7 text-primary" />
+              Tes métriques de base
+            </h2>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* BMI */}
+              <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="text-sm text-muted-foreground">
+                    IMC (Indice de Masse Corporelle)
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      L'IMC est un indicateur rapide pour évaluer si ton poids est adapté à ta taille. 
+                      Formule : poids (kg) ÷ taille² (m). Entre 18.5 et 25 = Normal.
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
-              )}
+                <div className="text-4xl font-bold text-primary mb-1">{nutritionPlan.bmi}</div>
+                <div className="text-sm text-muted-foreground">{nutritionPlan.bmiCategory}</div>
+              </Card>
+
+              {/* TDEE */}
+              <Card className="p-6 bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="text-sm text-muted-foreground">
+                    TDEE (Dépense Énergétique Totale)
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="w-4 h-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      Le TDEE est le nombre de calories que tu brûles chaque jour (métabolisme de base + activité).
+                      C'est la base pour calculer ton objectif calorique.
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <div className="text-4xl font-bold text-secondary mb-1">{nutritionPlan.tdee} kcal</div>
+                <div className="text-sm text-muted-foreground">Besoin énergétique journalier</div>
+              </Card>
+            </div>
+          </Card>
+
+          {/* Cible personnalisée */}
+          <Card className="p-6 animate-in">
+            <div className="flex items-center gap-2 mb-6">
+              <h3 className="text-xl font-bold">🎯 Ta cible calorique journalière</h3>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="w-5 h-5 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm">
+                  Pour {input.goal === 'weight-loss' ? 'perdre du poids' : input.goal === 'muscle-gain' ? 'prendre du muscle' : 'te maintenir'}, 
+                  on applique {nutritionPlan.deficit !== 0 ? `un ${nutritionPlan.deficit > 0 ? 'déficit' : 'surplus'} de ${Math.abs(nutritionPlan.deficit)} kcal/jour` : 'ton TDEE exact'}
+                  {nutritionPlan.deficit !== 0 && ` (soit ~${Math.round(Math.abs(nutritionPlan.deficit) / nutritionPlan.tdee * 100)}% de ton TDEE)`}.
+                  C'est un rythme sain et durable.
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            
+            <div className="text-5xl font-bold text-center text-primary mb-2">
+              {nutritionPlan.calories} kcal
+            </div>
+            {nutritionPlan.deficit !== 0 && (
+              <div className="text-center text-muted-foreground text-sm mb-6">
+                {nutritionPlan.deficit > 0 ? '−' : '+'}{Math.abs(nutritionPlan.deficit)} kcal par rapport à ton TDEE
+              </div>
+            )}
+
+            {/* Macros */}
+            <div className="grid grid-cols-3 gap-4 mt-6">
+              <Card className="p-4 text-center bg-muted/30">
+                <div className="text-3xl font-bold text-secondary mb-1">{nutritionPlan.macros.protein}g</div>
+                <div className="text-sm text-muted-foreground">Protéines</div>
+                <div className="text-xs text-muted-foreground mt-1">1.8g/kg</div>
+              </Card>
+              <Card className="p-4 text-center bg-muted/30">
+                <div className="text-3xl font-bold text-accent mb-1">{nutritionPlan.macros.carbs}g</div>
+                <div className="text-sm text-muted-foreground">Glucides</div>
+                <div className="text-xs text-muted-foreground mt-1">Énergie</div>
+              </Card>
+              <Card className="p-4 text-center bg-muted/30">
+                <div className="text-3xl font-bold text-accent mb-1">{nutritionPlan.macros.fat}g</div>
+                <div className="text-sm text-muted-foreground">Lipides</div>
+                <div className="text-xs text-muted-foreground mt-1">0.8g/kg</div>
+              </Card>
+            </div>
+          </Card>
+
+          {/* Recommandations complémentaires */}
+          <div className="grid md:grid-cols-2 gap-4 animate-in">
+            <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
+              <div className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+                Fibres recommandées
+              </div>
+              <div className="text-3xl font-bold text-green-600 dark:text-green-400">{nutritionPlan.fiber}g/jour</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Pour une digestion optimale
+              </div>
             </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Protéines</div>
-              <div className="text-2xl font-bold text-secondary">{nutritionPlan.macros.protein}g</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Glucides</div>
-              <div className="text-2xl font-bold text-accent">{nutritionPlan.macros.carbs}g</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Lipides</div>
-              <div className="text-2xl font-bold text-accent">{nutritionPlan.macros.fat}g</div>
+            
+            <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
+              <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+                Hydratation
+              </div>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                {(nutritionPlan.hydration / 1000).toFixed(1)}L/jour
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Eau + boissons non sucrées
+              </div>
             </Card>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <Card className="p-3 bg-muted/30">
-              <div className="text-xs text-muted-foreground">Fibres recommandées</div>
-              <div className="text-lg font-semibold">{nutritionPlan.fiber}g/jour</div>
-            </Card>
-            <Card className="p-3 bg-muted/30">
-              <div className="text-xs text-muted-foreground">Hydratation</div>
-              <div className="text-lg font-semibold">{(nutritionPlan.hydration / 1000).toFixed(1)}L/jour</div>
-            </Card>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="font-semibold mb-3">Exemple de journée type</h3>
+          {/* Exemple de journée */}
+          <Card className="p-6 animate-in">
+            <h3 className="font-semibold text-lg mb-4">Exemple de journée type</h3>
             <div className="space-y-3">
               {nutritionPlan.sampleDay.map((meal, i) => (
-                <Card key={i} className="p-4 bg-background">
+                <Card key={i} className="p-4 bg-background border-border">
                   <div className="flex justify-between items-start mb-2">
                     <div className="font-semibold">{meal.meal}</div>
                     <div className="text-sm text-muted-foreground">~{meal.approxCalories} kcal</div>
@@ -140,81 +271,41 @@ const Preview = () => {
                 </Card>
               ))}
             </div>
-          </div>
+          </Card>
 
-          <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/20">
+          {/* Explication */}
+          <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/20 animate-in">
             <div className="flex gap-2">
               <Info className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
               <p className="text-sm">{nutritionPlan.explanation}</p>
             </div>
           </div>
-        </Card>
 
-        {/* Training Plan */}
-        <Card className="p-8 animate-in">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center">
-              <Dumbbell className="w-6 h-6 text-secondary" />
-            </div>
-            <h2 className="text-2xl font-bold">Ton programme d'entraînement</h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Type de programme</div>
-              <div className="text-xl font-bold">{trainingPlan.splitType}</div>
-            </Card>
-            <Card className="p-4 bg-muted/50">
-              <div className="text-sm text-muted-foreground">Durée estimée</div>
-              <div className="text-xl font-bold">{trainingPlan.totalDuration} minutes</div>
-            </Card>
-          </div>
-
-          <div className="mb-6">
-            <h3 className="font-semibold mb-3">{trainingPlan.sessionName}</h3>
-            <div className="space-y-3">
-              {trainingPlan.exercises.slice(0, 3).map((ex, i) => (
-                <Card key={i} className="p-4 bg-background">
-                  <div className="font-semibold mb-2">{ex.name}</div>
-                  <div className="grid grid-cols-3 gap-2 text-sm text-muted-foreground">
-                    <div><span className="font-medium">{ex.sets}</span> séries</div>
-                    <div><span className="font-medium">{ex.reps}</span> reps</div>
-                    <div><span className="font-medium">{ex.rest}s</span> repos</div>
-                  </div>
-                </Card>
-              ))}
-              <p className="text-sm text-muted-foreground text-center py-2">
-                + {trainingPlan.exercises.length - 3} autres exercices détaillés
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/20">
-            <div className="flex gap-2">
-              <Info className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-              <p className="text-sm">{trainingPlan.explanation}</p>
-            </div>
-          </div>
-        </Card>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" variant="hero" onClick={() => navigate("/session")} className="text-lg">
-            Lancer ma séance gratuite
-            <ChevronRight className="w-5 h-5 ml-2" />
-          </Button>
-          <Link to="/auth">
-            <Button size="lg" variant="outline" className="text-lg w-full sm:w-auto">
-              Créer mon compte
+          {/* CTA */}
+          <div className="mt-12 text-center space-y-4 animate-in">
+            <h2 className="text-3xl font-bold">
+              Prêt à commencer ton aventure ? 🚀
+            </h2>
+            <p className="text-muted-foreground max-w-lg mx-auto text-lg">
+              Crée ton compte gratuitement pour accéder à ta première séance d'entraînement 
+              personnalisée et suivre tes progrès.
+            </p>
+            
+            <Button 
+              size="lg" 
+              className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg"
+              onClick={handleCreateAccount}
+            >
+              Créer mon compte et voir ma séance 💪
             </Button>
-          </Link>
+            
+            <p className="text-sm text-muted-foreground">
+              🎁 Ta première séance est gratuite, sans engagement
+            </p>
+          </div>
         </div>
-
-        <p className="text-center text-sm text-muted-foreground">
-          La séance gratuite ne nécessite pas de compte. Tu peux créer ton compte après pour débloquer tout le programme !
-        </p>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 

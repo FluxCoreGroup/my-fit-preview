@@ -33,8 +33,41 @@ const Session = () => {
         const plan = trainingPlanner.getPreview(data);
         setExercises(plan.exercises);
 
-        // Créer une session dans Supabase si connecté
+        // Sauvegarder les goals dans Supabase à la première connexion
         if (user) {
+          // Vérifier si les goals existent déjà
+          const { data: existingGoals } = await supabase
+            .from('goals')
+            .select('id')
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+          // Si pas de goals existants, sauvegarder depuis localStorage
+          if (!existingGoals) {
+            const { error: goalsError } = await supabase.from('goals').insert({
+              user_id: user.id,
+              goal_type: data.goal || 'maintenance',
+              horizon: data.goalHorizon || '3-months',
+              frequency: data.frequency,
+              session_duration: data.sessionDuration,
+              location: data.location,
+              equipment: data.equipment,
+              target_weight_loss: data.targetWeightLoss,
+              activity_level: data.activityLevel,
+              meals_per_day: data.mealsPerDay,
+              has_breakfast: data.hasBreakfast,
+              health_conditions: data.healthConditions,
+            });
+
+            if (goalsError) {
+              console.error("Error saving goals:", goalsError);
+            } else {
+              // Nettoyer localStorage après sauvegarde réussie
+              localStorage.removeItem("onboardingData");
+            }
+          }
+
+          // Créer une session dans Supabase
           const { data: session, error } = await supabase
             .from('sessions')
             .insert([{

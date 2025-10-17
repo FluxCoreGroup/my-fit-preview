@@ -55,7 +55,10 @@ const Auth = () => {
       const { error } = await signIn(validatedData.email, validatedData.password);
       
       if (!error) {
-        navigate("/session");
+        // Gérer la redirection post-auth
+        const redirectPath = localStorage.getItem("redirectAfterAuth") || "/dashboard";
+        localStorage.removeItem("redirectAfterAuth");
+        navigate(redirectPath);
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -84,7 +87,10 @@ const Auth = () => {
       );
 
       if (!error) {
-        navigate("/session");
+        // Gérer la redirection post-auth
+        const redirectPath = localStorage.getItem("redirectAfterAuth") || "/dashboard";
+        localStorage.removeItem("redirectAfterAuth");
+        navigate(redirectPath);
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
