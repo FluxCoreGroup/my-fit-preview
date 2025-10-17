@@ -16,8 +16,10 @@ export interface OnboardingInput {
   sex: 'male' | 'female' | 'other';
   height: number; // cm
   weight: number; // kg
-  goal: 'weight-loss' | 'muscle-gain' | 'maintenance';
-  goalHorizon: '1-month' | '3-months' | '6-months' | '6-months-plus';
+  goal: 'weight-loss' | 'muscle-gain' | 'endurance' | 'strength' | 'wellness';
+  goalHorizon: 'short' | 'medium' | 'long';
+  hasCardio?: boolean;
+  cardioFrequency?: number;
   targetWeightLoss?: number; // kg à perdre (optionnel)
   activityLevel: 'sedentary' | 'light' | 'moderate' | 'high';
   frequency: number; // séances/semaine

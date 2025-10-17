@@ -30,6 +30,8 @@ const Start = () => {
     goal: undefined,
     goalHorizon: undefined,
     targetWeightLoss: undefined,
+    hasCardio: undefined,
+    cardioFrequency: undefined,
     activityLevel: undefined,
     frequency: undefined,
     sessionDuration: undefined,
@@ -76,7 +78,8 @@ const Start = () => {
       case 2:
         return !!(formData.goal && formData.goalHorizon &&
                   (formData.goal !== 'weight-loss' || !formData.targetWeightLoss || 
-                   (formData.targetWeightLoss >= 1 && formData.targetWeightLoss <= 50)));
+                   (formData.targetWeightLoss >= 1 && formData.targetWeightLoss <= 50)) &&
+                  (formData.hasCardio === false || (formData.hasCardio === true && formData.cardioFrequency)));
       case 3:
         return !!formData.activityLevel;
       case 4:
@@ -106,6 +109,8 @@ const Start = () => {
         if (formData.goal === 'weight-loss' && formData.targetWeightLoss && (formData.targetWeightLoss < 1 || formData.targetWeightLoss > 50)) {
           newErrors.targetWeightLoss = "Entre 1 et 50 kg";
         }
+        if (formData.hasCardio === undefined) newErrors.hasCardio = "Réponds à la question sur le cardio";
+        if (formData.hasCardio === true && !formData.cardioFrequency) newErrors.cardioFrequency = "Fréquence requise";
         break;
       case 3:
         if (!formData.activityLevel) newErrors.activityLevel = "Niveau d'activité requis";
@@ -253,9 +258,11 @@ const Start = () => {
             <h2 className="text-2xl font-bold mb-6">Quel est ton objectif principal ?</h2>
             <div className="space-y-4">
               {[
-                { value: "weight-loss", label: "Perdre du poids", desc: "Réduire la masse grasse" },
-                { value: "muscle-gain", label: "Prendre du muscle", desc: "Augmenter la masse musculaire" },
-                { value: "maintenance", label: "Me maintenir en forme", desc: "Rester actif et tonique" }
+                { value: "weight-loss", label: "Perte de poids" },
+                { value: "muscle-gain", label: "Prise de muscle" },
+                { value: "endurance", label: "Endurance" },
+                { value: "strength", label: "Force" },
+                { value: "wellness", label: "Bien-être général" }
               ].map((option) => (
                 <button
                   key={option.value}
@@ -265,14 +272,13 @@ const Start = () => {
                   } ${errors.goal ? 'border-destructive' : ''}`}
                 >
                   <div className="font-semibold">{option.label}</div>
-                  <div className="text-sm text-muted-foreground">{option.desc}</div>
                 </button>
               ))}
               {errors.goal && <p className="text-xs text-destructive">{errors.goal}</p>}
             </div>
 
             <div className="mt-6">
-              <Label htmlFor="horizon">Sur quelle période ? *</Label>
+              <Label htmlFor="horizon">À quelle échéance souhaites-tu cet objectif ? *</Label>
               <Select 
                 value={formData.goalHorizon} 
                 onValueChange={(value) => updateField("goalHorizon", value)}
@@ -281,10 +287,9 @@ const Start = () => {
                   <SelectValue placeholder="Choisir..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1-month">1 mois</SelectItem>
-                  <SelectItem value="3-months">3 mois</SelectItem>
-                  <SelectItem value="6-months">6 mois</SelectItem>
-                  <SelectItem value="6-months-plus">Plus de 6 mois</SelectItem>
+                  <SelectItem value="short">Court terme (3 mois)</SelectItem>
+                  <SelectItem value="medium">Moyen terme (6–12 mois)</SelectItem>
+                  <SelectItem value="long">Long terme (+1 an)</SelectItem>
                 </SelectContent>
               </Select>
               {errors.goalHorizon && <p className="text-xs text-destructive mt-1">{errors.goalHorizon}</p>}
@@ -307,6 +312,49 @@ const Start = () => {
                   </div>
                 </div>
                 {errors.targetWeightLoss && <p className="text-xs text-destructive mt-1">{errors.targetWeightLoss}</p>}
+              </div>
+            )}
+
+            <div className="mt-6">
+              <Label>Fais-tu déjà du cardio régulièrement ? *</Label>
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                {[
+                  { value: true, label: "Oui" },
+                  { value: false, label: "Non" }
+                ].map((option) => (
+                  <button
+                    key={option.label}
+                    onClick={() => updateField("hasCardio", option.value)}
+                    className={`p-4 rounded-lg border-2 transition-all hover:border-primary ${
+                      formData.hasCardio === option.value ? "border-primary bg-primary/5" : "border-border"
+                    } ${errors.hasCardio ? 'border-destructive' : ''}`}
+                  >
+                    <div className="font-semibold">{option.label}</div>
+                  </button>
+                ))}
+              </div>
+              {errors.hasCardio && <p className="text-xs text-destructive mt-1">{errors.hasCardio}</p>}
+            </div>
+
+            {formData.hasCardio === true && (
+              <div className="mt-6">
+                <Label htmlFor="cardioFrequency">Combien de fois par semaine ? *</Label>
+                <Select
+                  value={formData.cardioFrequency?.toString()}
+                  onValueChange={(value) => updateField("cardioFrequency", parseInt(value))}
+                >
+                  <SelectTrigger className={`mt-2 ${errors.cardioFrequency ? 'border-destructive' : ''}`}>
+                    <SelectValue placeholder="Choisir..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4, 5, 6, 7].map((n) => (
+                      <SelectItem key={n} value={n.toString()}>
+                        {n} fois par semaine
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.cardioFrequency && <p className="text-xs text-destructive mt-1">{errors.cardioFrequency}</p>}
               </div>
             )}
           </Card>
