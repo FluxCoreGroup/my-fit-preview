@@ -10,6 +10,7 @@ import Start from "./pages/Start";
 import Preview from "./pages/Preview";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
+import TrainingSetup from "./pages/TrainingSetup";
 import Session from "./pages/Session";
 import Feedback from "./pages/Feedback";
 import Paywall from "./pages/Paywall";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/preview" element={<Preview />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/training-setup" element={<TrainingSetup />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/support" element={<Support />} />
             

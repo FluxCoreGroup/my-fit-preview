@@ -78,6 +78,54 @@ export interface TrainingPreview {
   explanation: string;
 }
 
+export interface TrainingPreferences {
+  sessionType: "strength" | "cardio" | "mixed" | "mobility";
+  experienceLevel: "beginner" | "intermediate" | "advanced" | "expert";
+  splitPreference?: "full_body" | "upper_lower" | "ppl" | "body_part";
+  cardioIntensity?: "liss" | "miss" | "hiit" | "mixed";
+  priorityZones: string[];
+  limitations: string[];
+  favoriteExercises?: string;
+  exercisesToAvoid?: string;
+  progressionFocus: "strength" | "reps" | "rest" | "technique" | "auto";
+  mobilityPreference: "every_session" | "dedicated" | "occasional" | "none";
+}
+
+// Fonction helper pour les recommandations
+export const getRecommendedSessionType = (goal: OnboardingInput['goal']): ("strength" | "cardio" | "mixed" | "mobility")[] => {
+  switch (goal) {
+    case 'weight-loss':
+      return ['mixed', 'cardio'];
+    case 'muscle-gain':
+    case 'strength':
+      return ['strength'];
+    case 'endurance':
+      return ['cardio'];
+    case 'wellness':
+      return ['mixed', 'mobility'];
+    default:
+      return ['mixed'];
+  }
+};
+
+export const getRecommendedCardioIntensity = (goal: OnboardingInput['goal'], level: TrainingPreferences['experienceLevel']): ("liss" | "miss" | "hiit" | "mixed")[] => {
+  if (goal === 'weight-loss') {
+    if (level === 'beginner') return ['liss', 'miss'];
+    return ['hiit', 'mixed'];
+  }
+  if (goal === 'endurance') return ['miss', 'hiit'];
+  if (goal === 'wellness') return ['liss'];
+  return ['mixed'];
+};
+
+export const getRecommendedSplit = (frequency: number, level: TrainingPreferences['experienceLevel']): ("full_body" | "upper_lower" | "ppl" | "body_part")[] => {
+  if (level === 'beginner') return ['full_body'];
+  
+  if (frequency <= 3) return ['full_body', 'upper_lower'];
+  if (frequency === 4 || frequency === 5) return ['ppl', 'upper_lower'];
+  return ['ppl', 'body_part'];
+};
+
 // ============= NUTRITION PLANNER (PLACEHOLDER) =============
 
 export const nutritionPlanner = {

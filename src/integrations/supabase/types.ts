@@ -227,6 +227,57 @@ export type Database = {
           },
         ]
       }
+      training_preferences: {
+        Row: {
+          cardio_intensity: string | null
+          created_at: string
+          exercises_to_avoid: string | null
+          experience_level: string
+          favorite_exercises: string | null
+          id: string
+          limitations: string[] | null
+          mobility_preference: string
+          priority_zones: string[] | null
+          progression_focus: string
+          session_type: string
+          split_preference: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cardio_intensity?: string | null
+          created_at?: string
+          exercises_to_avoid?: string | null
+          experience_level: string
+          favorite_exercises?: string | null
+          id?: string
+          limitations?: string[] | null
+          mobility_preference: string
+          priority_zones?: string[] | null
+          progression_focus: string
+          session_type: string
+          split_preference?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cardio_intensity?: string | null
+          created_at?: string
+          exercises_to_avoid?: string | null
+          experience_level?: string
+          favorite_exercises?: string | null
+          id?: string
+          limitations?: string[] | null
+          mobility_preference?: string
+          priority_zones?: string[] | null
+          progression_focus?: string
+          session_type?: string
+          split_preference?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       weekly_checkins: {
         Row: {
           adherence_diet: number | null

@@ -55,7 +55,7 @@ const Signup = () => {
       );
 
       if (!error) {
-        navigate("/session");
+        navigate("/training-setup");
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
