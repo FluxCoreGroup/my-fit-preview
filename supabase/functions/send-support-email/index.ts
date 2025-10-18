@@ -29,7 +29,7 @@ serve(async (req) => {
 
     // Send email to support team
     const { data, error } = await resend.emails.send({
-      from: 'Pulse-AI Support <support@resend.dev>',
+      from: 'Pulse-AI Support <support@notifications.pulse-ai.app>',
       to: ['general@pulse-ai.app'],
       replyTo: email,
       subject: `[Support] ${subject}`,
@@ -50,7 +50,7 @@ serve(async (req) => {
 
     // Send confirmation to user
     await resend.emails.send({
-      from: 'Pulse-AI <noreply@resend.dev>',
+      from: 'Pulse-AI <noreply@notifications.pulse-ai.app>',
       to: [email],
       subject: 'Nous avons bien reçu votre message',
       html: `
