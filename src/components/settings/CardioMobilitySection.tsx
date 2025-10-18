@@ -74,7 +74,7 @@ export const CardioMobilitySection = () => {
           has_cardio: goalsData.has_cardio,
           cardio_frequency: goalsData.cardio_frequency ? parseInt(goalsData.cardio_frequency) : null,
           goal_type: existingPrefs ? undefined : "general_fitness",
-        }),
+        }, { onConflict: 'user_id' }),
         
         supabase.from("training_preferences").upsert({
           user_id: user.id,
@@ -90,7 +90,7 @@ export const CardioMobilitySection = () => {
           favorite_exercises: existingPrefs?.favorite_exercises,
           exercises_to_avoid: existingPrefs?.exercises_to_avoid,
           progression_focus: existingPrefs?.progression_focus || "balanced",
-        }),
+        }, { onConflict: 'user_id' }),
       ]);
 
       toast.success("Préférences cardio et mobilité mises à jour");

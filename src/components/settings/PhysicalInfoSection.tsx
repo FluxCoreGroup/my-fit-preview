@@ -60,9 +60,17 @@ export const PhysicalInfoSection = () => {
 
     setLoading(true);
     try {
+      // Récupérer les données existantes pour ne pas écraser les autres champs
+      const { data: existingGoals } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       const { error } = await supabase
         .from("goals")
         .upsert({
+          ...existingGoals,
           user_id: user.id,
           age: formData.age ? parseInt(formData.age) : null,
           sex: formData.sex || null,
@@ -70,7 +78,8 @@ export const PhysicalInfoSection = () => {
           height: formData.height ? parseInt(formData.height) : null,
           target_weight_loss: formData.target_weight_loss ? parseInt(formData.target_weight_loss) : null,
           activity_level: formData.activity_level || null,
-          goal_type: "general_fitness",
+        }, { 
+          onConflict: 'user_id' 
         });
 
       if (error) throw error;

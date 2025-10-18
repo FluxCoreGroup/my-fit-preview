@@ -56,15 +56,24 @@ export const NutritionSection = () => {
 
     setLoading(true);
     try {
+      // Récupérer les données existantes pour ne pas écraser les autres champs
+      const { data: existingGoals } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       const { error } = await supabase
         .from("goals")
         .upsert({
+          ...existingGoals,
           user_id: user.id,
           meals_per_day: formData.meals_per_day ? parseInt(formData.meals_per_day) : 3,
           has_breakfast: formData.has_breakfast,
           restrictions: formData.restrictions ? formData.restrictions.split(",").map(r => r.trim()).filter(Boolean) : [],
           allergies: formData.allergies ? formData.allergies.split(",").map(a => a.trim()).filter(Boolean) : [],
-          goal_type: "general_fitness",
+        }, { 
+          onConflict: 'user_id' 
         });
 
       if (error) throw error;

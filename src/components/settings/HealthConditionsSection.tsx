@@ -49,14 +49,23 @@ export const HealthConditionsSection = () => {
 
     setLoading(true);
     try {
+      // Récupérer les données existantes pour ne pas écraser les autres champs
+      const { data: existingGoals } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       const { error } = await supabase
         .from("goals")
         .upsert({
+          ...existingGoals,
           user_id: user.id,
           health_conditions: formData.health_conditions
             ? formData.health_conditions.split(",").map(c => c.trim()).filter(Boolean)
             : [],
-          goal_type: "general_fitness",
+        }, { 
+          onConflict: 'user_id' 
         });
 
       if (error) throw error;

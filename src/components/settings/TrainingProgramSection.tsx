@@ -94,7 +94,7 @@ export const TrainingProgramSection = () => {
           session_duration: goalsData.session_duration ? parseInt(goalsData.session_duration) : null,
           equipment: goalsData.equipment,
           location: goalsData.location,
-        }),
+        }, { onConflict: 'user_id' }),
         
         supabase.from("training_preferences").upsert({
           user_id: user.id,
@@ -110,7 +110,7 @@ export const TrainingProgramSection = () => {
           favorite_exercises: prefsData.favorite_exercises,
           exercises_to_avoid: prefsData.exercises_to_avoid,
           progression_focus: prefsData.progression_focus || "balanced",
-        }),
+        }, { onConflict: 'user_id' }),
       ]);
 
       toast.success("Programme d'entraînement mis à jour");
