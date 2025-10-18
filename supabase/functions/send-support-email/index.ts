@@ -30,7 +30,7 @@ serve(async (req) => {
     // Send email to support team
     const { data, error } = await resend.emails.send({
       from: 'Pulse-AI Support <support@resend.dev>',
-      to: ['support@pulse-ai.fr'], // À remplacer par votre vraie adresse
+      to: ['general@pulse-ai.app'],
       replyTo: email,
       subject: `[Support] ${subject}`,
       html: `
