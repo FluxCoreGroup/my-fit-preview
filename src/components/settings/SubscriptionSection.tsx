@@ -124,14 +124,21 @@ export const SubscriptionSection = () => {
           </p>
         </div>
       ) : (
-        <div className="text-center py-8 space-y-4">
+        <div className="text-center py-8 space-y-6">
           <CreditCard className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
           <div>
-            <p className="font-medium mb-1">Aucun abonnement actif</p>
-            <p className="text-sm text-muted-foreground">
-              Tu n'as pas encore d'abonnement actif. Contacte le support pour plus d'informations.
+            <p className="font-medium mb-2">Aucun abonnement actif</p>
+            <p className="text-sm text-muted-foreground mb-6">
+              Accède à toutes les fonctionnalités premium avec un abonnement.
             </p>
           </div>
+          <Button
+            onClick={() => window.location.href = '/paywall'}
+            className="w-full max-w-sm mx-auto"
+          >
+            <CreditCard className="w-4 h-4 mr-2" />
+            Voir les abonnements
+          </Button>
         </div>
       )}
     </Card>
