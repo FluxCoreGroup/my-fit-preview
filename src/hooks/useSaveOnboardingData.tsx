@@ -19,14 +19,19 @@ export const useSaveOnboardingData = () => {
         const data = JSON.parse(onboardingDataStr);
 
         // Vérifier si les données ont déjà été enregistrées
-        const { data: existingGoals } = await supabase
+        const { data: existingGoals, error: checkError } = await supabase
           .from("goals")
           .select("id")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
+
+        if (checkError) {
+          console.error("Erreur lors de la vérification des données existantes:", checkError);
+        }
 
         if (existingGoals) {
           // Données déjà enregistrées
+          console.log("Données goals déjà enregistrées pour l'utilisateur");
           return;
         }
 
@@ -60,13 +65,14 @@ export const useSaveOnboardingData = () => {
         });
 
         if (error) {
-          console.error("Erreur lors de l'enregistrement des données:", error);
+          console.error("Erreur lors de l'enregistrement des données goals:", error);
           toast({
             title: "Erreur",
             description: "Impossible d'enregistrer tes préférences.",
             variant: "destructive",
           });
         } else {
+          console.log("✅ Données goals enregistrées avec succès pour l'utilisateur:", user.id);
           // Supprimer les données du localStorage après enregistrement
           localStorage.removeItem("onboardingData");
         }
