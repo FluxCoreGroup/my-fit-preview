@@ -79,6 +79,13 @@ export const TrainingProgramSection = () => {
 
     setLoading(true);
     try {
+      // Fetch existing training_preferences to avoid overwriting other sections
+      const { data: existingPrefs } = await supabase
+        .from("training_preferences")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
       await Promise.all([
         supabase.from("goals").upsert({
           user_id: user.id,
@@ -91,11 +98,18 @@ export const TrainingProgramSection = () => {
         
         supabase.from("training_preferences").upsert({
           user_id: user.id,
-          ...prefsData,
+          // Keep existing values for fields managed by other sections
+          cardio_intensity: existingPrefs?.cardio_intensity,
+          mobility_preference: existingPrefs?.mobility_preference || "none",
+          // Update only fields managed by this section
           experience_level: prefsData.experience_level || "intermediate",
           session_type: prefsData.session_type || "full_body",
+          split_preference: prefsData.split_preference,
+          priority_zones: prefsData.priority_zones,
+          limitations: prefsData.limitations,
+          favorite_exercises: prefsData.favorite_exercises,
+          exercises_to_avoid: prefsData.exercises_to_avoid,
           progression_focus: prefsData.progression_focus || "balanced",
-          mobility_preference: "none",
         }),
       ]);
 

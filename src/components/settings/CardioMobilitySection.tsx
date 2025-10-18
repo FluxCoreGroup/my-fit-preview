@@ -61,21 +61,35 @@ export const CardioMobilitySection = () => {
 
     setLoading(true);
     try {
+      // Fetch existing training_preferences to avoid overwriting other sections
+      const { data: existingPrefs } = await supabase
+        .from("training_preferences")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
       await Promise.all([
         supabase.from("goals").upsert({
           user_id: user.id,
           has_cardio: goalsData.has_cardio,
           cardio_frequency: goalsData.cardio_frequency ? parseInt(goalsData.cardio_frequency) : null,
-          goal_type: "general_fitness",
+          goal_type: existingPrefs ? undefined : "general_fitness",
         }),
         
         supabase.from("training_preferences").upsert({
           user_id: user.id,
+          // Update only fields managed by this section
           cardio_intensity: prefsData.cardio_intensity,
-          mobility_preference: prefsData.mobility_preference,
-          experience_level: "intermediate",
-          session_type: "full_body",
-          progression_focus: "balanced",
+          mobility_preference: prefsData.mobility_preference || "none",
+          // Keep existing values for fields managed by other sections
+          experience_level: existingPrefs?.experience_level || "intermediate",
+          session_type: existingPrefs?.session_type || "full_body",
+          split_preference: existingPrefs?.split_preference,
+          priority_zones: existingPrefs?.priority_zones,
+          limitations: existingPrefs?.limitations,
+          favorite_exercises: existingPrefs?.favorite_exercises,
+          exercises_to_avoid: existingPrefs?.exercises_to_avoid,
+          progression_focus: existingPrefs?.progression_focus || "balanced",
         }),
       ]);
 

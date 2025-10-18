@@ -2,23 +2,76 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Globe, Ruler, Bell, Moon } from "lucide-react";
+import { Globe, Ruler, Bell, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 export const AppPreferencesSection = () => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [preferences, setPreferences] = useState({
     language: "fr",
     units: "metric",
     notifications: true,
-    darkMode: false,
     sounds: true,
   });
 
-  const handlePreferenceChange = (key: string, value: any) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
-    toast.success("Préférence mise à jour");
+  useEffect(() => {
+    fetchPreferences();
+  }, [user]);
+
+  const fetchPreferences = async () => {
+    if (!user) return;
+
+    try {
+      const { data } = await supabase
+        .from("app_preferences")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (data) {
+        setPreferences({
+          language: data.language,
+          units: data.units,
+          notifications: data.notifications,
+          sounds: data.sounds,
+        });
+      }
+    } catch (error: any) {
+      console.error("Error fetching preferences:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handlePreferenceChange = async (key: string, value: any) => {
+    if (!user) return;
+
+    const updatedPreferences = { ...preferences, [key]: value };
+    setPreferences(updatedPreferences);
+
+    try {
+      await supabase.from("app_preferences").upsert({
+        user_id: user.id,
+        ...updatedPreferences,
+      });
+      toast.success("Préférence mise à jour");
+    } catch (error: any) {
+      toast.error("Erreur lors de la mise à jour");
+      console.error(error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card className="p-6 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6 space-y-6">
@@ -84,24 +137,6 @@ export const AppPreferencesSection = () => {
         </div>
 
         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-          <div className="space-y-0.5 flex items-center gap-2">
-            <Moon className="w-4 h-4" />
-            <div>
-              <Label htmlFor="darkMode" className="text-base">Mode sombre</Label>
-              <p className="text-sm text-muted-foreground">
-                Interface en mode sombre (bientôt disponible)
-              </p>
-            </div>
-          </div>
-          <Switch
-            id="darkMode"
-            checked={preferences.darkMode}
-            onCheckedChange={(checked) => handlePreferenceChange("darkMode", checked)}
-            disabled
-          />
-        </div>
-
-        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
           <div className="space-y-0.5">
             <Label htmlFor="sounds" className="text-base">Sons de séance</Label>
             <p className="text-sm text-muted-foreground">
@@ -117,7 +152,7 @@ export const AppPreferencesSection = () => {
       </div>
 
       <p className="text-sm text-muted-foreground text-center pt-4">
-        Les préférences sont sauvegardées localement sur cet appareil
+        Les préférences sont synchronisées avec ton compte
       </p>
     </Card>
   );

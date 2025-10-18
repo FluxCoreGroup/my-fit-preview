@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          language: string
+          notifications: boolean
+          sounds: boolean
+          units: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language?: string
+          notifications?: boolean
+          sounds?: boolean
+          units?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language?: string
+          notifications?: boolean
+          sounds?: boolean
+          units?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           comments: string | null
