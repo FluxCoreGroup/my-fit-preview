@@ -85,9 +85,19 @@ const Legal = () => {
                 </p>
               </section>
 
-              <p className="text-sm text-muted-foreground italic mt-8">
-                [CGU COMPLÈTES À RÉDIGER AVEC UN JURISTE]
-              </p>
+              <div className="mt-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm font-semibold text-destructive mb-2">
+                  ⚠️ ATTENTION - Document légal à finaliser
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Ces CGU sont un modèle de base. Avant toute mise en production, elles DOIVENT être :
+                </p>
+                <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
+                  <li>Revues et validées par un avocat spécialisé en droit digital</li>
+                  <li>Adaptées à votre modèle économique et juridique spécifique</li>
+                  <li>Complétées avec vos coordonnées légales (SIRET, adresse, etc.)</li>
+                </ul>
+              </div>
             </Card>
           </TabsContent>
 
@@ -155,9 +165,20 @@ const Legal = () => {
                 </p>
               </section>
 
-              <p className="text-sm text-muted-foreground italic mt-8">
-                [POLITIQUE COMPLÈTE À RÉDIGER AVEC UN JURISTE / DPO]
-              </p>
+              <div className="mt-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm font-semibold text-destructive mb-2">
+                  ⚠️ ATTENTION - Document RGPD à finaliser
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Cette politique de confidentialité est un modèle de base. Elle DOIT être :
+                </p>
+                <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
+                  <li>Validée par un DPO (Data Protection Officer) ou un avocat RGPD</li>
+                  <li>Complétée avec vos sous-traitants réels (hébergeur, paiement, analytics, etc.)</li>
+                  <li>Accompagnée d'un registre de traitement des données</li>
+                  <li>Mise à jour régulièrement selon l'évolution de vos services</li>
+                </ul>
+              </div>
             </Card>
           </TabsContent>
 
@@ -243,9 +264,23 @@ const Legal = () => {
                 </p>
               </section>
 
-              <p className="text-sm text-muted-foreground italic mt-8">
-                [DISCLAIMERS COMPLETS À VALIDER AVEC UN JURISTE + ASSURANCE RC PRO]
-              </p>
+              <div className="mt-8 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm font-semibold text-destructive mb-2">
+                  ⚠️ CRITIQUE - Disclaimers médicaux à valider ABSOLUMENT
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Ces disclaimers sont ESSENTIELS pour vous protéger juridiquement. Ils DOIVENT être :
+                </p>
+                <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
+                  <li>Validés par un avocat spécialisé en responsabilité civile et santé</li>
+                  <li>Couverts par une assurance RC Professionnelle (obligatoire)</li>
+                  <li>Affichés de manière visible lors de l'inscription</li>
+                  <li>Acceptés explicitement par l'utilisateur (checkbox obligatoire)</li>
+                </ul>
+                <p className="text-sm font-semibold text-destructive mt-3">
+                  ⚠️ NE PAS METTRE EN PRODUCTION sans ces validations juridiques !
+                </p>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>

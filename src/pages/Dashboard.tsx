@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import ProgressCharts from "@/components/dashboard/ProgressCharts";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -190,15 +191,11 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Progress Section (Placeholder) */}
-        <Card className="p-8">
-          <h2 className="text-2xl font-bold mb-6">Ta progression</h2>
-          <div className="text-center py-12 text-muted-foreground">
-            <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Tes graphiques de progression s'afficheront ici.</p>
-            <p className="text-sm mt-2">Continue tes séances et check-ins pour voir ton évolution !</p>
-          </div>
-        </Card>
+        {/* Progress Section */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">Ta progression</h2>
+          <ProgressCharts />
+        </div>
 
       {/* Quick Links */}
         <div className="flex flex-wrap gap-4 justify-center">

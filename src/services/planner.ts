@@ -6,8 +6,8 @@
  * À remplacer plus tard par le moteur d'IA réel.
  */
 
-// Mode demo : activer pour utiliser des données de démonstration
-export const MODE_DEMO = true;
+// AI-powered planning via Supabase Edge Functions
+const MODE_DEMO = false;
 
 // ============= Types =============
 
@@ -129,9 +129,16 @@ export const getRecommendedSplit = (frequency: number, level: TrainingPreference
 // ============= NUTRITION PLANNER (PLACEHOLDER) =============
 
 export const nutritionPlanner = {
-  getPreview: (input: OnboardingInput): NutritionPreview => {
+  getPreview: async (input: OnboardingInput): Promise<NutritionPreview> => {
     if (!MODE_DEMO) {
-      throw new Error("Le moteur de nutrition n'est pas encore branché. Activer MODE_DEMO.");
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('generate-nutrition-plan', {
+        body: { input }
+      });
+
+      if (error) throw error;
+      return data as NutritionPreview;
     }
 
     // 1. BMI = poids(kg) / (taille(m))²
@@ -257,9 +264,16 @@ function generateSampleDay(
 // ============= TRAINING PLANNER (PLACEHOLDER) =============
 
 export const trainingPlanner = {
-  getPreview: (input: OnboardingInput): TrainingPreview => {
+  getPreview: async (input: OnboardingInput): Promise<TrainingPreview> => {
     if (!MODE_DEMO) {
-      throw new Error("Le moteur d'entraînement n'est pas encore branché. Activer MODE_DEMO.");
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('generate-training-plan', {
+        body: { input }
+      });
+
+      if (error) throw error;
+      return data as TrainingPreview;
     }
 
     const isHome = input.location === 'home';

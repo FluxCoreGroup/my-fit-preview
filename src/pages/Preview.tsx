@@ -101,8 +101,8 @@ const Preview = () => {
       setInput(data);
       
       // Start 15-second loading
-      setTimeout(() => {
-        const nutrition = nutritionPlanner.getPreview(data);
+      setTimeout(async () => {
+        const nutrition = await nutritionPlanner.getPreview(data);
         setNutritionPlan(nutrition);
         setLoadingPhase('results');
       }, 15000);

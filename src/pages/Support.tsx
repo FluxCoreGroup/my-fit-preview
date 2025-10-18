@@ -19,19 +19,34 @@ const Support = () => {
     message: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Placeholder - Sera remplacé par Resend ou un système de ticketing
-    setTimeout(() => {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { error } = await supabase.functions.invoke('send-support-email', {
+        body: formData
+      });
+
+      if (error) throw error;
+
       toast({
-        title: "Message envoyé ! 📧",
-        description: "Nous te répondrons dans les 24h.",
+        title: "Message envoyé !",
+        description: "Nous vous répondrons dans les plus brefs délais.",
       });
       setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      console.error('Error sending support email:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'envoyer le message. Réessayez plus tard.",
+        variant: "destructive"
+      });
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -113,12 +128,14 @@ const Support = () => {
                 <MessageCircle className="w-5 h-5 text-muted-foreground mt-1" />
                 <div>
                   <div className="font-semibold mb-1">Discord</div>
-                  <a
-                    href="#"
-                    className="text-primary hover:underline"
-                  >
-                    Rejoindre la communauté
-                  </a>
+                <a 
+                  href="https://discord.gg/pulse-ai"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Rejoindre la communauté
+                </a>
                   <p className="text-sm text-muted-foreground mt-1">
                     Entraide entre membres + équipe active
                   </p>
@@ -214,9 +231,9 @@ const Support = () => {
             <Link to="/dashboard">
               <Button variant="outline">Mon Dashboard</Button>
             </Link>
-            <a href="https://docs.pulse-ai.fr" target="_blank" rel="noopener noreferrer">
-              <Button variant="outline">Documentation complète</Button>
-            </a>
+            <Link to="/support">
+              <Button variant="outline">Centre d'aide</Button>
+            </Link>
           </div>
         </div>
         </div>
