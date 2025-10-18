@@ -259,7 +259,7 @@ const TrainingSetup = () => {
     <div className="min-h-screen bg-background">
       <Header variant="onboarding" onBack={() => navigate("/dashboard")} />
       
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="container mx-auto px-4 py-8 pt-24 max-w-2xl">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Configure ton entraînement</h1>
           <p className="text-muted-foreground">
