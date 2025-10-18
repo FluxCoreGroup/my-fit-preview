@@ -74,13 +74,40 @@ export const ProfileSection = () => {
   };
 
   const handleDeleteAccount = async () => {
+    setLoading(true);
     try {
-      // Here you would typically call an edge function to handle account deletion
-      // For now, we'll just sign out the user
-      toast.info("Fonctionnalité bientôt disponible. Contacte le support pour supprimer ton compte.");
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("Session expirée");
+        return;
+      }
+
+      const response = await fetch(
+        `https://nsowlnpntphxwykzbwmc.supabase.co/functions/v1/delete-user-account`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Erreur lors de la suppression du compte');
+      }
+
+      toast.success("Compte supprimé avec succès");
+      
+      // Sign out and redirect
+      await signOut();
+      window.location.href = '/';
     } catch (error: any) {
       toast.error("Erreur lors de la suppression du compte");
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
