@@ -67,7 +67,7 @@ export const Header = ({ variant = "marketing", showBack = false, onBack }: Head
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           {showBack ? (
-            <Button variant="ghost" size="sm" onClick={handleBack}>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Retour
             </Button>
