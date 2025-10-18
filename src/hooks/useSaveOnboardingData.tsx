@@ -29,14 +29,8 @@ export const useSaveOnboardingData = () => {
           console.error("Erreur lors de la vérification des données existantes:", checkError);
         }
 
-        if (existingGoals) {
-          // Données déjà enregistrées
-          console.log("Données goals déjà enregistrées pour l'utilisateur");
-          return;
-        }
-
-        // Enregistrer les données dans la table goals
-        const { error } = await supabase.from("goals").insert({
+        // Utiliser upsert pour rendre l'opération idempotente
+        const { error } = await supabase.from("goals").upsert({
           user_id: user.id,
           // Étape 1 : Profil de base
           age: data.age || null,
@@ -62,6 +56,8 @@ export const useSaveOnboardingData = () => {
           allergies: data.allergies || null,
           restrictions: data.restrictions || null,
           health_conditions: data.healthConditions || null,
+        }, {
+          onConflict: 'user_id'
         });
 
         if (error) {

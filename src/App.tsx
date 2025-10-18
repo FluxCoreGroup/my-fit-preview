@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
+import { useSaveOnboardingData } from "./hooks/useSaveOnboardingData";
 import Landing from "./pages/Landing";
 import Start from "./pages/Start";
 import Preview from "./pages/Preview";
@@ -24,9 +25,16 @@ import GeneratingSession from "./pages/GeneratingSession";
 
 const queryClient = new QueryClient();
 
+// Component to sync onboarding data to Supabase as soon as user is authenticated
+const OnboardingSyncGate = () => {
+  useSaveOnboardingData();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <OnboardingSyncGate />
       <TooltipProvider>
         <Toaster />
         <Sonner />
