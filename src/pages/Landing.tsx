@@ -7,67 +7,52 @@ import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles,
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
-
-const testimonials = [
-  {
-    name: "Sophie M.",
-    role: "Perdu 12kg en 3 mois",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
-    quote: "J'ai enfin trouvé un programme qui s'adapte à ma vie de maman. Les résultats sont là !"
-  },
-  {
-    name: "Thomas L.",
-    role: "Prise de masse réussie",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas",
-    quote: "Le suivi nutrition est incroyable. J'ai pris 8kg de muscle en gardant mes abdos visibles."
-  },
-  {
-    name: "Marie K.",
-    role: "Débutante motivée",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
-    quote: "Je n'avais jamais fait de sport. Les exercices sont clairs et j'adore les alternatives proposées."
-  }
-];
-
-const faqItems = [
-  {
-    q: "C'est vraiment gratuit pour commencer ?",
-    a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à partir de 9,90€/mois sans engagement."
-  },
-  {
-    q: "Je suis débutant(e), ça marche pour moi ?",
-    a: "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo."
-  },
-  {
-    q: "Comment les plans sont-ils générés ?",
-    a: "Notre IA analyse tes réponses (âge, poids, objectif, niveau, matériel disponible, contraintes...) et crée un plan 100% sur mesure en quelques secondes. Il s'ajuste ensuite automatiquement selon tes feedbacks hebdomadaires."
-  },
-  {
-    q: "Puis-je annuler à tout moment ?",
-    a: "Oui, tu peux annuler ton abonnement quand tu veux, directement depuis ton tableau de bord en 1 clic. Aucune question posée, aucun frais cachés."
-  },
-  {
-    q: "Quel matériel ai-je besoin ?",
-    a: "Aucun matériel obligatoire ! Pulse.ai s'adapte à ce que tu as : poids du corps uniquement, haltères, barre, machines en salle... Tu sélectionnes ton équipement lors de la configuration."
-  },
-  {
-    q: "Les résultats sont-ils garantis ?",
-    a: "Nous garantissons des résultats visibles en 4 semaines si tu suis ton plan à 80% minimum. Sinon, tu es remboursé(e) intégralement, sans justification."
-  },
-  {
-    q: "Puis-je suivre mes progrès ?",
-    a: "Oui ! Dashboard complet avec historique des séances, évolution du poids/mensurations, graphiques de progression et ajustements automatiques du plan."
-  },
-  {
-    q: "Le support est-il inclus ?",
-    a: "Oui, support par email 7j/7 inclus dans tous les abonnements. Réponse garantie sous 24h (souvent bien plus rapide)."
-  }
-];
-
+const testimonials = [{
+  name: "Sophie M.",
+  role: "Perdu 12kg en 3 mois",
+  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
+  quote: "J'ai enfin trouvé un programme qui s'adapte à ma vie de maman. Les résultats sont là !"
+}, {
+  name: "Thomas L.",
+  role: "Prise de masse réussie",
+  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas",
+  quote: "Le suivi nutrition est incroyable. J'ai pris 8kg de muscle en gardant mes abdos visibles."
+}, {
+  name: "Marie K.",
+  role: "Débutante motivée",
+  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
+  quote: "Je n'avais jamais fait de sport. Les exercices sont clairs et j'adore les alternatives proposées."
+}];
+const faqItems = [{
+  q: "C'est vraiment gratuit pour commencer ?",
+  a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à partir de 9,90€/mois sans engagement."
+}, {
+  q: "Je suis débutant(e), ça marche pour moi ?",
+  a: "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo."
+}, {
+  q: "Comment les plans sont-ils générés ?",
+  a: "Notre IA analyse tes réponses (âge, poids, objectif, niveau, matériel disponible, contraintes...) et crée un plan 100% sur mesure en quelques secondes. Il s'ajuste ensuite automatiquement selon tes feedbacks hebdomadaires."
+}, {
+  q: "Puis-je annuler à tout moment ?",
+  a: "Oui, tu peux annuler ton abonnement quand tu veux, directement depuis ton tableau de bord en 1 clic. Aucune question posée, aucun frais cachés."
+}, {
+  q: "Quel matériel ai-je besoin ?",
+  a: "Aucun matériel obligatoire ! Pulse.ai s'adapte à ce que tu as : poids du corps uniquement, haltères, barre, machines en salle... Tu sélectionnes ton équipement lors de la configuration."
+}, {
+  q: "Les résultats sont-ils garantis ?",
+  a: "Nous garantissons des résultats visibles en 4 semaines si tu suis ton plan à 80% minimum. Sinon, tu es remboursé(e) intégralement, sans justification."
+}, {
+  q: "Puis-je suivre mes progrès ?",
+  a: "Oui ! Dashboard complet avec historique des séances, évolution du poids/mensurations, graphiques de progression et ajustements automatiques du plan."
+}, {
+  q: "Le support est-il inclus ?",
+  a: "Oui, support par email 7j/7 inclus dans tous les abonnements. Réponse garantie sous 24h (souvent bien plus rapide)."
+}];
 const Landing = () => {
-  const { user } = useAuth();
-  return (
-    <div className="min-h-screen">
+  const {
+    user
+  } = useAuth();
+  return <div className="min-h-screen">
       <Header />
       
       {/* Hero Section - Amélioré */}
@@ -90,26 +75,22 @@ const Landing = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              {user ? (
-                <Link to="/dashboard">
+              {user ? <Link to="/dashboard">
                   <Button size="lg" variant="hero" className="text-lg">
                     Aller au Dashboard <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
-                </Link>
-              ) : (
-                <>
+                </Link> : <>
                   <Link to="/start">
                     <Button size="lg" variant="hero" className="text-lg">
                       Commencer gratuitement <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
                   </Link>
                   <Link to="/preview">
-                    <Button size="lg" variant="outline" className="text-lg border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                    <Button size="lg" variant="outline" className="text-lg border-primary-foreground hover:bg-primary-foreground text-neutral-800">
                       Voir une démo
                     </Button>
                   </Link>
-                </>
-              )}
+                </>}
             </div>
             
             {/* Trust badges */}
@@ -161,8 +142,7 @@ const Landing = () => {
           
           {/* Témoignages */}
           <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <Card key={i} className="p-6">
+            {testimonials.map((t, i) => <Card key={i} className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Avatar>
                     <AvatarImage src={t.avatar} />
@@ -175,12 +155,9 @@ const Landing = () => {
                 </div>
                 <p className="text-sm italic text-muted-foreground">"{t.quote}"</p>
                 <div className="flex gap-1 mt-3">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-3 h-3 fill-primary text-primary" />
-                  ))}
+                  {[...Array(5)].map((_, j) => <Star key={j} className="w-3 h-3 fill-primary text-primary" />)}
                 </div>
-              </Card>
-            ))}
+              </Card>)}
           </div>
         </div>
       </section>
@@ -357,19 +334,10 @@ const Landing = () => {
             <div>
               <h2 className="mb-6">Ce que tu obtiens</h2>
               <ul className="space-y-4">
-                {[
-                  "Plans nutrition personnalisés (calories + macros)",
-                  "Séances d'entraînement détaillées avec alternatives",
-                  "Timer intégré et suivi RPE/RIR",
-                  "Check-in hebdomadaire pour ajustements",
-                  "Exercices en vidéo avec consignes claires",
-                  "Support par email 7j/7"
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-start gap-3">
+                {["Plans nutrition personnalisés (calories + macros)", "Séances d'entraînement détaillées avec alternatives", "Timer intégré et suivi RPE/RIR", "Check-in hebdomadaire pour ajustements", "Exercices en vidéo avec consignes claires", "Support par email 7j/7"].map((feature, i) => <li key={i} className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
                     <span>{feature}</span>
-                  </li>
-                ))}
+                  </li>)}
               </ul>
             </div>
             <Card className="p-8 bg-card">
@@ -534,16 +502,14 @@ const Landing = () => {
             Tout ce que tu dois savoir sur Pulse.ai
           </p>
           <Accordion type="single" collapsible className="space-y-4">
-            {faqItems.map((faq, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="bg-card border rounded-lg px-6">
+            {faqItems.map((faq, i) => <AccordionItem key={i} value={`item-${i}`} className="bg-card border rounded-lg px-6">
                 <AccordionTrigger className="text-left hover:no-underline">
                   <span className="font-semibold">{faq.q}</span>
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
                   {faq.a}
                 </AccordionContent>
-              </AccordionItem>
-            ))}
+              </AccordionItem>)}
           </Accordion>
         </div>
       </section>
@@ -573,7 +539,7 @@ const Landing = () => {
               </Button>
             </Link>
             <Link to="/preview">
-              <Button size="lg" variant="outline" className="text-lg border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+              <Button size="lg" variant="outline" className="text-lg border-primary-foreground hover:bg-primary-foreground text-zinc-800">
                 Voir une démo
               </Button>
             </Link>
@@ -695,8 +661,6 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Landing;
