@@ -130,16 +130,28 @@ export const getRecommendedSplit = (frequency: number, level: TrainingPreference
 
 export const nutritionPlanner = {
   getPreview: async (input: OnboardingInput): Promise<NutritionPreview> => {
-    if (!MODE_DEMO) {
+    // Vérifier si l'utilisateur est connecté
+    try {
       const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { session } } = await supabase.auth.getSession();
       
-      const { data, error } = await supabase.functions.invoke('generate-nutrition-plan', {
-        body: { input }
-      });
+      // Si connecté, utiliser l'Edge Function
+      if (session?.user && !MODE_DEMO) {
+        const { data, error } = await supabase.functions.invoke('generate-nutrition-plan', {
+          body: { input }
+        });
 
-      if (error) throw error;
-      return data as NutritionPreview;
+        if (error) {
+          console.error('Edge function error:', error);
+          throw error;
+        }
+        return data as NutritionPreview;
+      }
+    } catch (error) {
+      console.error('Failed to call Edge Function, falling back to demo mode:', error);
     }
+
+    // Sinon, utiliser le mode DEMO (calculs locaux)
 
     // 1. BMI = poids(kg) / (taille(m))²
     const heightInMeters = input.height / 100;

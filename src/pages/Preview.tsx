@@ -102,12 +102,18 @@ const Preview = () => {
       
       // Start 15-second loading
       setTimeout(async () => {
-        const nutrition = await nutritionPlanner.getPreview(data);
-        setNutritionPlan(nutrition);
-        setLoadingPhase('results');
+        try {
+          const nutrition = await nutritionPlanner.getPreview(data);
+          setNutritionPlan(nutrition);
+          setLoadingPhase('results');
+        } catch (error) {
+          console.error("Error generating preview:", error);
+          // Fallback to demo mode should handle this, but in case of critical error
+          navigate("/start");
+        }
       }, 15000);
     } catch (error) {
-      console.error("Error generating preview:", error);
+      console.error("Error parsing onboarding data:", error);
       navigate("/start");
     }
   }, [navigate]);
