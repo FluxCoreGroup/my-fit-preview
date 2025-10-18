@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ClipboardList, Dumbbell, Target, Flame, CheckCircle2, Clock } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const steps = [
-  { icon: "📋", text: "Analyse de tes objectifs..." },
-  { icon: "💪", text: "Sélection des exercices adaptés..." },
-  { icon: "🎯", text: "Optimisation des séries et répétitions..." },
-  { icon: "🔥", text: "Ajustement de l'intensité..." },
-  { icon: "✅", text: "Ta séance est prête !" }
+const steps: { icon: LucideIcon; text: string }[] = [
+  { icon: ClipboardList, text: "Analyse de tes objectifs..." },
+  { icon: Dumbbell, text: "Sélection des exercices adaptés..." },
+  { icon: Target, text: "Optimisation des séries et répétitions..." },
+  { icon: Flame, text: "Ajustement de l'intensité..." },
+  { icon: CheckCircle2, text: "Ta séance est prête !" }
 ];
 
 const GeneratingSession = () => {
@@ -123,7 +125,7 @@ const GeneratingSession = () => {
         {/* Logo animé */}
         <div className="relative">
           <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
-            <span className="text-5xl">🏋️</span>
+            <Dumbbell className="w-12 h-12 text-primary" />
           </div>
           <div className="absolute inset-0 w-24 h-24 mx-auto border-4 border-primary/20 rounded-full animate-spin" 
                style={{ borderTopColor: 'hsl(var(--primary))' }}></div>
@@ -152,33 +154,39 @@ const GeneratingSession = () => {
 
         {/* Étapes */}
         <div className="space-y-4 pt-4">
-          {steps.map((step, index) => (
-            <div
-              key={index}
-              className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
-                index === currentStep
-                  ? 'bg-primary/10 scale-105'
-                  : index < currentStep
-                  ? 'bg-secondary/50 opacity-60'
-                  : 'opacity-30'
-              }`}
-            >
-              <span className="text-2xl">{step.icon}</span>
-              <span className={`text-sm font-medium ${
-                index === currentStep ? 'text-primary' : 'text-foreground'
-              }`}>
-                {step.text}
-              </span>
-              {index < currentStep && (
-                <span className="ml-auto text-green-500">✓</span>
-              )}
-            </div>
-          ))}
+          {steps.map((step, index) => {
+            const IconComponent = step.icon;
+            return (
+              <div
+                key={index}
+                className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ${
+                  index === currentStep
+                    ? 'bg-primary/10 scale-105'
+                    : index < currentStep
+                    ? 'bg-secondary/50 opacity-60'
+                    : 'opacity-30'
+                }`}
+              >
+                <IconComponent className={`w-6 h-6 ${
+                  index === currentStep ? 'text-primary' : 'text-muted-foreground'
+                }`} />
+                <span className={`text-sm font-medium ${
+                  index === currentStep ? 'text-primary' : 'text-foreground'
+                }`}>
+                  {step.text}
+                </span>
+                {index < currentStep && (
+                  <CheckCircle2 className="ml-auto w-5 h-5 text-green-500" />
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Message de patience */}
-        <p className="text-xs text-muted-foreground pt-4">
-          ⏱️ Cela prend environ 15 secondes...
+        <p className="text-xs text-muted-foreground pt-4 flex items-center justify-center gap-2">
+          <Clock className="w-4 h-4" />
+          Cela prend environ 15 secondes...
         </p>
       </div>
     </div>

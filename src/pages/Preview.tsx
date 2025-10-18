@@ -4,24 +4,24 @@ import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { nutritionPlanner, type OnboardingInput, type NutritionPreview } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
-import { Utensils, Info } from "lucide-react";
+import { Utensils, Info, BarChart3, Calculator, Flame, Target, Droplets, Dumbbell, CheckCircle2, PartyPopper, Rocket, Gift } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 
 const loadingSteps = [
-  { progress: 0, text: "📊 Analyse de ton profil..." },
-  { progress: 15, text: "🔢 Calcul du BMI et BMR..." },
-  { progress: 35, text: "🔥 Estimation du TDEE selon ton activité..." },
-  { progress: 50, text: "🎯 Détermination de la cible calorique..." },
-  { progress: 65, text: "🥗 Optimisation des macronutriments..." },
-  { progress: 80, text: "💧 Calcul de l'hydratation recommandée..." },
-  { progress: 95, text: "💪 Finalisation de ton plan..." },
-  { progress: 100, text: "✅ Ton plan est prêt !" }
+  { progress: 0, text: "Analyse de ton profil...", icon: BarChart3 },
+  { progress: 15, text: "Calcul du BMI et BMR...", icon: Calculator },
+  { progress: 35, text: "Estimation du TDEE selon ton activité...", icon: Flame },
+  { progress: 50, text: "Détermination de la cible calorique...", icon: Target },
+  { progress: 65, text: "Optimisation des macronutriments...", icon: Utensils },
+  { progress: 80, text: "Calcul de l'hydratation recommandée...", icon: Droplets },
+  { progress: 95, text: "Finalisation de ton plan...", icon: Dumbbell },
+  { progress: 100, text: "Ton plan est prêt !", icon: CheckCircle2 }
 ];
 
 const LoadingAnalysis = () => {
   const [progress, setProgress] = useState(0);
-  const [currentText, setCurrentText] = useState(loadingSteps[0].text);
+  const [currentStep, setCurrentStep] = useState(loadingSteps[0]);
 
   useEffect(() => {
     const totalDuration = 15000; // 15 secondes
@@ -34,11 +34,11 @@ const LoadingAnalysis = () => {
       setProgress(calculatedProgress);
       
       // Update text based on progress
-      const currentStep = loadingSteps.reduce((acc, step) => {
+      const newStep = loadingSteps.reduce((acc, step) => {
         return calculatedProgress >= step.progress ? step : acc;
       }, loadingSteps[0]);
       
-      setCurrentText(currentStep.text);
+      setCurrentStep(newStep);
 
       if (calculatedProgress >= 100) {
         clearInterval(timer);
@@ -48,6 +48,8 @@ const LoadingAnalysis = () => {
     return () => clearInterval(timer);
   }, []);
 
+  const CurrentIcon = currentStep.icon;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background">
       <div className="text-center max-w-md px-4">
@@ -55,7 +57,7 @@ const LoadingAnalysis = () => {
         <div className="relative mb-8">
           <div className="w-32 h-32 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-2xl font-bold text-primary">{Math.round(progress)}%</div>
+            <CurrentIcon className="w-12 h-12 text-primary" />
           </div>
         </div>
         
@@ -68,9 +70,13 @@ const LoadingAnalysis = () => {
               style={{ width: `${progress}%` }}
             />
           </div>
+          <p className="text-sm text-muted-foreground mt-2">{Math.round(progress)}%</p>
         </div>
         
-        <p className="text-lg text-muted-foreground animate-pulse">{currentText}</p>
+        <p className="text-lg text-muted-foreground animate-pulse flex items-center justify-center gap-2">
+          <CurrentIcon className="w-5 h-5" />
+          {currentStep.text}
+        </p>
       </div>
     </div>
   );
@@ -127,7 +133,10 @@ const Preview = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center animate-in">
-            <h1 className="text-4xl font-bold mb-4">📊 Ton analyse personnalisée</h1>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <BarChart3 className="w-10 h-10 text-primary" />
+              <h1 className="text-4xl font-bold">Ton analyse personnalisée</h1>
+            </div>
             <p className="text-lg text-muted-foreground">
               Voici ton plan nutrition détaillé basé sur tes réponses
             </p>
@@ -186,7 +195,8 @@ const Preview = () => {
           {/* Cible personnalisée */}
           <Card className="p-6 animate-in">
             <div className="flex items-center gap-2 mb-6">
-              <h3 className="text-xl font-bold">🎯 Ta cible calorique journalière</h3>
+              <Target className="w-6 h-6 text-primary" />
+              <h3 className="text-xl font-bold">Ta cible calorique journalière</h3>
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <Info className="w-5 h-5 text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors" />
@@ -257,7 +267,10 @@ const Preview = () => {
           {/* CTA intermédiaire */}
           <Card className="p-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30 animate-in">
             <div className="text-center space-y-4">
-              <h3 className="text-2xl font-bold">Ton plan est prêt ! 🎉</h3>
+              <div className="flex items-center justify-center gap-2">
+                <PartyPopper className="w-8 h-8 text-primary" />
+                <h3 className="text-2xl font-bold">Ton plan est prêt !</h3>
+              </div>
               <p className="text-muted-foreground">
                 Crée ton compte maintenant pour débloquer ta première séance d'entraînement personnalisée
               </p>
@@ -301,9 +314,12 @@ const Preview = () => {
 
           {/* CTA */}
           <div className="mt-12 text-center space-y-4 animate-in">
-            <h2 className="text-3xl font-bold">
-              Prêt à commencer ton aventure ? 🚀
-            </h2>
+            <div className="flex items-center justify-center gap-3">
+              <Rocket className="w-10 h-10 text-primary" />
+              <h2 className="text-3xl font-bold">
+                Prêt à commencer ton aventure ?
+              </h2>
+            </div>
             <p className="text-muted-foreground max-w-lg mx-auto text-lg">
               Crée ton compte gratuitement pour accéder à ta première séance d'entraînement 
               personnalisée et suivre tes progrès.
@@ -311,14 +327,16 @@ const Preview = () => {
             
             <Button 
               size="lg" 
-              className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg"
+              className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg inline-flex items-center gap-2"
               onClick={handleCreateAccount}
             >
-              Créer mon compte et voir ma séance 💪
+              <Dumbbell className="w-5 h-5" />
+              Créer mon compte et voir ma séance
             </Button>
             
-            <p className="text-sm text-muted-foreground">
-              🎁 Ta première séance est gratuite, sans engagement
+            <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <Gift className="w-4 h-4" />
+              Ta première séance est gratuite, sans engagement
             </p>
           </div>
         </div>

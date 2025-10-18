@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { trainingPlanner, type Exercise } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
-import { Play, Pause, ChevronRight, RefreshCw, AlertCircle } from "lucide-react";
+import { Play, Pause, ChevronRight, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -113,7 +113,7 @@ const Session = () => {
         setCurrentExerciseIndex(currentExerciseIndex + 1);
         setCurrentSet(1);
         toast({
-          title: "Exercice terminé ! 💪",
+          title: "Exercice terminé !",
           description: "Prends une petite pause et passe au suivant.",
         });
       } else {
@@ -238,10 +238,11 @@ const Session = () => {
               </div>
 
               <div className="space-y-4 mb-6">
-                <div>
-                  <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    ✅ Consignes clés
-                  </h3>
+              <div>
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  Consignes clés
+                </h3>
                   <ul className="space-y-1 text-sm">
                     {currentExercise.tips.map((tip, i) => (
                       <li key={i} className="flex items-start gap-2">

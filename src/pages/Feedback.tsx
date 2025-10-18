@@ -51,7 +51,7 @@ const Feedback = () => {
       }
 
       toast({
-        title: "Merci pour ton retour ! 🎉",
+        title: "Merci pour ton retour !",
         description: "Tes feedbacks nous aident à améliorer ton programme.",
       });
 
@@ -100,7 +100,9 @@ const Feedback = () => {
           <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <ThumbsUp className="w-8 h-8 text-accent" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Bravo ! 💪</h1>
+          <h1 className="text-3xl font-bold mb-2 flex items-center justify-center gap-2">
+            Bravo ! <ThumbsUp className="w-8 h-8 text-primary" />
+          </h1>
           <p className="text-muted-foreground">
             Prends 30 secondes pour nous dire comment ça s'est passé.
           </p>
