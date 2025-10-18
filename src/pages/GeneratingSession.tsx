@@ -34,8 +34,8 @@ const GeneratingSession = () => {
       });
     }, 300);
 
-    // Appel à l'edge function
-    const generateSession = async () => {
+    // Appel à l'edge function avec retry logic
+    const generateSession = async (retryCount = 0) => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -60,19 +60,37 @@ const GeneratingSession = () => {
 
       } catch (error) {
         console.error('Error generating session:', error);
+        
+        // Retry logic pour les erreurs de données manquantes
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const isDataMissing = errorMessage.includes('DATA_MISSING');
+        
+        if (isDataMissing && retryCount < 2) {
+          console.log(`Retrying... Attempt ${retryCount + 1}/2`);
+          // Attendre 2 secondes avant de réessayer
+          setTimeout(() => {
+            generateSession(retryCount + 1);
+          }, 2000);
+          return;
+        }
+        
         clearInterval(stepInterval);
         clearInterval(progressInterval);
         
         // Message d'erreur personnalisé selon le type d'erreur
-        let errorMessage = "Impossible de générer ta séance. Réessaie dans quelques instants.";
+        let displayMessage = "Impossible de générer ta séance. Réessaie dans quelques instants.";
         
         if (error instanceof Error) {
-          if (error.message.includes('Données personnelles incomplètes')) {
-            errorMessage = "Tes données personnelles sont incomplètes. Retourne au questionnaire d'onboarding.";
+          if (error.message.includes('DATA_MISSING:goals')) {
+            displayMessage = "Tes données personnelles sont incomplètes. Retourne au questionnaire d'onboarding.";
+          } else if (error.message.includes('DATA_MISSING:prefs')) {
+            displayMessage = "Configure d'abord tes préférences d'entraînement.";
+          } else if (error.message.includes('Données personnelles incomplètes')) {
+            displayMessage = "Tes données personnelles sont incomplètes. Retourne au questionnaire d'onboarding.";
           } else if (error.message.includes('Préférences d\'entraînement manquantes')) {
-            errorMessage = "Configure d'abord tes préférences d'entraînement.";
+            displayMessage = "Configure d'abord tes préférences d'entraînement.";
           } else if (error.message.includes('User not authenticated')) {
-            errorMessage = "Tu n'es pas connecté. Connecte-toi d'abord.";
+            displayMessage = "Tu n'es pas connecté. Connecte-toi d'abord.";
             setTimeout(() => navigate('/auth'), 2000);
             return;
           }
@@ -80,7 +98,7 @@ const GeneratingSession = () => {
         
         toast({
           title: "Erreur de génération",
-          description: errorMessage,
+          description: displayMessage,
           variant: "destructive"
         });
 

@@ -129,11 +129,36 @@ const TrainingSetup = () => {
 
       if (error) throw error;
 
+      // Vérifier que les données goals existent avant de continuer
+      const { data: goalsData, error: goalsError } = await supabase
+        .from("goals")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (goalsError) {
+        console.error("Error checking goals:", goalsError);
+      }
+
+      if (!goalsData) {
+        toast({
+          title: "Données manquantes",
+          description: "Complète d'abord le questionnaire d'onboarding.",
+          variant: "destructive",
+        });
+        navigate("/start");
+        return;
+      }
+
       clearTrainingSetup();
       toast({
         title: "Profil d'entraînement créé ! 🎉",
         description: "Génération de ta séance personnalisée...",
       });
+      
+      // Petite pause pour s'assurer que les données sont bien propagées
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       navigate("/generating-session");
     } catch (error: any) {
       toast({

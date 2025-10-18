@@ -35,18 +35,18 @@ serve(async (req) => {
 
     console.log('Fetching user data for:', user.id);
 
-    // Récupérer les données utilisateur
-    const { data: goals } = await supabase
+    // Récupérer les données utilisateur avec maybeSingle pour éviter les erreurs
+    const { data: goals, error: goalsError } = await supabase
       .from('goals')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    const { data: prefs } = await supabase
+    const { data: prefs, error: prefsError } = await supabase
       .from('training_preferences')
       .select('*')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const { data: sessions } = await supabase
       .from('sessions')
@@ -55,14 +55,26 @@ serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(5);
 
+    // Vérifier les erreurs de requête
+    if (goalsError) {
+      console.error('Error fetching goals:', goalsError);
+      throw new Error('Erreur lors de la récupération des données utilisateur.');
+    }
+
+    if (prefsError) {
+      console.error('Error fetching preferences:', prefsError);
+      throw new Error('Erreur lors de la récupération des préférences d\'entraînement.');
+    }
+
+    // Vérifier que les données existent
     if (!goals) {
       console.error('Goals data missing for user:', user.id);
-      throw new Error('Données utilisateur manquantes. Complète d\'abord le questionnaire d\'onboarding.');
+      throw new Error('DATA_MISSING:goals');
     }
 
     if (!prefs) {
       console.error('Training preferences missing for user:', user.id);
-      throw new Error('Préférences d\'entraînement manquantes. Configure d\'abord tes préférences.');
+      throw new Error('DATA_MISSING:prefs');
     }
 
     // Vérifier que les données personnelles essentielles sont présentes
