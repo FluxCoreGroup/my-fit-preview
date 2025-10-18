@@ -32,7 +32,27 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
-      throw new Error('Unauthorized');
+      console.error('Authentication error:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify subscription for nutrition plan generation
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (!subscription) {
+      console.log('User has no active subscription for nutrition plan');
+      return new Response(
+        JSON.stringify({ error: 'Abonnement requis' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Fetch user data
@@ -135,12 +155,15 @@ Réponds UNIQUEMENT avec un JSON structuré comme ceci (pas de markdown, juste l
     );
 
   } catch (error) {
+    // Log detailed error server-side only
     console.error('Error in generate-nutrition-plan:', error);
+    
+    // Return generic error to client
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Erreur lors de la génération du plan nutritionnel' }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }

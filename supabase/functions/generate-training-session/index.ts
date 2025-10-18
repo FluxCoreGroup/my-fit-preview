@@ -30,7 +30,35 @@ serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      throw new Error('Unauthorized');
+      console.error('Authentication error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Non autorisé' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify subscription status (server-side check)
+    const { count: feedbackCount } = await supabase
+      .from('feedback')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    // If user has completed at least one session, check for active subscription
+    if (feedbackCount && feedbackCount > 0) {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!subscription) {
+        console.log('User has no active subscription');
+        return new Response(
+          JSON.stringify({ error: 'Abonnement requis pour continuer' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     console.log('Fetching user data for:', user.id);
@@ -219,15 +247,33 @@ Chaque exercice doit avoir :
     );
 
   } catch (error) {
+    // Log full error details server-side
     console.error('Error in generate-training-session:', error);
+    
+    // Map error to user-friendly message (don't expose internal details)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    let clientError = 'Une erreur est survenue lors de la génération';
+    let statusCode = 500;
+
+    if (errorMessage.includes('Unauthorized') || errorMessage.includes('JWT')) {
+      clientError = 'Session expirée, veuillez vous reconnecter';
+      statusCode = 401;
+    } else if (errorMessage.includes('DATA_MISSING')) {
+      clientError = 'Configuration incomplète';
+      statusCode = 400;
+    } else if (errorMessage.includes('Abonnement requis')) {
+      clientError = errorMessage;
+      statusCode = 403;
+    }
+
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error',
-        details: error instanceof Error ? error.stack : undefined
+        error: clientError,
+        retryable: statusCode === 401
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
+        status: statusCode,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }

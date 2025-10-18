@@ -99,8 +99,11 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+    // Log detailed error server-side only
     logStep("ERROR in check-subscription", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    
+    // Return generic error to client
+    return new Response(JSON.stringify({ error: 'Erreur lors de la vérification de l\'abonnement' }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

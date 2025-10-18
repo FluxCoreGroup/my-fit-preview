@@ -8,6 +8,27 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, MessageCircle, HelpCircle } from "lucide-react";
 import { Header } from "@/components/Header";
+import { z } from "zod";
+
+// Validation schema for support form
+const supportFormSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, "Le nom est requis")
+    .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+  email: z.string()
+    .trim()
+    .email("Email invalide")
+    .max(255, "L'email ne peut pas dépasser 255 caractères"),
+  subject: z.string()
+    .trim()
+    .min(1, "Le sujet est requis")
+    .max(200, "Le sujet ne peut pas dépasser 200 caractères"),
+  message: z.string()
+    .trim()
+    .min(10, "Le message doit contenir au moins 10 caractères")
+    .max(2000, "Le message ne peut pas dépasser 2000 caractères")
+});
 
 const Support = () => {
   const { toast } = useToast();
@@ -24,10 +45,24 @@ const Support = () => {
     setLoading(true);
 
     try {
+      // Validate inputs before sending
+      const validationResult = supportFormSchema.safeParse(formData);
+
+      if (!validationResult.success) {
+        const firstError = validationResult.error.errors[0];
+        toast({
+          title: "Erreur de validation",
+          description: firstError.message,
+          variant: "destructive"
+        });
+        setLoading(false);
+        return;
+      }
+
       const { supabase } = await import('@/integrations/supabase/client');
       
       const { error } = await supabase.functions.invoke('send-support-email', {
-        body: formData
+        body: validationResult.data
       });
 
       if (error) throw error;

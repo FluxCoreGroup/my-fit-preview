@@ -57,7 +57,7 @@ export type Database = {
           pain_zones: string[] | null
           rpe: number | null
           session_id: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           comments?: string | null
@@ -68,7 +68,7 @@ export type Database = {
           pain_zones?: string[] | null
           rpe?: number | null
           session_id?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           comments?: string | null
@@ -79,7 +79,7 @@ export type Database = {
           pain_zones?: string[] | null
           rpe?: number | null
           session_id?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -113,7 +113,7 @@ export type Database = {
           session_duration: number | null
           sex: string | null
           target_weight_loss: number | null
-          user_id: string | null
+          user_id: string
           weight: number | null
         }
         Insert: {
@@ -137,7 +137,7 @@ export type Database = {
           session_duration?: number | null
           sex?: string | null
           target_weight_loss?: number | null
-          user_id?: string | null
+          user_id: string
           weight?: number | null
         }
         Update: {
@@ -161,7 +161,7 @@ export type Database = {
           session_duration?: number | null
           sex?: string | null
           target_weight_loss?: number | null
-          user_id?: string | null
+          user_id?: string
           weight?: number | null
         }
         Relationships: []
@@ -197,7 +197,7 @@ export type Database = {
           exercises: Json | null
           id: string
           session_date: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           completed?: boolean | null
@@ -205,7 +205,7 @@ export type Database = {
           exercises?: Json | null
           id?: string
           session_date?: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           completed?: boolean | null
@@ -213,7 +213,7 @@ export type Database = {
           exercises?: Json | null
           id?: string
           session_date?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -227,7 +227,7 @@ export type Database = {
           status: string
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -238,7 +238,7 @@ export type Database = {
           status: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -249,7 +249,7 @@ export type Database = {
           status?: string
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -316,7 +316,7 @@ export type Database = {
           sessions_done: number | null
           sessions_planned: number | null
           sleep: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           adherence_diet?: number | null
@@ -329,7 +329,7 @@ export type Database = {
           sessions_done?: number | null
           sessions_planned?: number | null
           sleep?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           adherence_diet?: number | null
@@ -342,7 +342,7 @@ export type Database = {
           sessions_done?: number | null
           sessions_planned?: number | null
           sleep?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
