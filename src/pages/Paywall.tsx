@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Check, Sparkles, CreditCard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Check, Sparkles, CreditCard, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,12 +11,18 @@ const Paywall = () => {
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
 
-  const handleSubscribe = async (planType: 'monthly' | 'yearly' = 'monthly') => {
+  const monthlyPrice = 29.99;
+  const yearlyPrice = 299.90;
+  const yearlyMonthlyEquivalent = (yearlyPrice / 12).toFixed(2);
+  const savingsPercent = Math.round(((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100);
+
+  const handleSubscribe = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planType }
+        body: { planType: selectedPlan }
       });
 
       if (error) throw error;
@@ -38,28 +45,107 @@ const Paywall = () => {
     <div className="min-h-screen bg-muted/30 py-8 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
-        <div className="text-center animate-in">
-          <div className="w-16 h-16 gradient-hero rounded-full flex items-center justify-center mx-auto mb-4">
-            <Sparkles className="w-8 h-8 text-primary-foreground" />
+        <div className="text-center animate-in space-y-4">
+          <div className="w-20 h-20 gradient-hero rounded-full flex items-center justify-center mx-auto shadow-glow">
+            <Sparkles className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-4xl font-bold mb-4">Tu as aimé ta première séance ?</h1>
+          <h1 className="text-4xl md:text-5xl font-bold">Tu as aimé ta première séance ?</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Débloquez ton programme complet et accède à toutes tes séances personnalisées,
             ton suivi nutrition et tes ajustements hebdomadaires.
           </p>
         </div>
 
-        {/* Pricing Card */}
-        <Card className="p-8 md:p-12 animate-in max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="flex items-baseline justify-center gap-2 mb-2">
-              <span className="text-5xl font-bold">29,99€</span>
-              <span className="text-xl text-muted-foreground">/mois</span>
+        {/* Pricing Cards */}
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto animate-in">
+          {/* Plan Annuel - Recommandé */}
+          <Card 
+            className={`p-8 relative cursor-pointer transition-all ${
+              selectedPlan === 'yearly' 
+                ? 'ring-2 ring-primary shadow-glow scale-105' 
+                : 'hover:scale-102'
+            }`}
+            onClick={() => setSelectedPlan('yearly')}
+          >
+            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary">
+              <TrendingUp className="w-3 h-3 mr-1" />
+              Recommandé pour ton objectif
+            </Badge>
+            
+            <div className="text-center mb-6 mt-2">
+              <div className="mb-2">
+                <span className="text-5xl font-bold">{yearlyMonthlyEquivalent}€</span>
+                <span className="text-xl text-muted-foreground">/mois</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Facturé {yearlyPrice}€/an</p>
+              <Badge variant="secondary" className="mt-2">
+                Économise {savingsPercent}% 🎉
+              </Badge>
             </div>
-            <p className="text-muted-foreground">ou 299,90€/an (économise 60€)</p>
-          </div>
 
-          <div className="space-y-4 mb-8">
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2 text-sm">
+                <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                <span className="font-medium">Meilleur pour résultats long terme</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                <span>Économise {Math.round(monthlyPrice * 12 - yearlyPrice)}€ sur l'année</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                <span>Programme complet sport + nutrition</span>
+              </div>
+            </div>
+
+            <div className="w-full h-12 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-medium">
+              {selectedPlan === 'yearly' ? '✓ Plan sélectionné' : 'Choisir ce plan'}
+            </div>
+          </Card>
+
+          {/* Plan Mensuel */}
+          <Card 
+            className={`p-8 cursor-pointer transition-all ${
+              selectedPlan === 'monthly' 
+                ? 'ring-2 ring-primary shadow-glow scale-105' 
+                : 'hover:scale-102'
+            }`}
+            onClick={() => setSelectedPlan('monthly')}
+          >
+            <div className="text-center mb-6 mt-9">
+              <div className="mb-2">
+                <span className="text-5xl font-bold">{monthlyPrice}€</span>
+                <span className="text-xl text-muted-foreground">/mois</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Sans engagement</p>
+            </div>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center gap-2 text-sm">
+                <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                <span>Flexible et résiliable à tout moment</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                <span>Idéal pour tester le programme</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Check className="w-4 h-4 text-accent flex-shrink-0" />
+                <span>Programme complet sport + nutrition</span>
+              </div>
+            </div>
+
+            <div className="w-full h-12 rounded-lg bg-muted/50 flex items-center justify-center text-sm font-medium">
+              {selectedPlan === 'monthly' ? '✓ Plan sélectionné' : 'Choisir ce plan'}
+            </div>
+          </Card>
+        </div>
+
+        {/* Features incluses */}
+        <Card className="p-8 animate-in max-w-4xl mx-auto">
+          <h3 className="text-xl font-bold mb-6 text-center">Tout ce qui est inclus :</h3>
+
+          <div className="grid md:grid-cols-2 gap-4">
             {[
               "Programme complet sport + nutrition personnalisé",
               "Nouvelles séances chaque semaine",
@@ -72,26 +158,29 @@ const Paywall = () => {
             ].map((feature, i) => (
               <div key={i} className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
-                <span>{feature}</span>
+                <span className="text-sm">{feature}</span>
               </div>
             ))}
           </div>
+        </Card>
 
+        {/* CTA Button */}
+        <div className="max-w-2xl mx-auto space-y-4">
           <Button
             size="lg"
             variant="hero"
-            onClick={() => handleSubscribe('monthly')}
+            onClick={handleSubscribe}
             disabled={loading}
-            className="w-full text-lg"
+            className="w-full text-lg h-14 shadow-glow"
           >
             <CreditCard className="w-5 h-5 mr-2" />
-            {loading ? "Redirection..." : "S'abonner maintenant"}
+            {loading ? "Redirection..." : "Commencer maintenant"}
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground mt-4">
+          <p className="text-center text-sm text-muted-foreground">
             Résiliable à tout moment • Garantie satisfait ou remboursé 14 jours
           </p>
-        </Card>
+        </div>
 
         {/* Guarantees */}
         <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
