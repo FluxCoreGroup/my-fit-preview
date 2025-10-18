@@ -55,7 +55,7 @@ const GeneratingSession = () => {
 
         // Attendre que l'animation soit terminée
         setTimeout(() => {
-          navigate('/session');
+          navigate('/dashboard?generated=success');
         }, 15000);
 
       } catch (error) {

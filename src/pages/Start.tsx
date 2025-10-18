@@ -134,6 +134,7 @@ const Start = () => {
     if (step < totalSteps) {
       if (validateStep()) {
         setStep(step + 1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         toast({
           title: "Informations manquantes",

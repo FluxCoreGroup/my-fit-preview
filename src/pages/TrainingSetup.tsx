@@ -97,6 +97,7 @@ const TrainingSetup = () => {
   const handleNext = async () => {
     if (step < totalSteps) {
       setStep(step + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       await handleSubmit();
     }
