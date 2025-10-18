@@ -47,7 +47,7 @@ export const Header = ({ variant = "marketing", showBack = false, onBack }: Head
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link to="/legal">
+            <Link to="/settings">
               <Button variant="ghost" size="sm">
                 <Settings className="w-4 h-4" />
               </Button>
