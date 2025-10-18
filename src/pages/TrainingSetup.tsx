@@ -23,15 +23,17 @@ import {
 const TrainingSetup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { data: trainingData, saveProgress, clearTrainingSetup } = useTrainingSetup();
   const { data: onboardingData } = useOnboarding();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const totalSteps = 6;
 
   // Redirect if not logged in or no onboarding data
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to be fully initialized
+    
     if (!user) {
       navigate("/auth");
       return;
@@ -40,7 +42,7 @@ const TrainingSetup = () => {
       navigate("/start");
       return;
     }
-  }, [user, onboardingData, navigate]);
+  }, [user, authLoading, onboardingData, navigate]);
 
   const [formData, setFormData] = useState({
     sessionType: trainingData.sessionType || undefined,
@@ -112,7 +114,7 @@ const TrainingSetup = () => {
   const handleSubmit = async () => {
     if (!user) return;
 
-    setLoading(true);
+    setSubmitting(true);
     try {
       const { error } = await supabase.from("training_preferences").insert({
         user_id: user.id,
@@ -168,7 +170,7 @@ const TrainingSetup = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -600,10 +602,10 @@ const TrainingSetup = () => {
           </Button>
           <Button
             onClick={handleNext}
-            disabled={!isStepValid() || loading}
+            disabled={!isStepValid() || submitting}
           >
             {step === totalSteps ? (
-              loading ? "Enregistrement..." : "Terminer"
+              submitting ? "Enregistrement..." : "Terminer"
             ) : (
               <>
                 Suivant
