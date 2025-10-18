@@ -63,9 +63,24 @@ const GeneratingSession = () => {
         clearInterval(stepInterval);
         clearInterval(progressInterval);
         
+        // Message d'erreur personnalisé selon le type d'erreur
+        let errorMessage = "Impossible de générer ta séance. Réessaie dans quelques instants.";
+        
+        if (error instanceof Error) {
+          if (error.message.includes('Données personnelles incomplètes')) {
+            errorMessage = "Tes données personnelles sont incomplètes. Retourne au questionnaire d'onboarding.";
+          } else if (error.message.includes('Préférences d\'entraînement manquantes')) {
+            errorMessage = "Configure d'abord tes préférences d'entraînement.";
+          } else if (error.message.includes('User not authenticated')) {
+            errorMessage = "Tu n'es pas connecté. Connecte-toi d'abord.";
+            setTimeout(() => navigate('/auth'), 2000);
+            return;
+          }
+        }
+        
         toast({
           title: "Erreur de génération",
-          description: "Impossible de générer ta séance. Réessaie dans quelques instants.",
+          description: errorMessage,
           variant: "destructive"
         });
 

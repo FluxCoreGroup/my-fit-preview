@@ -33,6 +33,10 @@ export const useSaveOnboardingData = () => {
         // Enregistrer les données dans la table goals
         const { error } = await supabase.from("goals").insert({
           user_id: user.id,
+          age: data.age || null,
+          sex: data.sex || null,
+          height: data.height || null,
+          weight: data.weight || null,
           goal_type: data.goal || null,
           target_weight_loss: data.targetWeightLoss || null,
           horizon: data.horizon || null,

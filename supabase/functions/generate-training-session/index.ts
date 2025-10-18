@@ -55,16 +55,38 @@ serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(5);
 
-    if (!goals || !prefs) {
-      throw new Error('User data not found');
+    if (!goals) {
+      console.error('Goals data missing for user:', user.id);
+      throw new Error('Données utilisateur manquantes. Complète d\'abord le questionnaire d\'onboarding.');
     }
 
-    console.log('User data fetched successfully');
+    if (!prefs) {
+      console.error('Training preferences missing for user:', user.id);
+      throw new Error('Préférences d\'entraînement manquantes. Configure d\'abord tes préférences.');
+    }
+
+    // Vérifier que les données personnelles essentielles sont présentes
+    if (!goals.age || !goals.sex || !goals.height || !goals.weight) {
+      console.error('Personal data incomplete:', { age: goals.age, sex: goals.sex, height: goals.height, weight: goals.weight });
+      throw new Error('Données personnelles incomplètes. Vérifie ton profil.');
+    }
+
+    console.log('User data fetched successfully', {
+      age: goals.age,
+      sex: goals.sex,
+      height: goals.height,
+      weight: goals.weight,
+      goal: goals.goal_type
+    });
 
     // Construire le prompt système
     const systemPrompt = `Tu es un coach sportif expert. Tu dois générer une séance d'entraînement personnalisée.
 
 DONNÉES UTILISATEUR :
+- Âge : ${goals.age} ans
+- Sexe : ${goals.sex}
+- Taille : ${goals.height} cm
+- Poids : ${goals.weight} kg
 - Objectif : ${goals.goal_type}
 - Niveau : ${prefs.experience_level}
 - Type de séance : ${prefs.session_type}
