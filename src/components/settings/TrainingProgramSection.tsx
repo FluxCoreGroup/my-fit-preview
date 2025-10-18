@@ -79,17 +79,17 @@ export const TrainingProgramSection = () => {
 
     setLoading(true);
     try {
-      // Fetch existing training_preferences to avoid overwriting other sections
-      const { data: existingPrefs } = await supabase
-        .from("training_preferences")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
+      // Fetch existing data to avoid overwriting other sections
+      const [goalsRes, prefsRes] = await Promise.all([
+        supabase.from("goals").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("training_preferences").select("*").eq("user_id", user.id).maybeSingle(),
+      ]);
 
       await Promise.all([
         supabase.from("goals").upsert({
+          ...goalsRes.data,
           user_id: user.id,
-          goal_type: goalsData.goal_type || "general_fitness",
+          goal_type: goalsData.goal_type || goalsRes.data?.goal_type || "general_fitness",
           frequency: goalsData.frequency ? parseInt(goalsData.frequency) : null,
           session_duration: goalsData.session_duration ? parseInt(goalsData.session_duration) : null,
           equipment: goalsData.equipment,
@@ -97,19 +97,17 @@ export const TrainingProgramSection = () => {
         }, { onConflict: 'user_id' }),
         
         supabase.from("training_preferences").upsert({
+          ...prefsRes.data,
           user_id: user.id,
-          // Keep existing values for fields managed by other sections
-          cardio_intensity: existingPrefs?.cardio_intensity,
-          mobility_preference: existingPrefs?.mobility_preference || "none",
           // Update only fields managed by this section
-          experience_level: prefsData.experience_level || "intermediate",
-          session_type: prefsData.session_type || "full_body",
+          experience_level: prefsData.experience_level || prefsRes.data?.experience_level || "intermediate",
+          session_type: prefsData.session_type || prefsRes.data?.session_type || "full_body",
           split_preference: prefsData.split_preference,
           priority_zones: prefsData.priority_zones,
           limitations: prefsData.limitations,
           favorite_exercises: prefsData.favorite_exercises,
           exercises_to_avoid: prefsData.exercises_to_avoid,
-          progression_focus: prefsData.progression_focus || "balanced",
+          progression_focus: prefsData.progression_focus || prefsRes.data?.progression_focus || "balanced",
         }, { onConflict: 'user_id' }),
       ]);
 
