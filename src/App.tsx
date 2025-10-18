@@ -22,6 +22,7 @@ import Legal from "./pages/Legal";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import GeneratingSession from "./pages/GeneratingSession";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
           <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><Weekly /></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><SubscriptionGuard><Dashboard /></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SubscriptionGuard><Settings /></SubscriptionGuard></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

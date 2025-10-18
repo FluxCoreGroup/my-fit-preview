@@ -208,6 +208,9 @@ const Dashboard = () => {
           <Link to="/preview">
             <Button variant="outline">Voir mon plan</Button>
           </Link>
+          <Link to="/settings">
+            <Button variant="outline">Paramètres</Button>
+          </Link>
           <Link to="/support">
             <Button variant="outline">Support</Button>
           </Link>
