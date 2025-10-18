@@ -55,7 +55,8 @@ const Signup = () => {
       );
 
       if (!error) {
-        navigate("/training-setup");
+        localStorage.setItem("pendingEmail", validatedData.email);
+        navigate("/email-confirmation");
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
