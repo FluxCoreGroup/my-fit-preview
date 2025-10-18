@@ -33,21 +33,30 @@ export const useSaveOnboardingData = () => {
         // Enregistrer les données dans la table goals
         const { error } = await supabase.from("goals").insert({
           user_id: user.id,
+          // Étape 1 : Profil de base
           age: data.age || null,
           sex: data.sex || null,
           height: data.height || null,
           weight: data.weight || null,
+          // Étape 2 : Objectif
           goal_type: data.goal || null,
+          horizon: data.goalHorizon || null,
           target_weight_loss: data.targetWeightLoss || null,
-          horizon: data.horizon || null,
+          has_cardio: data.hasCardio !== undefined ? data.hasCardio : null,
+          cardio_frequency: data.cardioFrequency || null,
+          // Étape 3 : Niveau d'activité
           activity_level: data.activityLevel || null,
+          // Étape 4 : Entraînement
           frequency: data.frequency || null,
           session_duration: data.sessionDuration || null,
           location: data.location || null,
           equipment: data.equipment || null,
-          health_conditions: data.healthConditions || null,
-          has_breakfast: data.hasBreakfast !== undefined ? data.hasBreakfast : true,
+          // Étape 5 : Alimentation et santé
           meals_per_day: data.mealsPerDay || 3,
+          has_breakfast: data.hasBreakfast !== undefined ? data.hasBreakfast : true,
+          allergies: data.allergies || null,
+          restrictions: data.restrictions || null,
+          health_conditions: data.healthConditions || null,
         });
 
         if (error) {

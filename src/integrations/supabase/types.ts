@@ -69,17 +69,21 @@ export type Database = {
         Row: {
           activity_level: string | null
           age: number | null
+          allergies: string[] | null
+          cardio_frequency: number | null
           created_at: string
           equipment: string[] | null
           frequency: number | null
           goal_type: string
           has_breakfast: boolean | null
+          has_cardio: boolean | null
           health_conditions: string[] | null
           height: number | null
           horizon: string | null
           id: string
           location: string | null
           meals_per_day: number | null
+          restrictions: string[] | null
           session_duration: number | null
           sex: string | null
           target_weight_loss: number | null
@@ -89,17 +93,21 @@ export type Database = {
         Insert: {
           activity_level?: string | null
           age?: number | null
+          allergies?: string[] | null
+          cardio_frequency?: number | null
           created_at?: string
           equipment?: string[] | null
           frequency?: number | null
           goal_type: string
           has_breakfast?: boolean | null
+          has_cardio?: boolean | null
           health_conditions?: string[] | null
           height?: number | null
           horizon?: string | null
           id?: string
           location?: string | null
           meals_per_day?: number | null
+          restrictions?: string[] | null
           session_duration?: number | null
           sex?: string | null
           target_weight_loss?: number | null
@@ -109,17 +117,21 @@ export type Database = {
         Update: {
           activity_level?: string | null
           age?: number | null
+          allergies?: string[] | null
+          cardio_frequency?: number | null
           created_at?: string
           equipment?: string[] | null
           frequency?: number | null
           goal_type?: string
           has_breakfast?: boolean | null
+          has_cardio?: boolean | null
           health_conditions?: string[] | null
           height?: number | null
           horizon?: string | null
           id?: string
           location?: string | null
           meals_per_day?: number | null
+          restrictions?: string[] | null
           session_duration?: number | null
           sex?: string | null
           target_weight_loss?: number | null
