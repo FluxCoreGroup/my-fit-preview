@@ -47,16 +47,6 @@ const TrainingSetup = () => {
       
       console.log("✅ Utilisateur connecté:", user.email);
       
-      // Vérifier si la sauvegarde onboarding est en cours
-      const isSaving = localStorage.getItem("onboarding_saving");
-      if (isSaving === "true") {
-        console.log("⏳ Sauvegarde onboarding en cours, attente...");
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-        return;
-      }
-      
       // Vérifier dans Supabase (1 seule fois, sans retry)
       const { data: goalsData, error } = await supabase
         .from("goals")
