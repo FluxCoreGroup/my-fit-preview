@@ -52,12 +52,11 @@ export default function EmailVerified() {
           
           {/* En-tête avec icône et badge */}
           <div className="flex flex-col items-center text-center space-y-4">
-            {/* Icône animée avec glow effect */}
+            {/* Icône de succès */}
             <div className="relative">
-              <div className="absolute inset-0 bg-primary/30 rounded-full blur-3xl animate-pulse" />
-              <div className="relative bg-primary/10 p-6 rounded-full">
+              <div className="bg-primary/10 p-6 rounded-full">
                 <CheckCircle 
-                  className="w-16 h-16 text-primary animate-bounce" 
+                  className="w-16 h-16 text-primary" 
                   strokeWidth={2.5} 
                 />
               </div>
@@ -125,7 +124,7 @@ export default function EmailVerified() {
           </div>
 
           {/* CTA principal */}
-          <div className="space-y-3 pt-4">
+          <div className="pt-4">
             <Button
               variant="hero"
               size="lg"
@@ -134,16 +133,6 @@ export default function EmailVerified() {
             >
               Créer mon programme 💪
               <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-
-            {/* Lien secondaire optionnel */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-              className="w-full text-muted-foreground hover:text-foreground"
-            >
-              Ou explorer le dashboard
             </Button>
           </div>
 
