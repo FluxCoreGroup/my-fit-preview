@@ -29,36 +29,55 @@ const TrainingSetup = () => {
   const { data: onboardingData } = useOnboarding();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [checkingGoals, setCheckingGoals] = useState(true);
   const totalSteps = 6;
 
   // Redirect if not logged in or no onboarding data
   useEffect(() => {
-    if (authLoading) return; // Attendre la fin du chargement auth
+    const checkUserData = async () => {
+      if (authLoading) return;
+      
+      // Vérifier si on a des tokens dans l'URL (confirmation en cours)
+      const hash = window.location.hash;
+      const hasTokens = hash && hash.includes('access_token');
+      if (hasTokens) {
+        // AuthCallback est en train de traiter les tokens, attendre
+        return;
+      }
+      
+      // Si pas d'utilisateur, rediriger vers auth
+      if (!user) {
+        toast({
+          title: "Connexion requise",
+          description: "Connecte-toi pour accéder au questionnaire d'entraînement.",
+        });
+        navigate("/auth");
+        return;
+      }
+      
+      // Vérifier dans Supabase si l'onboarding est complété
+      const { data: goalsData, error } = await supabase
+        .from("goals")
+        .select("goal_type")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Erreur lors de la vérification des goals:", error);
+      }
+      
+      // Si pas de goal_type dans la DB, rediriger vers /start
+      if (!goalsData || !goalsData.goal_type) {
+        navigate("/start");
+        return;
+      }
+      
+      // Tout est OK, autoriser l'accès
+      setCheckingGoals(false);
+    };
     
-    // Vérifier si on a des tokens dans l'URL (confirmation en cours)
-    const hash = window.location.hash;
-    const hasTokens = hash && hash.includes('access_token');
-    if (hasTokens) {
-      // AuthCallback est en train de traiter les tokens, attendre
-      return;
-    }
-    
-    // Si pas de tokens et pas d'utilisateur, rediriger vers auth
-    if (!user) {
-      toast({
-        title: "Connexion requise",
-        description: "Connecte-toi pour accéder au questionnaire d'entraînement.",
-      });
-      navigate("/auth");
-      return;
-    }
-    
-    // Vérifier que l'onboarding a été complété
-    if (!onboardingData.goal) {
-      navigate("/start");
-      return;
-    }
-  }, [user, authLoading, onboardingData, navigate, toast]);
+    checkUserData();
+  }, [user, authLoading, navigate, toast]);
 
   const [formData, setFormData] = useState({
     sessionType: trainingData.sessionType || undefined,
@@ -170,6 +189,7 @@ const TrainingSetup = () => {
       }
 
       clearTrainingSetup();
+      localStorage.removeItem("onboardingData");
       toast({
         title: "Profil d'entraînement créé ! 🎉",
         description: "Génération de ta séance personnalisée...",
@@ -270,6 +290,17 @@ const TrainingSetup = () => {
       Recommandé
     </span>
   );
+
+  if (authLoading || checkingGoals) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse text-center">
+          <div className="w-16 h-16 gradient-hero rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

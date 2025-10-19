@@ -69,8 +69,8 @@ export const useSaveOnboardingData = () => {
           });
         } else {
           console.log("✅ Données goals enregistrées avec succès pour l'utilisateur:", user.id);
-          // Supprimer les données du localStorage après enregistrement
-          localStorage.removeItem("onboardingData");
+          // Ne pas supprimer le localStorage ici, il sera supprimé après TrainingSetup
+          // localStorage.removeItem("onboardingData");
         }
       } catch (error) {
         console.error("Erreur:", error);
