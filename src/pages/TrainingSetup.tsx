@@ -37,16 +37,19 @@ const TrainingSetup = () => {
     const checkUserData = async () => {
       if (authLoading) return;
       
+      console.log("🔍 TrainingSetup - Vérification auth et données...");
+      
       // Vérifier si on a des tokens dans l'URL (confirmation en cours)
       const hash = window.location.hash;
       const hasTokens = hash && hash.includes('access_token');
       if (hasTokens) {
-        // AuthCallback est en train de traiter les tokens, attendre
+        console.log("⏳ Tokens détectés dans URL, attente AuthCallback...");
         return;
       }
       
       // Si pas d'utilisateur, rediriger vers auth
       if (!user) {
+        console.log("❌ Pas d'utilisateur, redirection vers /auth");
         toast({
           title: "Connexion requise",
           description: "Connecte-toi pour accéder au questionnaire d'entraînement.",
@@ -55,25 +58,67 @@ const TrainingSetup = () => {
         return;
       }
       
-      // Vérifier dans Supabase si l'onboarding est complété
-      const { data: goalsData, error } = await supabase
-        .from("goals")
-        .select("goal_type")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      console.log("✅ Utilisateur connecté:", user.email);
       
-      if (error) {
-        console.error("Erreur lors de la vérification des goals:", error);
+      // PRIORITÉ 1: Vérifier le localStorage d'abord
+      const localData = localStorage.getItem("onboardingData");
+      if (localData) {
+        try {
+          const parsed = JSON.parse(localData);
+          console.log("📦 Données onboarding trouvées dans localStorage:", parsed);
+          
+          if (parsed.goal) {
+            console.log("✅ Goal trouvé dans localStorage, accès autorisé!");
+            setCheckingGoals(false);
+            return;
+          }
+        } catch (e) {
+          console.error("Erreur parsing localStorage:", e);
+        }
+      } else {
+        console.log("⚠️ Pas de données dans localStorage");
       }
       
-      // Si pas de goal_type dans la DB, rediriger vers /start
-      if (!goalsData || !goalsData.goal_type) {
-        navigate("/start");
-        return;
+      // PRIORITÉ 2: Vérifier dans Supabase avec retries
+      console.log("🔄 Vérification Supabase avec retries...");
+      
+      const checkSupabase = async (attempt: number): Promise<boolean> => {
+        const { data: goalsData, error } = await supabase
+          .from("goals")
+          .select("goal_type")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error(`❌ Erreur Supabase (tentative ${attempt}):`, error);
+        }
+        
+        if (goalsData?.goal_type) {
+          console.log(`✅ Goal trouvé dans Supabase (tentative ${attempt}):`, goalsData.goal_type);
+          return true;
+        }
+        
+        console.log(`⚠️ Pas de goal dans Supabase (tentative ${attempt})`);
+        return false;
+      };
+      
+      // Essayer jusqu'à 3 fois avec délai
+      for (let i = 1; i <= 3; i++) {
+        const found = await checkSupabase(i);
+        if (found) {
+          setCheckingGoals(false);
+          return;
+        }
+        
+        if (i < 3) {
+          console.log(`⏳ Attente 400ms avant retry ${i + 1}...`);
+          await new Promise(resolve => setTimeout(resolve, 400));
+        }
       }
       
-      // Tout est OK, autoriser l'accès
-      setCheckingGoals(false);
+      // Si toujours rien après 3 tentatives, rediriger
+      console.log("❌ Aucune donnée trouvée après 3 tentatives, redirection vers /start");
+      navigate("/start");
     };
     
     checkUserData();
