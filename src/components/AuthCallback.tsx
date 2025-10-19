@@ -60,14 +60,8 @@ export function AuthCallback() {
               location.pathname + location.search
             );
 
-            toast({
-              title: "Email confirmé ! 🎉",
-              description: "Ton compte est activé. Bienvenue sur Pulse !",
-              duration: 5000,
-            });
-
-            // Laisser AuthContext détecter la session via onAuthStateChange
-            // et laisser le composant parent (TrainingSetup) gérer la suite
+            // Rediriger vers la page de confirmation avec timer
+            navigate('/email-verified');
           }
         }
       }
