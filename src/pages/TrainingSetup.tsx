@@ -14,6 +14,7 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { AuthCallback } from "@/components/AuthCallback";
 import { 
   getRecommendedSessionType, 
   getRecommendedCardioIntensity, 
@@ -32,17 +33,32 @@ const TrainingSetup = () => {
 
   // Redirect if not logged in or no onboarding data
   useEffect(() => {
-    if (authLoading) return; // Wait for auth to be fully initialized
+    if (authLoading) return; // Attendre la fin du chargement auth
     
+    // Vérifier si on a des tokens dans l'URL (confirmation en cours)
+    const hash = window.location.hash;
+    const hasTokens = hash && hash.includes('access_token');
+    if (hasTokens) {
+      // AuthCallback est en train de traiter les tokens, attendre
+      return;
+    }
+    
+    // Si pas de tokens et pas d'utilisateur, rediriger vers auth
     if (!user) {
+      toast({
+        title: "Connexion requise",
+        description: "Connecte-toi pour accéder au questionnaire d'entraînement.",
+      });
       navigate("/auth");
       return;
     }
+    
+    // Vérifier que l'onboarding a été complété
     if (!onboardingData.goal) {
       navigate("/start");
       return;
     }
-  }, [user, authLoading, onboardingData, navigate]);
+  }, [user, authLoading, onboardingData, navigate, toast]);
 
   const [formData, setFormData] = useState({
     sessionType: trainingData.sessionType || undefined,
@@ -256,8 +272,10 @@ const TrainingSetup = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header variant="onboarding" onBack={() => navigate("/dashboard")} />
+    <>
+      <AuthCallback />
+      <div className="min-h-screen bg-background">
+        <Header variant="onboarding" onBack={() => navigate("/dashboard")} />
       
       <div className="container mx-auto px-4 py-8 pt-24 max-w-2xl">
         <div className="mb-8">
@@ -615,7 +633,8 @@ const TrainingSetup = () => {
           </Button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

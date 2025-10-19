@@ -58,6 +58,12 @@ export default function EmailConfirmation() {
             <p className="text-sm text-muted-foreground">
               Clique sur le lien dans l'email pour activer ton compte.
             </p>
+            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
+              <p className="text-xs text-blue-800 dark:text-blue-200">
+                💡 <strong>Astuce</strong> : Si tu cliques sur le lien depuis un autre appareil (téléphone), 
+                tu devras te reconnecter manuellement sur cet appareil avec ton email et mot de passe.
+              </p>
+            </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
@@ -90,6 +96,17 @@ export default function EmailConfirmation() {
               disabled={isResending}
             >
               {isResending ? 'Envoi...' : 'Renvoyer l\'email de confirmation'}
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                localStorage.removeItem('pendingEmail');
+                navigate('/auth');
+              }}
+            >
+              J'ai déjà confirmé, me connecter
             </Button>
 
             <Button

@@ -26,39 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth event:', event, 'User:', session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
       }
     );
 
-    // Handle auth redirect from email confirmation
-    const handleAuthRedirect = async () => {
-      const hash = window.location.hash;
-      if (hash && hash.includes('access_token') && hash.includes('refresh_token')) {
-        const params = new URLSearchParams(hash.slice(1));
-        const access_token = params.get('access_token') || '';
-        const refresh_token = params.get('refresh_token') || '';
-        if (access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-          // Clean URL to remove tokens
-          window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
-          if (error) {
-            console.error('setSession error:', error);
-          }
-        }
-        return true;
-      }
-      return false;
-    };
-
-    // Initialize auth state
+    // Initialize auth state (une seule fois au démarrage)
     (async () => {
-      const handled = await handleAuthRedirect();
-      if (!handled) {
-        const { data: { session } } = await supabase.auth.getSession();
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     })();
 
