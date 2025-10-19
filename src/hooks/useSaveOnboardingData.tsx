@@ -18,6 +18,10 @@ export const useSaveOnboardingData = () => {
       try {
         const data = JSON.parse(onboardingDataStr);
 
+        // Marquer que la sauvegarde est en cours
+        console.log("💾 useSaveOnboardingData : Début sauvegarde...");
+        localStorage.setItem("onboarding_saving", "true");
+
         // Vérifier si les données ont déjà été enregistrées
         const { data: existingGoals, error: checkError } = await supabase
           .from("goals")
@@ -61,7 +65,8 @@ export const useSaveOnboardingData = () => {
         });
 
         if (error) {
-          console.error("Erreur lors de l'enregistrement des données goals:", error);
+          console.error("❌ Erreur lors de l'enregistrement des données goals:", error);
+          localStorage.removeItem("onboarding_saving");
           toast({
             title: "Erreur",
             description: "Impossible d'enregistrer tes préférences.",
@@ -69,11 +74,14 @@ export const useSaveOnboardingData = () => {
           });
         } else {
           console.log("✅ Données goals enregistrées avec succès pour l'utilisateur:", user.id);
+          // Retirer le flag de sauvegarde
+          localStorage.removeItem("onboarding_saving");
           // Ne pas supprimer le localStorage ici, il sera supprimé après TrainingSetup
           // localStorage.removeItem("onboardingData");
         }
       } catch (error) {
-        console.error("Erreur:", error);
+        console.error("❌ Erreur catch:", error);
+        localStorage.removeItem("onboarding_saving");
       }
     };
 

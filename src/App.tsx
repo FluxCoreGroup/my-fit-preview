@@ -14,6 +14,7 @@ import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
 import EmailConfirmation from "./pages/EmailConfirmation";
 import EmailVerified from "./pages/EmailVerified";
+import AuthCallback from "./components/AuthCallback";
 import TrainingSetup from "./pages/TrainingSetup";
 import Session from "./pages/Session";
 import Feedback from "./pages/Feedback";
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/email-confirmation" element={<EmailConfirmation />} />
+            <Route path="/auth-callback" element={<AuthCallback />} />
             <Route path="/email-verified" element={<EmailVerified />} />
             <Route path="/training-setup" element={<TrainingSetup />} />
             <Route path="/legal" element={<Legal />} />

@@ -44,35 +44,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
-    const redirectUrl = `${window.location.origin}/training-setup`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          name,
+    try {
+      const redirectUrl = `${window.location.origin}/auth-callback`;
+      
+      console.log("📝 SignUp : Création compte avec redirect vers", redirectUrl);
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            name,
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
+      if (error) {
+        console.error("❌ Erreur signup:", error);
+        toast({
+          title: "Erreur d'inscription",
+          description: error.message === 'User already registered' 
+            ? 'Un compte existe déjà avec cet email.'
+            : error.message,
+          variant: 'destructive',
+        });
+      } else {
+        console.log("✅ Compte créé, email envoyé à", email);
+        toast({
+          title: "Compte créé !",
+          description: "Vérifie ton email pour confirmer ton inscription.",
+        });
+      }
+
+      return { error };
+    } catch (fetchError) {
+      console.error("❌ Erreur réseau signup:", fetchError);
       toast({
-        title: "Erreur d'inscription",
-        description: error.message === 'User already registered' 
-          ? 'Un compte existe déjà avec cet email.'
-          : error.message,
+        title: "Erreur réseau",
+        description: "Impossible de se connecter au serveur. Vérifie ta connexion internet.",
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: "Compte créé !",
-        description: "Vérifie ton email pour confirmer ton inscription.",
-      });
+      return { error: fetchError };
     }
-
-    return { error };
   };
 
   const signIn = async (email: string, password: string) => {

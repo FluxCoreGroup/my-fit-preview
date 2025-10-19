@@ -14,7 +14,6 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { AuthCallback } from "@/components/AuthCallback";
 import { 
   getRecommendedSessionType, 
   getRecommendedCardioIntensity, 
@@ -37,92 +36,50 @@ const TrainingSetup = () => {
     const checkUserData = async () => {
       if (authLoading) return;
       
-      console.log("🔍 TrainingSetup - Vérification auth et données...");
-      
-      // Vérifier si on a des tokens dans l'URL (confirmation en cours)
-      const hash = window.location.hash;
-      const hasTokens = hash && hash.includes('access_token');
-      if (hasTokens) {
-        console.log("⏳ Tokens détectés dans URL, attente AuthCallback...");
-        return;
-      }
+      console.log("📝 TrainingSetup : Vérification données onboarding...");
       
       // Si pas d'utilisateur, rediriger vers auth
       if (!user) {
         console.log("❌ Pas d'utilisateur, redirection vers /auth");
-        toast({
-          title: "Connexion requise",
-          description: "Connecte-toi pour accéder au questionnaire d'entraînement.",
-        });
         navigate("/auth");
         return;
       }
       
       console.log("✅ Utilisateur connecté:", user.email);
       
-      // PRIORITÉ 1: Vérifier le localStorage d'abord
-      const localData = localStorage.getItem("onboardingData");
-      if (localData) {
-        try {
-          const parsed = JSON.parse(localData);
-          console.log("📦 Données onboarding trouvées dans localStorage:", parsed);
-          
-          if (parsed.goal) {
-            console.log("✅ Goal trouvé dans localStorage, accès autorisé!");
-            setCheckingGoals(false);
-            return;
-          }
-        } catch (e) {
-          console.error("Erreur parsing localStorage:", e);
-        }
-      } else {
-        console.log("⚠️ Pas de données dans localStorage");
+      // Vérifier si la sauvegarde onboarding est en cours
+      const isSaving = localStorage.getItem("onboarding_saving");
+      if (isSaving === "true") {
+        console.log("⏳ Sauvegarde onboarding en cours, attente...");
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+        return;
       }
       
-      // PRIORITÉ 2: Vérifier dans Supabase avec retries
-      console.log("🔄 Vérification Supabase avec retries...");
+      // Vérifier dans Supabase (1 seule fois, sans retry)
+      const { data: goalsData, error } = await supabase
+        .from("goals")
+        .select("goal_type")
+        .eq("user_id", user.id)
+        .maybeSingle();
       
-      const checkSupabase = async (attempt: number): Promise<boolean> => {
-        const { data: goalsData, error } = await supabase
-          .from("goals")
-          .select("goal_type")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        
-        if (error) {
-          console.error(`❌ Erreur Supabase (tentative ${attempt}):`, error);
-        }
-        
-        if (goalsData?.goal_type) {
-          console.log(`✅ Goal trouvé dans Supabase (tentative ${attempt}):`, goalsData.goal_type);
-          return true;
-        }
-        
-        console.log(`⚠️ Pas de goal dans Supabase (tentative ${attempt})`);
-        return false;
-      };
-      
-      // Essayer jusqu'à 3 fois avec délai
-      for (let i = 1; i <= 3; i++) {
-        const found = await checkSupabase(i);
-        if (found) {
-          setCheckingGoals(false);
-          return;
-        }
-        
-        if (i < 3) {
-          console.log(`⏳ Attente 400ms avant retry ${i + 1}...`);
-          await new Promise(resolve => setTimeout(resolve, 400));
-        }
+      if (error) {
+        console.error("❌ Erreur Supabase:", error);
       }
       
-      // Si toujours rien après 3 tentatives, rediriger
-      console.log("❌ Aucune donnée trouvée après 3 tentatives, redirection vers /start");
-      navigate("/start");
+      if (!goalsData?.goal_type) {
+        console.log("❌ Pas de goal_type trouvé, redirection vers /start");
+        navigate("/start");
+        return;
+      }
+      
+      console.log("✅ Goal trouvé:", goalsData.goal_type);
+      setCheckingGoals(false);
     };
     
     checkUserData();
-  }, [user, authLoading, navigate, toast]);
+  }, [user, authLoading, navigate]);
 
   const [formData, setFormData] = useState({
     sessionType: trainingData.sessionType || undefined,
@@ -349,7 +306,6 @@ const TrainingSetup = () => {
 
   return (
     <>
-      <AuthCallback />
       <div className="min-h-screen bg-background">
         <Header variant="onboarding" onBack={() => navigate("/dashboard")} />
       

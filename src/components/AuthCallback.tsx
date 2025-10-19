@@ -1,15 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export function AuthCallback() {
+export default function AuthCallback() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
     const handleCallback = async () => {
+      console.log("🔐 AuthCallback : Traitement des tokens...");
       const hash = location.hash;
       
       // Détecter les tokens dans le hash
@@ -21,6 +23,7 @@ export function AuthCallback() {
 
         // Gérer les erreurs Supabase
         if (error_description) {
+          console.error("❌ Erreur confirmation:", error_description);
           toast({
             title: "Erreur de confirmation",
             description: error_description.includes('expired') 
@@ -35,13 +38,14 @@ export function AuthCallback() {
 
         // Établir la session avec les tokens
         if (access_token && refresh_token) {
+          console.log("🔑 Tokens reçus, création session...");
           const { data, error } = await supabase.auth.setSession({ 
             access_token, 
             refresh_token 
           });
 
           if (error) {
-            console.error('setSession error:', error);
+            console.error('❌ Erreur setSession:', error);
             toast({
               title: "Erreur de connexion",
               description: "Impossible de confirmer ton email. Réessaie ou contacte le support.",
@@ -53,6 +57,8 @@ export function AuthCallback() {
 
           // Session établie avec succès
           if (data.session) {
+            console.log("✅ Session établie pour", data.session.user.email);
+            
             // Nettoyer l'URL pour retirer les tokens
             window.history.replaceState(
               {}, 
@@ -61,14 +67,25 @@ export function AuthCallback() {
             );
 
             // Rediriger vers la page de confirmation avec timer
+            console.log("➡️ Redirection vers /email-verified");
             navigate('/email-verified');
           }
         }
+      } else {
+        console.log("⚠️ Pas de tokens dans URL, redirection...");
+        navigate('/auth');
       }
     };
 
     handleCallback();
   }, [location, navigate, toast]);
 
-  return null; // Ce composant ne rend rien
+  return (
+    <div className="min-h-screen flex items-center justify-center gradient-hero">
+      <div className="text-center space-y-4">
+        <div className="w-16 h-16 gradient-hero rounded-full mx-auto animate-pulse"></div>
+        <p className="text-muted-foreground">Confirmation de ton email...</p>
+      </div>
+    </div>
+  );
 }

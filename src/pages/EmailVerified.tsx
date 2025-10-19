@@ -3,13 +3,38 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function EmailVerified() {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(5);
   const [progress, setProgress] = useState(0);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    // Vérifier que l'utilisateur est bien connecté
+    const checkAuth = async () => {
+      console.log("✅ EmailVerified : Vérification session...");
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        console.log("❌ Pas de session, redirection vers /auth");
+        navigate("/auth");
+        return;
+      }
+      
+      console.log("✅ Session confirmée pour", session.user.email);
+      setChecking(false);
+    };
+    
+    checkAuth();
+  }, [navigate]);
+
+  useEffect(() => {
+    if (checking) return;
+    
+    console.log("⏱️ EmailVerified : Démarrage timer 5 secondes");
+    
     // Timer pour le compte à rebours
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
@@ -37,11 +62,23 @@ export default function EmailVerified() {
       clearInterval(countdownInterval);
       clearInterval(progressInterval);
     };
-  }, [navigate]);
+  }, [navigate, checking]);
 
   const handleContinue = () => {
+    console.log("➡️ Skip timer, redirection immédiate vers /training-setup");
     navigate('/training-setup');
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center gradient-hero">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 gradient-hero rounded-full mx-auto animate-pulse"></div>
+          <p className="text-muted-foreground">Vérification...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center gradient-hero p-4">
