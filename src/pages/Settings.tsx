@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
-import { User, Dumbbell, Apple, CreditCard, HelpCircle, LogOut, ChevronRight, Settings as SettingsIcon } from "lucide-react";
+import { User, Dumbbell, Apple, CreditCard, HelpCircle, LogOut, ChevronRight, Settings as SettingsIcon, Activity } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,19 +21,25 @@ const settingsItems = [
     title: "Profil",
     description: "Informations personnelles",
     icon: User,
-    to: "/start",
+    to: "/settings/profile",
+  },
+  {
+    title: "Infos physiques",
+    description: "Âge, poids, taille, objectifs",
+    icon: Activity,
+    to: "/settings/physical-info",
   },
   {
     title: "Programme d'entraînement",
     description: "Objectifs et matériel",
     icon: Dumbbell,
-    to: "/training-setup",
+    to: "/settings/training-program",
   },
   {
     title: "Nutrition",
     description: "Régime et préférences alimentaires",
     icon: Apple,
-    to: "/start",
+    to: "/settings/nutrition",
   },
   {
     title: "Abonnement",

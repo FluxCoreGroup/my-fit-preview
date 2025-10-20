@@ -27,6 +27,10 @@ import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
 import GeneratingSession from "./pages/GeneratingSession";
 import Settings from "./pages/Settings";
+import Profile from "./pages/settings/Profile";
+import PhysicalInfo from "./pages/settings/PhysicalInfo";
+import TrainingProgram from "./pages/settings/TrainingProgram";
+import Nutrition from "./pages/settings/Nutrition";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +69,10 @@ const App = () => (
           <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Weekly /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Dashboard /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Settings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/settings/profile" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Profile /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/settings/physical-info" element={<ProtectedRoute><SubscriptionGuard><AppLayout><PhysicalInfo /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/settings/training-program" element={<ProtectedRoute><SubscriptionGuard><AppLayout><TrainingProgram /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/settings/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Nutrition /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
