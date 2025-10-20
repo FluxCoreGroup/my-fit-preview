@@ -7,6 +7,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import { useSaveOnboardingData } from "./hooks/useSaveOnboardingData";
+import { AppLayout } from "./components/layouts/AppLayout";
 import Landing from "./pages/Landing";
 import Start from "./pages/Start";
 import Preview from "./pages/Preview";
@@ -56,14 +57,14 @@ const App = () => (
             <Route path="/legal" element={<Legal />} />
             <Route path="/support" element={<Support />} />
             
-            {/* Protected routes */}
+            {/* Protected routes with AppLayout */}
           <Route path="/generating-session" element={<ProtectedRoute><GeneratingSession /></ProtectedRoute>} />
-          <Route path="/session" element={<ProtectedRoute><SubscriptionGuard><Session /></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/session" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Session /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
           <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
-          <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><Weekly /></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><SubscriptionGuard><Dashboard /></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SubscriptionGuard><Settings /></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Weekly /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Dashboard /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Settings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

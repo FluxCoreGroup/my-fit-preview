@@ -1,12 +1,12 @@
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link, useSearchParams } from "react-router-dom";
-import { Calendar, Dumbbell, TrendingUp, PlayCircle, Loader2 } from "lucide-react";
+import { Calendar, Dumbbell, TrendingUp, PlayCircle, Loader2, Settings, FileText, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Header } from "@/components/Header";
 import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import ProgressCharts from "@/components/dashboard/ProgressCharts";
+import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -18,36 +18,34 @@ const Dashboard = () => {
   const { loading, stats, upcomingSessions, latestSession } = useDashboardData();
 
   return (
-    <>
-      <Header variant="app" />
-      <div className="min-h-screen bg-muted/30 pt-16">
-      {/* Hero Section */}
-      <div className="gradient-primary text-primary-foreground py-8 px-4">
+    <div className="min-h-screen bg-background pb-24">
+      {/* Hero compact */}
+      <div className="px-4 pt-8 pb-6">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">
-            Salut {user?.user_metadata?.name || 'Champion'} ! 👋
+          <h1 className="text-2xl font-bold mb-1">
+            Salut {user?.user_metadata?.name || 'Champion'} 👋
           </h1>
-          <p className="text-primary-foreground/90">
-            Bienvenue sur ton tableau de bord Pulse.ai
+          <p className="text-muted-foreground text-sm">
+            Bienvenue sur ton espace d'entraînement
           </p>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-6xl mx-auto px-4 space-y-6">
         {/* Success Messages */}
         {subscriptionSuccess && (
-          <Card className="p-6 bg-accent/10 border-accent">
-            <h2 className="text-xl font-bold mb-2">🎉 Bienvenue dans Pulse.ai Premium !</h2>
-            <p className="text-muted-foreground">
+          <Card className="p-4 bg-accent/10 border-accent rounded-2xl">
+            <h2 className="text-lg font-bold mb-1">🎉 Bienvenue dans Pulse.ai Premium !</h2>
+            <p className="text-sm text-muted-foreground">
               Ton abonnement est activé. Tu as maintenant accès à toutes les fonctionnalités !
             </p>
           </Card>
         )}
         
         {sessionGenerated && (
-          <Card className="p-6 bg-primary/10 border-primary">
-            <h2 className="text-xl font-bold mb-2">✨ Ta séance est prête !</h2>
-            <p className="text-muted-foreground">
+          <Card className="p-4 bg-primary/10 border-primary rounded-2xl">
+            <h2 className="text-lg font-bold mb-1">✨ Ta séance est prête !</h2>
+            <p className="text-sm text-muted-foreground">
               Ton programme d'entraînement personnalisé vient d'être généré. Lance-toi quand tu veux !
             </p>
           </Card>
@@ -59,162 +57,117 @@ const Dashboard = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="grid md:grid-cols-4 gap-4">
-            <Card className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-xl">
+              <div className="flex flex-col gap-2">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Dumbbell className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{stats.sessionsThisWeek}</div>
-                  <div className="text-sm text-muted-foreground">Cette semaine</div>
+                  <div className="text-xs text-muted-foreground">Cette semaine</div>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+            <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-xl">
+              <div className="flex flex-col gap-2">
+                <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-secondary" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{stats.totalSessions}</div>
-                  <div className="text-sm text-muted-foreground">Total séances</div>
+                  <div className="text-xs text-muted-foreground">Total séances</div>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+            <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-xl">
+              <div className="flex flex-col gap-2">
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-accent" />
                 </div>
                 <div>
                   <div className="text-2xl font-bold">{stats.weekStreak}</div>
-                  <div className="text-sm text-muted-foreground">Semaines actives</div>
+                  <div className="text-xs text-muted-foreground">Semaines actives</div>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
-              <div>
-                <div className="text-sm text-muted-foreground mb-1">Prochain check-in</div>
-                <div className="text-xl font-bold">{stats.nextCheckIn}</div>
+            <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-xl">
+              <div className="flex flex-col gap-2">
+                <div className="text-xs text-muted-foreground">Prochain check-in</div>
+                <div className="text-lg font-bold">{stats.nextCheckIn}</div>
               </div>
             </Card>
           </div>
         )}
 
-        {/* Quick Actions */}
+        {/* Prochaine séance - Card CTA principale */}
         {!loading && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="p-8 gradient-primary text-primary-foreground">
-              <h2 className="text-2xl font-bold mb-3">Prêt(e) pour ta séance ?</h2>
-              {latestSession ? (
-                <>
-                  <p className="mb-6 text-primary-foreground/90">
-                    {latestSession.exercises?.[0]?.name || "Ta prochaine séance"} t'attend !
+          <Link to={latestSession ? "/session" : "/training-setup"}>
+            <Card className="p-6 bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30 backdrop-blur-xl rounded-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/10">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-primary/20 rounded-2xl">
+                  <PlayCircle className="w-8 h-8 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold mb-1">
+                    {latestSession ? "Lancer ma séance" : "Générer ma première séance"}
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {latestSession 
+                      ? `${latestSession.exercises?.[0]?.name || "Ta prochaine séance"} t'attend !`
+                      : "Crée ton premier entraînement personnalisé"}
                   </p>
-                  <Link to="/session">
-                    <Button size="lg" variant="hero" className="w-full">
-                      <PlayCircle className="w-5 h-5 mr-2" />
-                      Lancer la séance
-                    </Button>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <p className="mb-6 text-primary-foreground/90">
-                    Tu n'as pas encore de séance. Génère ton premier entraînement !
-                  </p>
-                  <Link to="/training-setup">
-                    <Button size="lg" variant="hero" className="w-full">
-                      <Dumbbell className="w-5 h-5 mr-2" />
-                      Générer ma séance
-                    </Button>
-                  </Link>
-                </>
-              )}
+                </div>
+              </div>
             </Card>
-
-            <Card className="p-8">
-              <h2 className="text-2xl font-bold mb-3">Mettre à jour mon plan</h2>
-              <p className="mb-6 text-muted-foreground">
-                Objectif changé ? Nouveau matériel ? Ajuste ton programme en quelques clics.
-              </p>
-              <Link to="/start">
-                <Button size="lg" variant="outline" className="w-full">
-                  Modifier mes infos
-                </Button>
-              </Link>
-            </Card>
-          </div>
+          </Link>
         )}
 
-        {/* Upcoming Sessions */}
-        {!loading && (
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6">Prochaines séances</h2>
-            {upcomingSessions.length > 0 ? (
-              <div className="space-y-3">
-                {upcomingSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Dumbbell className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <div className="font-semibold">{session.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {session.date} • {session.time}
-                        </div>
-                      </div>
-                    </div>
-                    <Link to="/session">
-                      <Button variant="ghost">
-                        Voir
-                      </Button>
-                    </Link>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Dumbbell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Aucune séance à venir.</p>
-                <p className="text-sm mt-2">Génère ta première séance pour commencer !</p>
-              </div>
-            )}
-          </Card>
-        )}
+        {/* Autres cards cliquables */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <DashboardCard
+            title="Check-in hebdomadaire"
+            description="Partage tes progrès et ajuste ton plan"
+            icon={TrendingUp}
+            to="/weekly"
+            variant="secondary"
+          />
+          
+          <DashboardCard
+            title="Voir mon plan"
+            description="Consulte ton programme d'entraînement"
+            icon={FileText}
+            to="/preview"
+            variant="outline"
+          />
+          
+          <DashboardCard
+            title="Générer nouvelle séance"
+            description="Crée un nouvel entraînement personnalisé"
+            icon={Zap}
+            to="/training-setup"
+            variant="outline"
+          />
+          
+          <DashboardCard
+            title="Réglages"
+            description="Modifie tes infos et préférences"
+            icon={Settings}
+            to="/settings"
+            variant="outline"
+          />
+        </div>
 
-        {/* Progress Section */}
+        {/* Progress Section - Collapsible */}
         <div className="mt-8">
-          <h2 className="text-2xl font-semibold mb-4">Ta progression</h2>
+          <h2 className="text-xl font-semibold mb-4">Ta progression</h2>
           <ProgressCharts />
         </div>
-
-      {/* Quick Links */}
-        <div className="flex flex-wrap gap-4 justify-center">
-          <Link to="/weekly">
-            <Button variant="outline">Check-in hebdomadaire</Button>
-          </Link>
-          <Link to="/preview">
-            <Button variant="outline">Voir mon plan</Button>
-          </Link>
-          <Link to="/settings">
-            <Button variant="outline">Paramètres</Button>
-          </Link>
-          <Link to="/support">
-            <Button variant="outline">Support</Button>
-          </Link>
-        </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 };
 

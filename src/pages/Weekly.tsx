@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { Calendar } from "lucide-react";
+import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Header } from "@/components/Header";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { BackButton } from "@/components/BackButton";
+import { TrendingUp } from "lucide-react";
 
 const Weekly = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -23,24 +23,26 @@ const Weekly = () => {
     weight2: "",
     weight3: "",
     sessionsPlanned: "",
-    sessionsDone: "",
-    adherenceDiet: "",
+    sessionsCompleted: "",
+    diet: "",
     hunger: "",
     energy: "",
     sleep: "",
-    blockers: ""
+    blockers: "",
   });
 
   const updateField = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async () => {
-    // Validation basique
-    if (!formData.weight1 || !formData.sessionsPlanned || !formData.sessionsDone) {
+    if (!user) return;
+
+    const weights = [formData.weight1, formData.weight2, formData.weight3].filter(w => w);
+    if (weights.length === 0) {
       toast({
-        title: "Informations manquantes",
-        description: "Merci de remplir au moins les champs essentiels.",
+        title: "Poids manquant",
+        description: "Entre au moins un poids cette semaine",
         variant: "destructive",
       });
       return;
@@ -49,39 +51,33 @@ const Weekly = () => {
     setLoading(true);
 
     try {
-      // Calculer poids moyen
-      const weights = [formData.weight1, formData.weight2, formData.weight3]
-        .filter(w => w)
-        .map(w => parseFloat(w));
-      const avgWeight = weights.reduce((a, b) => a + b, 0) / weights.length;
+      const avgWeight = weights.reduce((sum, w) => sum + parseFloat(w), 0) / weights.length;
 
-      if (user) {
-        // Sauvegarder dans Supabase
-        const { error } = await supabase.from('weekly_checkins').insert({
-          user_id: user.id,
-          average_weight: avgWeight,
-          sessions_planned: parseInt(formData.sessionsPlanned),
-          sessions_done: parseInt(formData.sessionsDone),
-          adherence_diet: formData.adherenceDiet ? parseInt(formData.adherenceDiet) : null,
-          hunger: formData.hunger || null,
-          energy: formData.energy || null,
-          sleep: formData.sleep || null,
-          blockers: formData.blockers || null,
-        });
+      const { error } = await supabase.from("weekly_checkins").insert({
+        user_id: user.id,
+        weight_avg: avgWeight,
+        sessions_planned: parseInt(formData.sessionsPlanned) || 0,
+        sessions_completed: parseInt(formData.sessionsCompleted) || 0,
+        diet_adherence: formData.diet,
+        hunger_level: formData.hunger,
+        energy_level: formData.energy,
+        sleep_quality: formData.sleep,
+        blockers: formData.blockers,
+      });
 
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       toast({
-        title: "Check-in enregistré ! 📊",
-        description: "Ton programme sera ajusté en fonction de tes retours.",
+        title: "✅ Check-in enregistré !",
+        description: "Tes données ont été sauvegardées avec succès.",
       });
+
       navigate("/dashboard");
     } catch (error) {
-      console.error("Error saving check-in:", error);
+      console.error(error);
       toast({
         title: "Erreur",
-        description: "Impossible de sauvegarder ton check-in. Réessaye.",
+        description: "Impossible d'enregistrer ton check-in",
         variant: "destructive",
       });
     } finally {
@@ -90,195 +86,163 @@ const Weekly = () => {
   };
 
   return (
-    <>
-      <Header variant="app" />
-      <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
-        <div className="max-w-2xl mx-auto space-y-6">
-        <div className="text-center animate-in">
-          <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Calendar className="w-8 h-8 text-secondary" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">Check-in hebdomadaire</h1>
-          <p className="text-muted-foreground">
-            Prends 2 minutes pour nous dire comment s'est passée ta semaine.
-          </p>
-        </div>
-
-        <Card className="p-8 space-y-6 animate-in">
-          {/* Poids */}
-          <div>
-            <Label className="text-base font-semibold mb-3 block">
-              Ton poids cette semaine (3 pesées recommandées)
-            </Label>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label htmlFor="w1" className="text-sm">Pesée 1</Label>
-                <Input
-                  id="w1"
-                  type="number"
-                  step="0.1"
-                  placeholder="70.5"
-                  value={formData.weight1}
-                  onChange={(e) => updateField("weight1", e.target.value)}
-                  className="mt-1"
-                />
+    <div className="min-h-screen bg-background pb-24">
+      <BackButton />
+      
+      <div className="pt-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-primary/10 rounded-xl">
+                <TrendingUp className="w-6 h-6 text-primary" />
               </div>
-              <div>
-                <Label htmlFor="w2" className="text-sm">Pesée 2</Label>
-                <Input
-                  id="w2"
-                  type="number"
-                  step="0.1"
-                  placeholder="70.2"
-                  value={formData.weight2}
-                  onChange={(e) => updateField("weight2", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="w3" className="text-sm">Pesée 3</Label>
-                <Input
-                  id="w3"
-                  type="number"
-                  step="0.1"
-                  placeholder="70.8"
-                  value={formData.weight3}
-                  onChange={(e) => updateField("weight3", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
+              <h1 className="text-2xl font-bold">Check-in hebdomadaire</h1>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Conseil : pèse-toi le matin à jeun, même jour chaque semaine
+            <p className="text-sm text-muted-foreground">
+              Partage tes progrès et ajuste ton programme
             </p>
           </div>
 
-          {/* Séances */}
-          <div>
-            <Label className="text-base font-semibold mb-3 block">
-              Séances d'entraînement
-            </Label>
+          <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl space-y-6">
+            <div>
+              <Label className="text-base font-semibold mb-3 block">Poids cette semaine (kg)</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label htmlFor="weight1" className="text-xs text-muted-foreground">Lundi</Label>
+                  <Input
+                    id="weight1"
+                    type="number"
+                    step="0.1"
+                    value={formData.weight1}
+                    onChange={(e) => updateField("weight1", e.target.value)}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="weight2" className="text-xs text-muted-foreground">Mercredi</Label>
+                  <Input
+                    id="weight2"
+                    type="number"
+                    step="0.1"
+                    value={formData.weight2}
+                    onChange={(e) => updateField("weight2", e.target.value)}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="weight3" className="text-xs text-muted-foreground">Vendredi</Label>
+                  <Input
+                    id="weight3"
+                    type="number"
+                    step="0.1"
+                    value={formData.weight3}
+                    onChange={(e) => updateField("weight3", e.target.value)}
+                    className="rounded-xl"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="planned" className="text-sm">Prévues</Label>
+                <Label htmlFor="sessionsPlanned" className="text-sm font-medium mb-2 block">
+                  Séances prévues
+                </Label>
                 <Input
-                  id="planned"
+                  id="sessionsPlanned"
                   type="number"
-                  placeholder="4"
                   value={formData.sessionsPlanned}
                   onChange={(e) => updateField("sessionsPlanned", e.target.value)}
-                  className="mt-1"
+                  className="rounded-xl"
                 />
               </div>
               <div>
-                <Label htmlFor="done" className="text-sm">Réalisées</Label>
+                <Label htmlFor="sessionsCompleted" className="text-sm font-medium mb-2 block">
+                  Séances réalisées
+                </Label>
                 <Input
-                  id="done"
+                  id="sessionsCompleted"
                   type="number"
-                  placeholder="3"
-                  value={formData.sessionsDone}
-                  onChange={(e) => updateField("sessionsDone", e.target.value)}
-                  className="mt-1"
+                  value={formData.sessionsCompleted}
+                  onChange={(e) => updateField("sessionsCompleted", e.target.value)}
+                  className="rounded-xl"
                 />
               </div>
             </div>
-          </div>
 
-          {/* Adhérence diète */}
-          <div>
-            <Label className="text-base font-semibold mb-3 block">
-              Adhérence au plan nutrition (1 à 10)
-            </Label>
-            <RadioGroup value={formData.adherenceDiet} onValueChange={(v) => updateField("adherenceDiet", v)}>
-              <div className="grid grid-cols-5 gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-                  <div key={value} className="relative">
-                    <RadioGroupItem
-                      value={value.toString()}
-                      id={`diet-${value}`}
-                      className="peer sr-only"
-                    />
-                    <Label
-                      htmlFor={`diet-${value}`}
-                      className="flex h-12 items-center justify-center rounded-lg border-2 border-muted bg-background hover:bg-muted/50 hover:border-primary cursor-pointer peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground transition-all font-semibold"
-                    >
-                      {value}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                1 = pas du tout respecté • 10 = parfaitement respecté
-              </p>
-            </RadioGroup>
-          </div>
-
-          {/* Faim / Énergie / Sommeil */}
-          <div className="space-y-4">
             <div>
-              <Label htmlFor="hunger" className="text-base font-semibold">Niveau de faim</Label>
-              <RadioGroup value={formData.hunger} onValueChange={(v) => updateField("hunger", v)} className="mt-2">
-                {["Très faible", "Faible", "Normal", "Élevé", "Très élevé"].map((level) => (
-                  <div key={level} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <RadioGroupItem value={level} id={`hunger-${level}`} />
-                    <Label htmlFor={`hunger-${level}`} className="cursor-pointer flex-1">{level}</Label>
+              <Label className="text-sm font-medium mb-3 block">Adhérence au régime</Label>
+              <RadioGroup value={formData.diet} onValueChange={(v) => updateField("diet", v)}>
+                {["Excellente", "Bonne", "Moyenne", "Difficile"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value={option} id={`diet-${option}`} />
+                    <Label htmlFor={`diet-${option}`} className="cursor-pointer">{option}</Label>
                   </div>
                 ))}
               </RadioGroup>
             </div>
 
             <div>
-              <Label htmlFor="energy" className="text-base font-semibold">Niveau d'énergie</Label>
-              <RadioGroup value={formData.energy} onValueChange={(v) => updateField("energy", v)} className="mt-2">
-                {["Très bas", "Bas", "Normal", "Bon", "Excellent"].map((level) => (
-                  <div key={level} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <RadioGroupItem value={level} id={`energy-${level}`} />
-                    <Label htmlFor={`energy-${level}`} className="cursor-pointer flex-1">{level}</Label>
+              <Label className="text-sm font-medium mb-3 block">Niveau de faim</Label>
+              <RadioGroup value={formData.hunger} onValueChange={(v) => updateField("hunger", v)}>
+                {["Faible", "Modérée", "Élevée", "Très élevée"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value={option} id={`hunger-${option}`} />
+                    <Label htmlFor={`hunger-${option}`} className="cursor-pointer">{option}</Label>
                   </div>
                 ))}
               </RadioGroup>
             </div>
 
             <div>
-              <Label htmlFor="sleep" className="text-base font-semibold">Qualité du sommeil</Label>
-              <RadioGroup value={formData.sleep} onValueChange={(v) => updateField("sleep", v)} className="mt-2">
-                {["Très mauvais", "Mauvais", "Moyen", "Bon", "Excellent"].map((level) => (
-                  <div key={level} className="flex items-center space-x-2 p-3 rounded-lg hover:bg-muted/50 cursor-pointer">
-                    <RadioGroupItem value={level} id={`sleep-${level}`} />
-                    <Label htmlFor={`sleep-${level}`} className="cursor-pointer flex-1">{level}</Label>
+              <Label className="text-sm font-medium mb-3 block">Niveau d'énergie</Label>
+              <RadioGroup value={formData.energy} onValueChange={(v) => updateField("energy", v)}>
+                {["Très élevé", "Bon", "Faible", "Très faible"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value={option} id={`energy-${option}`} />
+                    <Label htmlFor={`energy-${option}`} className="cursor-pointer">{option}</Label>
                   </div>
                 ))}
               </RadioGroup>
             </div>
-          </div>
 
-          {/* Blocages */}
-          <div>
-            <Label htmlFor="blockers" className="text-base font-semibold mb-3 block">
-              Difficultés rencontrées cette semaine ? (optionnel)
-            </Label>
-            <Textarea
-              id="blockers"
-              placeholder="ex: Manque de temps, séances trop dures, faim persistante..."
-              value={formData.blockers}
-              onChange={(e) => updateField("blockers", e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Qualité du sommeil</Label>
+              <RadioGroup value={formData.sleep} onValueChange={(v) => updateField("sleep", v)}>
+                {["Excellente", "Bonne", "Moyenne", "Mauvaise"].map((option) => (
+                  <div key={option} className="flex items-center space-x-2 mb-2">
+                    <RadioGroupItem value={option} id={`sleep-${option}`} />
+                    <Label htmlFor={`sleep-${option}`} className="cursor-pointer">{option}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
 
-          <Button
-            size="lg"
-            variant="success"
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? "Envoi..." : "Enregistrer mon check-in"}
-          </Button>
-        </Card>
+            <div>
+              <Label htmlFor="blockers" className="text-sm font-medium mb-2 block">
+                Difficultés ou blocages (optionnel)
+              </Label>
+              <Textarea
+                id="blockers"
+                value={formData.blockers}
+                onChange={(e) => updateField("blockers", e.target.value)}
+                placeholder="Blessures, stress, manque de motivation..."
+                className="rounded-xl min-h-24"
+              />
+            </div>
+
+            <Button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="w-full rounded-xl bg-gradient-to-r from-primary to-secondary"
+              size="lg"
+            >
+              {loading ? "Enregistrement..." : "Enregistrer mon check-in"}
+            </Button>
+          </Card>
+        </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 };
 

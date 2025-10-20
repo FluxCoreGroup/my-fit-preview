@@ -8,91 +8,122 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Brand colors - Pulse.ai blue palette */
+    /* Brand Colors */
+    --brand-pulse: 225 73% 57%;
+    --brand-energy: 16 90% 55%;
+
+    /* Base Colors - Light neutral background */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 222.2 47.4% 11.2%;
 
+    /* Card Colors - Subtle glassmorphism */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 222.2 47.4% 11.2%;
 
+    /* Popover Colors */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 222.2 47.4% 11.2%;
 
-    /* Primary: Bleu dynamique (inspiré Firecrawl) */
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 70%;
+    /* Primary Colors - Electric blue */
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --primary-glow: 217.2 91.2% 59.8%;
 
-    /* Secondary: Bleu foncé */
-    --secondary: 222 47% 11%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary Colors - Indigo */
+    --secondary: 245 58% 63%;
+    --secondary-foreground: 210 40% 98%;
 
-    /* Accent: Orange vif (touches énergisantes) */
-    --accent: 20 95% 55%;
-    --accent-foreground: 0 0% 100%;
+    /* Muted Colors */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --muted: 210 40% 98%;
-    --muted-foreground: 215 16% 47%;
+    /* Accent Colors - Energetic orange */
+    --accent: 24.6 95% 53.1%;
+    --accent-foreground: 60 9.1% 97.8%;
 
-    --destructive: 0 85% 60%;
-    --destructive-foreground: 0 0% 100%;
+    /* Destructive Colors */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    /* Border and Input - Subtle with glassmorphism */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
 
-    --radius: 0.75rem;
+    /* Radius - More rounded for modern feel */
+    --radius: 1rem;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
     --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(222 47% 11%));
     --gradient-accent: linear-gradient(135deg, hsl(20 95% 55%), hsl(217 91% 60%));
     
-    /* Shadows */
+    /* Shadows - Elevated with glow effects */
     --shadow-sm: 0 2px 8px -2px hsl(222 47% 11% / 0.08);
     --shadow-md: 0 4px 16px -4px hsl(222 47% 11% / 0.12);
     --shadow-lg: 0 8px 32px -8px hsl(222 47% 11% / 0.16);
-    --shadow-glow: 0 0 32px hsl(217 91% 60% / 0.3);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.4);
 
-    /* Animations */
+    /* Glassmorphism effects */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.2);
+
+    /* Animations - Smooth and fluid */
     --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 0 0% 98%;
+    /* Brand Colors (unchanged) */
+    --brand-pulse: 225 73% 57%;
+    --brand-energy: 16 90% 55%;
 
-    --card: 222 47% 13%;
-    --card-foreground: 0 0% 98%;
+    /* Base Colors - Dark blue-black for technical feel */
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
 
-    --popover: 222 47% 13%;
-    --popover-foreground: 0 0% 98%;
+    /* Card Colors - Elevated dark slate */
+    --card: 222 39% 11%;
+    --card-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 70%;
+    /* Popover Colors */
+    --popover: 222 39% 11%;
+    --popover-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 98%;
-    --secondary-foreground: 222 47% 11%;
+    /* Primary Colors - Brighter electric blue for dark mode */
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary-glow: 221.2 83.2% 68%;
 
-    --accent: 20 95% 55%;
-    --accent-foreground: 0 0% 100%;
+    /* Secondary Colors - Vibrant indigo */
+    --secondary: 245 58% 63%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    /* Muted Colors */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --destructive: 0 80% 60%;
-    --destructive-foreground: 0 0% 100%;
+    /* Accent Colors - Bright orange */
+    --accent: 24.6 95% 53.1%;
+    --accent-foreground: 60 9.1% 97.8%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 60%;
+    /* Destructive Colors */
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Border and Input - Subtle with glassmorphism */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+
+    /* Glassmorphism effects for dark mode */
+    --glass-bg: rgba(20, 27, 45, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
 
     --shadow-sm: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
     --shadow-md: 0 4px 16px -4px hsl(0 0% 0% / 0.4);
     --shadow-lg: 0 8px 32px -8px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 32px hsl(217 91% 60% / 0.4);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.4);
   }
 }
 

@@ -1,103 +1,142 @@
-import { Header } from "@/components/Header";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Activity, Dumbbell, Heart, Utensils, Stethoscope, CreditCard, Settings as SettingsIcon, HelpCircle } from "lucide-react";
-import { ProfileSection } from "@/components/settings/ProfileSection";
-import { PhysicalInfoSection } from "@/components/settings/PhysicalInfoSection";
-import { TrainingProgramSection } from "@/components/settings/TrainingProgramSection";
-import { CardioMobilitySection } from "@/components/settings/CardioMobilitySection";
-import { NutritionSection } from "@/components/settings/NutritionSection";
-import { HealthConditionsSection } from "@/components/settings/HealthConditionsSection";
-import { SubscriptionSection } from "@/components/settings/SubscriptionSection";
-import { AppPreferencesSection } from "@/components/settings/AppPreferencesSection";
-import { HelpLegalSection } from "@/components/settings/HelpLegalSection";
+import { Card } from "@/components/ui/card";
+import { Link, useNavigate } from "react-router-dom";
+import { User, Dumbbell, Apple, CreditCard, HelpCircle, LogOut, ChevronRight, Settings as SettingsIcon } from "lucide-react";
+import { BackButton } from "@/components/BackButton";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+const settingsItems = [
+  {
+    title: "Profil",
+    description: "Informations personnelles",
+    icon: User,
+    to: "/start",
+  },
+  {
+    title: "Programme d'entraînement",
+    description: "Objectifs et matériel",
+    icon: Dumbbell,
+    to: "/training-setup",
+  },
+  {
+    title: "Nutrition",
+    description: "Régime et préférences alimentaires",
+    icon: Apple,
+    to: "/start",
+  },
+  {
+    title: "Abonnement",
+    description: "Gérer ton abonnement Pulse.ai",
+    icon: CreditCard,
+    to: "/paywall",
+  },
+  {
+    title: "Aide & Support",
+    description: "FAQ, contact et mentions légales",
+    icon: HelpCircle,
+    to: "/support",
+  },
+];
 
 const Settings = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Déconnexion réussie",
+      description: "À bientôt ! 👋",
+    });
+    navigate("/");
+  };
+
   return (
-    <>
-      <Header variant="app" showBack />
-      <div className="min-h-screen bg-muted/30 pt-16">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-8">Paramètres</h1>
-          
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="w-full flex flex-wrap h-auto gap-2 bg-transparent p-0 mb-8">
-              <TabsTrigger value="profile" className="flex items-center gap-2">
-                <User className="w-4 h-4" />
-                <span className="hidden sm:inline">Profil</span>
-              </TabsTrigger>
-              <TabsTrigger value="physical" className="flex items-center gap-2">
-                <Activity className="w-4 h-4" />
-                <span className="hidden sm:inline">Physique</span>
-              </TabsTrigger>
-              <TabsTrigger value="training" className="flex items-center gap-2">
-                <Dumbbell className="w-4 h-4" />
-                <span className="hidden sm:inline">Programme</span>
-              </TabsTrigger>
-              <TabsTrigger value="cardio" className="flex items-center gap-2">
-                <Heart className="w-4 h-4" />
-                <span className="hidden sm:inline">Cardio</span>
-              </TabsTrigger>
-              <TabsTrigger value="nutrition" className="flex items-center gap-2">
-                <Utensils className="w-4 h-4" />
-                <span className="hidden sm:inline">Nutrition</span>
-              </TabsTrigger>
-              <TabsTrigger value="health" className="flex items-center gap-2">
-                <Stethoscope className="w-4 h-4" />
-                <span className="hidden sm:inline">Santé</span>
-              </TabsTrigger>
-              <TabsTrigger value="subscription" className="flex items-center gap-2">
-                <CreditCard className="w-4 h-4" />
-                <span className="hidden sm:inline">Abonnement</span>
-              </TabsTrigger>
-              <TabsTrigger value="preferences" className="flex items-center gap-2">
-                <SettingsIcon className="w-4 h-4" />
-                <span className="hidden sm:inline">Préférences</span>
-              </TabsTrigger>
-              <TabsTrigger value="help" className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4" />
-                <span className="hidden sm:inline">Aide</span>
-              </TabsTrigger>
-            </TabsList>
+    <div className="min-h-screen bg-background pb-24">
+      <BackButton />
+      
+      <div className="pt-20 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-primary/10 rounded-xl">
+                <SettingsIcon className="w-6 h-6 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold">Réglages</h1>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Gère ton compte et tes préférences
+            </p>
+          </div>
 
-            <TabsContent value="profile">
-              <ProfileSection />
-            </TabsContent>
+          <div className="space-y-3">
+            {settingsItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link key={item.title} to={item.to}>
+                  <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-primary/10 rounded-xl">
+                          <Icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{item.title}</h3>
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  </Card>
+                </Link>
+              );
+            })}
 
-            <TabsContent value="physical">
-              <PhysicalInfoSection />
-            </TabsContent>
-
-            <TabsContent value="training">
-              <TrainingProgramSection />
-            </TabsContent>
-
-            <TabsContent value="cardio">
-              <CardioMobilitySection />
-            </TabsContent>
-
-            <TabsContent value="nutrition">
-              <NutritionSection />
-            </TabsContent>
-
-            <TabsContent value="health">
-              <HealthConditionsSection />
-            </TabsContent>
-
-            <TabsContent value="subscription">
-              <SubscriptionSection />
-            </TabsContent>
-
-            <TabsContent value="preferences">
-              <AppPreferencesSection />
-            </TabsContent>
-
-            <TabsContent value="help">
-              <HelpLegalSection />
-            </TabsContent>
-          </Tabs>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-destructive/10 rounded-xl">
+                        <LogOut className="w-5 h-5 text-destructive" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">Déconnexion</h3>
+                        <p className="text-sm text-muted-foreground">Se déconnecter de l'application</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                </Card>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Confirmer la déconnexion</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Es-tu sûr(e) de vouloir te déconnecter ?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleLogout}>Se déconnecter</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
