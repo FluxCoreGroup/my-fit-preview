@@ -1,8 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Apple, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Apple } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +56,20 @@ export const NutritionDayCard = () => {
   const fat = Math.round((goals?.weight || 70) * 1);
   const carbs = Math.round((targetCalories - (protein * 4 + fat * 9)) / 4);
 
+  if (!goals) {
+    return (
+      <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
+        <div className="text-center space-y-3">
+          <Apple className="w-12 h-12 mx-auto text-muted-foreground" />
+          <h3 className="font-semibold">Configure tes objectifs nutritionnels</h3>
+          <p className="text-sm text-muted-foreground">
+            Va dans Hub → Nutrition pour définir tes besoins caloriques et démarrer ton suivi
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
       <div className="space-y-4">
@@ -106,12 +118,11 @@ export const NutritionDayCard = () => {
           </div>
         </div>
 
-        <Button asChild variant="outline" className="w-full" size="sm">
-          <Link to="/settings/nutrition">
-            Voir mes repas
-            <ArrowRight className="ml-2 w-4 h-4" />
-          </Link>
-        </Button>
+        <div className="pt-2 border-t border-white/10">
+          <p className="text-xs text-center text-muted-foreground">
+            📊 Tes objectifs nutritionnels quotidiens • Tracking disponible dans le module Nutrition
+          </p>
+        </div>
       </div>
     </Card>
   );

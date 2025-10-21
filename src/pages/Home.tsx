@@ -9,7 +9,6 @@ import { KPICard } from "@/components/dashboard/KPICard";
 import { SessionSummaryCard } from "@/components/dashboard/SessionSummaryCard";
 import { NutritionDayCard } from "@/components/dashboard/NutritionDayCard";
 import { RemindersCard } from "@/components/dashboard/RemindersCard";
-import { QuickActionsCard } from "@/components/dashboard/QuickActionsCard";
 import { AdjustmentsJournal } from "@/components/dashboard/AdjustmentsJournal";
 import { EmptyState } from "@/components/EmptyState";
 import { DashboardSkeleton } from "@/components/LoadingSkeleton";
@@ -18,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BackButton } from "@/components/BackButton";
 import { QuoteOfTheDay } from "@/components/dashboard/QuoteOfTheDay";
 import { DisclaimerCard } from "@/components/dashboard/DisclaimerCard";
 import { ShareProgressButton } from "@/components/dashboard/ShareProgressButton";
@@ -53,8 +51,7 @@ const Home = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background pb-8">
-        <BackButton to="/hub" label="Retour au Hub" />
-        <div className="px-4 pt-20 pb-6">
+        <div className="px-4 pt-8 pb-6">
           <div className="max-w-6xl mx-auto">
             <DashboardSkeleton />
           </div>
@@ -66,8 +63,7 @@ const Home = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-background pb-8">
-        <BackButton to="/hub" label="Retour au Hub" />
-        <div className="px-4 pt-20 pb-6">
+        <div className="px-4 pt-8 pb-6">
           <div className="max-w-6xl mx-auto">
             <EmptyState
               icon={AlertCircle}
@@ -83,9 +79,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <BackButton to="/hub" label="Retour au Hub" />
-      
-      <div className="max-w-6xl mx-auto px-4 pt-16 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 pt-8 space-y-6">
         {/* Success Messages */}
         {subscriptionSuccess && (
           <Card className="p-4 bg-accent/10 border-accent rounded-2xl">
@@ -106,12 +100,33 @@ const Home = () => {
         )}
 
         {hasNoData ? (
-          <EmptyState
-            icon={Dumbbell}
-            title="Bienvenue sur ton tableau de bord"
-            description="Commence par générer ton premier programme d'entraînement pour voir tes statistiques"
-            action={{ label: "Créer mon programme", to: "/training-setup" }}
-          />
+          <Card className="p-8 text-center bg-gradient-to-br from-primary/10 to-accent/10 border-primary/30">
+            <Dumbbell className="w-16 h-16 mx-auto mb-4 text-primary" />
+            <h2 className="text-2xl font-bold mb-2">🎉 Bienvenue sur Pulse.ai !</h2>
+            <p className="text-muted-foreground mb-6">
+              Tu es à un clic de transformer ton corps avec l'IA
+            </p>
+            <div className="space-y-3 text-left max-w-md mx-auto">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center font-semibold">
+                  1
+                </div>
+                <span>Retourne au Hub</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center font-semibold">
+                  2
+                </div>
+                <span>Clique sur "Entraînements"</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center font-semibold">
+                  3
+                </div>
+                <span>Génère ta première séance 🚀</span>
+              </div>
+            </div>
+          </Card>
         ) : (
           <>
             {/* Citation du jour */}
@@ -174,12 +189,15 @@ const Home = () => {
             {latestSession ? (
               <SessionSummaryCard session={latestSession} />
             ) : (
-              <EmptyState
-                icon={Zap}
-                title="Aucune séance planifiée"
-                description="Génère ton programme pour commencer 🚀"
-                action={{ label: "Générer ma semaine", to: "/training-setup" }}
-              />
+              <Card className="p-6 border-dashed border-2">
+                <div className="text-center space-y-3">
+                  <Zap className="w-12 h-12 mx-auto text-muted-foreground" />
+                  <h3 className="font-semibold">Pas de séance planifiée</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Retourne au Hub → Entraînements pour générer ta semaine d'entraînement personnalisée 💪
+                  </p>
+                </div>
+              </Card>
             )}
 
             {/* Nutrition du jour */}
@@ -187,9 +205,6 @@ const Home = () => {
 
             {/* Rappels */}
             <RemindersCard nextCheckIn={stats.nextCheckIn} />
-
-            {/* Actions rapides */}
-            <QuickActionsCard />
 
             {/* Journal des ajustements */}
             <AdjustmentsJournal />

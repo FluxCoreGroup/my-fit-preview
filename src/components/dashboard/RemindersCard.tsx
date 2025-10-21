@@ -1,12 +1,45 @@
 import { Card } from "@/components/ui/card";
-import { Bell, Scale, Droplet, Footprints } from "lucide-react";
+import { Bell, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { differenceInDays } from "date-fns";
 
 interface RemindersCardProps {
   nextCheckIn: string;
 }
 
 export const RemindersCard = ({ nextCheckIn }: RemindersCardProps) => {
+  const { user } = useAuth();
+
+  const { data: lastWeighIn } = useQuery({
+    queryKey: ["last-weigh-in", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("weekly_checkins")
+        .select("average_weight, created_at")
+        .eq("user_id", user.id)
+        .not("average_weight", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const daysSinceWeighIn = lastWeighIn 
+    ? differenceInDays(new Date(), new Date(lastWeighIn.created_at))
+    : null;
+
+  const weighInValue = daysSinceWeighIn !== null
+    ? daysSinceWeighIn === 0 
+      ? "Fait aujourd'hui ✅" 
+      : `Il y a ${daysSinceWeighIn}j`
+    : "Jamais";
+
   const reminders = [
     {
       icon: Bell,
@@ -17,27 +50,15 @@ export const RemindersCard = ({ nextCheckIn }: RemindersCardProps) => {
     {
       icon: Scale,
       label: "Pesée",
-      value: "Aujourd'hui",
-      urgent: false,
-    },
-    {
-      icon: Droplet,
-      label: "Hydratation",
-      value: "2-3L/jour",
-      urgent: false,
-    },
-    {
-      icon: Footprints,
-      label: "Pas quotidien",
-      value: "8-10k pas",
-      urgent: false,
+      value: weighInValue,
+      urgent: daysSinceWeighIn !== null && daysSinceWeighIn > 7,
     },
   ];
 
   return (
     <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
       <h3 className="text-lg font-bold mb-4">Rappels</h3>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         {reminders.map((reminder, idx) => (
           <div
             key={idx}
