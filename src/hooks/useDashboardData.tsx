@@ -16,6 +16,8 @@ interface DashboardStats {
   trainingMinutes7d: number;
   nutritionAdherence: number | null;
   activeStreak: number;
+  weightSparkline: Array<{ value: number }>;
+  trainingMinutesSparkline: Array<{ value: number }>;
 }
 
 interface UpcomingSession {
@@ -43,6 +45,8 @@ export const useDashboardData = () => {
     trainingMinutes7d: 0,
     nutritionAdherence: null,
     activeStreak: 0,
+    weightSparkline: [],
+    trainingMinutesSparkline: [],
   });
   const [upcomingSessions, setUpcomingSessions] = useState<UpcomingSession[]>([]);
   const [latestSession, setLatestSession] = useState<any>(null);
@@ -182,6 +186,22 @@ export const useDashboardData = () => {
           }
         }
 
+        // Calculate sparklines (7 derniers jours)
+        const weightSparkline = checkIns && checkIns.length > 0
+          ? checkIns.slice(0, 7).reverse().map(c => ({ value: c.average_weight || 0 }))
+          : [];
+
+        const trainingMinutesSparkline = [];
+        for (let i = 6; i >= 0; i--) {
+          const checkDate = new Date(today);
+          checkDate.setDate(checkDate.getDate() - i);
+          const dayMinutes = (allSessions || []).filter(s => {
+            const sessionDate = new Date(s.created_at);
+            return sessionDate.toDateString() === checkDate.toDateString() && s.completed;
+          }).length * 45; // 45min par séance
+          trainingMinutesSparkline.push({ value: dayMinutes });
+        }
+
         setStats({
           sessionsThisWeek,
           totalSessions,
@@ -195,6 +215,8 @@ export const useDashboardData = () => {
           trainingMinutes7d,
           nutritionAdherence,
           activeStreak,
+          weightSparkline,
+          trainingMinutesSparkline,
         });
 
       } catch (error) {

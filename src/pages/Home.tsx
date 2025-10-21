@@ -19,6 +19,10 @@ import { ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BackButton } from "@/components/BackButton";
+import { QuoteOfTheDay } from "@/components/dashboard/QuoteOfTheDay";
+import { DisclaimerCard } from "@/components/dashboard/DisclaimerCard";
+import { ShareProgressButton } from "@/components/dashboard/ShareProgressButton";
+import { LeaderboardCard } from "@/components/dashboard/LeaderboardCard";
 
 const Home = () => {
   const { user } = useAuth();
@@ -110,6 +114,10 @@ const Home = () => {
           />
         ) : (
           <>
+            {/* Citation du jour */}
+            <QuoteOfTheDay />
+
+            {/* KPIs avec sparklines */}
             <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
               <KPICard 
                 title="Poids actuel" 
@@ -117,6 +125,7 @@ const Home = () => {
                 subtitle={stats.weightChange7d ? `${stats.weightChange7d > 0 ? '+' : ''}${stats.weightChange7d}kg (7j)` : undefined}
                 icon={Scale}
                 trend={stats.weightChange7d ? (stats.weightChange7d < 0 ? "down" : "up") : undefined}
+                sparklineData={stats.weightSparkline}
               />
               <KPICard 
                 title="Objectif" 
@@ -134,6 +143,7 @@ const Home = () => {
                 title="Minutes (7j)" 
                 value={stats.trainingMinutes7d}
                 icon={Clock}
+                sparklineData={stats.trainingMinutesSparkline}
               />
               <KPICard 
                 title="Adhérence diet" 
@@ -149,6 +159,16 @@ const Home = () => {
                 variant="accent"
               />
             </div>
+
+            {/* Leaderboard */}
+            <LeaderboardCard />
+
+            {/* Partage progression */}
+            <ShareProgressButton 
+              streak={stats.activeStreak}
+              sessionsThisWeek={stats.sessionsThisWeek}
+              weightChange={stats.weightChange7d || 0}
+            />
 
             {/* Séance du jour - Card CTA principale */}
             {latestSession ? (
@@ -186,6 +206,9 @@ const Home = () => {
                 <ProgressCharts />
               </CollapsibleContent>
             </Collapsible>
+
+            {/* Disclaimer médical */}
+            <DisclaimerCard />
           </>
         )}
       </div>

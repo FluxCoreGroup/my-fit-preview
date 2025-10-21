@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { LucideIcon, TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LineChart, Line } from "recharts";
 
 interface KPICardProps {
   title: string;
@@ -9,6 +10,7 @@ interface KPICardProps {
   icon: LucideIcon;
   trend?: "up" | "down" | "neutral";
   variant?: "primary" | "secondary" | "accent" | "default";
+  sparklineData?: Array<{ value: number }>;
 }
 
 export const KPICard = ({
@@ -18,6 +20,7 @@ export const KPICard = ({
   icon: Icon,
   trend,
   variant = "default",
+  sparklineData,
 }: KPICardProps) => {
   const variantClasses = {
     primary: "bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30",
@@ -48,7 +51,22 @@ export const KPICard = ({
       </div>
       <div className="space-y-1">
         <p className="text-xs text-muted-foreground">{title}</p>
-        <p className="text-2xl font-bold">{value}</p>
+        <div className="flex items-end justify-between gap-2">
+          <p className="text-2xl font-bold">{value}</p>
+          {sparklineData && sparklineData.length > 0 && (
+            <div className="h-8 w-16 -mb-1">
+              <LineChart width={64} height={32} data={sparklineData}>
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </div>
+          )}
+        </div>
         {subtitle && (
           <p className="text-xs text-muted-foreground">{subtitle}</p>
         )}
