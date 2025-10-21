@@ -75,9 +75,9 @@ const Landing = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              {user ? <Link to="/dashboard">
+              {user ? <Link to="/hub">
                   <Button size="lg" variant="hero" className="text-lg">
-                    Aller au Dashboard <ArrowRight className="w-5 h-5 ml-2" />
+                    Aller au Hub <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link> : <>
                   <Link to="/start">

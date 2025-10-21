@@ -74,7 +74,7 @@ const Feedback = () => {
           .maybeSingle();
         
         if (subscription) {
-          navigate("/dashboard");
+          navigate("/hub");
         } else {
           navigate("/paywall");
         }

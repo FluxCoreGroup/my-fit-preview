@@ -57,7 +57,7 @@ const GeneratingSession = () => {
 
         // Attendre que l'animation soit terminée
         setTimeout(() => {
-          navigate('/dashboard?generated=success');
+          navigate('/hub');
         }, 15000);
 
       } catch (error) {

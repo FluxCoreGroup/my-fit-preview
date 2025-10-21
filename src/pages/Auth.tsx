@@ -23,7 +23,7 @@ const Auth = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/hub");
     }
   }, [user, navigate]);
 
@@ -47,7 +47,7 @@ const Auth = () => {
       
       if (!error) {
         // Gérer la redirection post-auth
-        const redirectPath = localStorage.getItem("redirectAfterAuth") || "/dashboard";
+        const redirectPath = localStorage.getItem("redirectAfterAuth") || "/hub";
         localStorage.removeItem("redirectAfterAuth");
         navigate(redirectPath);
       }

@@ -233,9 +233,9 @@ const Paywall = () => {
 
         {/* Back Link */}
         <div className="text-center">
-          <Link to="/dashboard">
+          <Link to="/hub">
             <Button variant="ghost">
-              Voir mon dashboard
+              Retour au hub
             </Button>
           </Link>
         </div>
