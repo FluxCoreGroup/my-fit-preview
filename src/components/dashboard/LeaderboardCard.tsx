@@ -66,27 +66,21 @@ export const LeaderboardCard = () => {
     return "Continue, tu progresses ! 🚀";
   };
 
-  const getColor = () => {
-    if (ranking.percentile >= 90) return "from-accent/20 to-accent/5 border-accent/30";
-    if (ranking.percentile >= 75) return "from-primary/20 to-primary/5 border-primary/30";
-    return "from-secondary/20 to-secondary/5 border-secondary/30";
-  };
-
   return (
-    <Card className={`p-6 bg-gradient-to-br ${getColor()} backdrop-blur-xl`}>
-      <div className="flex items-start gap-4">
-        <div className="p-3 bg-accent/10 rounded-xl shrink-0">
-          <Trophy className="w-5 h-5 text-accent" />
+    <Card className="p-4 bg-primary/5 border-primary/10">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+          <Trophy className="w-4 h-4 text-primary" />
         </div>
-        <div className="flex-1 space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">Ton classement</p>
+        <div className="flex-1 space-y-1">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Ton classement</p>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold">Top {ranking.percentile}%</p>
-            <TrendingUp className="w-4 h-4 text-accent" />
+            <p className="text-2xl font-bold">Top {ranking.percentile}%</p>
+            <TrendingUp className="w-3.5 h-3.5 text-primary" />
           </div>
-          <p className="text-sm text-muted-foreground">{getMessage()}</p>
-          <p className="text-xs text-muted-foreground">
-            {ranking.userSessions} séances complétées • Comparaison anonyme
+          <p className="text-xs text-muted-foreground">{getMessage()}</p>
+          <p className="text-[10px] text-muted-foreground">
+            {ranking.userSessions} séances • Comparaison anonyme
           </p>
         </div>
       </div>

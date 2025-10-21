@@ -22,45 +22,35 @@ export const KPICard = ({
   variant = "default",
   sparklineData,
 }: KPICardProps) => {
-  const variantClasses = {
-    primary: "bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30",
-    secondary: "bg-gradient-to-br from-secondary/20 to-secondary/5 border-secondary/30",
-    accent: "bg-gradient-to-br from-accent/20 to-accent/5 border-accent/30",
-    default: "bg-card/50 border-white/10",
-  };
-
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
 
   return (
-    <Card className={cn(
-      "p-4 backdrop-blur-xl transition-all duration-300 hover:scale-105",
-      variantClasses[variant]
-    )}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Icon className="w-4 h-4 text-primary" />
+    <Card className="p-3 bg-card border-border/50">
+      <div className="flex items-start justify-between mb-2">
+        <div className="p-1.5 bg-primary/5 rounded-md">
+          <Icon className="w-3.5 h-3.5 text-primary" />
         </div>
         {trend && (
           <TrendIcon className={cn(
-            "w-4 h-4",
+            "w-3.5 h-3.5",
             trend === "up" && "text-green-500",
             trend === "down" && "text-red-500",
             trend === "neutral" && "text-muted-foreground"
           )} />
         )}
       </div>
-      <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">{title}</p>
+      <div className="space-y-0.5">
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{title}</p>
         <div className="flex items-end justify-between gap-2">
-          <p className="text-2xl font-bold">{value}</p>
+          <p className="text-xl font-bold">{value}</p>
           {sparklineData && sparklineData.length > 0 && (
-            <div className="h-8 w-16 -mb-1">
-              <LineChart width={64} height={32} data={sparklineData}>
+            <div className="h-6 w-12 -mb-0.5">
+              <LineChart width={48} height={24} data={sparklineData}>
                 <Line 
                   type="monotone" 
                   dataKey="value" 
                   stroke="hsl(var(--primary))" 
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                   dot={false}
                 />
               </LineChart>
@@ -68,7 +58,7 @@ export const KPICard = ({
           )}
         </div>
         {subtitle && (
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+          <p className="text-[10px] text-muted-foreground">{subtitle}</p>
         )}
       </div>
     </Card>

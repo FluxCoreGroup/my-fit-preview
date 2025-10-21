@@ -24,15 +24,15 @@ export const QuoteOfTheDay = () => {
   }, []);
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10 border-primary/20 backdrop-blur-xl">
-      <div className="flex items-start gap-4">
-        <div className="p-3 bg-primary/10 rounded-xl shrink-0">
-          <Sparkles className="w-5 h-5 text-primary" />
+    <Card className="p-4 bg-primary/5 border-primary/10">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+          <Sparkles className="w-4 h-4 text-primary" />
         </div>
-        <div className="flex-1 space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">Citation du jour</p>
-          <p className="text-lg font-semibold leading-relaxed">"{quote.text}"</p>
-          <p className="text-sm text-muted-foreground">— {quote.author}</p>
+        <div className="flex-1 space-y-1">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Citation du jour</p>
+          <p className="text-sm font-medium leading-relaxed">"{quote.text}"</p>
+          <p className="text-xs text-muted-foreground">— {quote.author}</p>
         </div>
       </div>
     </Card>

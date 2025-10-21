@@ -25,53 +25,53 @@ export const AdjustmentsJournal = () => {
 
   if (isLoading) {
     return (
-      <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
-        <h3 className="text-lg font-bold mb-4">Journal des ajustements</h3>
-        <p className="text-sm text-muted-foreground">Chargement...</p>
+      <Card className="p-4 bg-card border-border/50">
+        <h3 className="text-sm font-semibold mb-3">Ajustements</h3>
+        <p className="text-xs text-muted-foreground">Chargement...</p>
       </Card>
     );
   }
 
   if (!adjustments || adjustments.length === 0) {
     return (
-      <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
-        <h3 className="text-lg font-bold mb-4">Journal des ajustements</h3>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <AlertCircle className="w-4 h-4" />
-          <p>Aucun ajustement pour le moment</p>
+      <Card className="p-4 bg-card border-border/50">
+        <h3 className="text-sm font-semibold mb-3">Ajustements</h3>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <AlertCircle className="w-3.5 h-3.5" />
+          <p>Aucun ajustement</p>
         </div>
       </Card>
     );
   }
 
   return (
-    <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
-      <h3 className="text-lg font-bold mb-4">Journal des ajustements</h3>
-      <div className="space-y-3">
+    <Card className="p-4 bg-card border-border/50">
+      <h3 className="text-sm font-semibold mb-3">Ajustements</h3>
+      <div className="space-y-2">
         {adjustments.map((adj) => (
           <div
             key={adj.id}
-            className="flex items-start gap-3 p-3 rounded-lg bg-background/50 border border-white/10"
+            className="flex items-start gap-2 p-2.5 rounded-lg bg-background/50 border border-border/50"
           >
-            <div className="p-2 bg-primary/10 rounded-lg">
+            <div className="p-1.5 bg-primary/5 rounded-lg">
               {adj.type === "calories" || adj.type === "volume" ? (
-                <TrendingUp className="w-4 h-4 text-primary" />
+                <TrendingUp className="w-3 h-3 text-primary" />
               ) : (
-                <TrendingDown className="w-4 h-4 text-secondary" />
+                <TrendingDown className="w-3 h-3 text-primary" />
               )}
             </div>
             <div className="flex-1">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-semibold capitalize">{adj.type}</span>
-                <span className="text-xs text-muted-foreground">
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-xs font-medium capitalize">{adj.type}</span>
+                <span className="text-[10px] text-muted-foreground">
                   {format(new Date(adj.created_at), "dd MMM")}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {adj.old_value} → {adj.new_value}
               </p>
               {adj.reason && (
-                <p className="text-xs text-muted-foreground mt-1">{adj.reason}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{adj.reason}</p>
               )}
             </div>
           </div>

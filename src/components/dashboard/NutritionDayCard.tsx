@@ -58,12 +58,12 @@ export const NutritionDayCard = () => {
 
   if (!goals) {
     return (
-      <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
-        <div className="text-center space-y-3">
-          <Apple className="w-12 h-12 mx-auto text-muted-foreground" />
-          <h3 className="font-semibold">Configure tes objectifs nutritionnels</h3>
-          <p className="text-sm text-muted-foreground">
-            Va dans Hub → Nutrition pour définir tes besoins caloriques et démarrer ton suivi
+      <Card className="p-4 bg-card border-border/50">
+        <div className="text-center space-y-2 py-2">
+          <Apple className="w-10 h-10 mx-auto text-muted-foreground" />
+          <h3 className="text-sm font-semibold">Configure tes objectifs</h3>
+          <p className="text-xs text-muted-foreground">
+            Va dans Hub → Nutrition
           </p>
         </div>
       </Card>
@@ -71,56 +71,55 @@ export const NutritionDayCard = () => {
   }
 
   return (
-    <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-secondary/20 rounded-lg">
-              <Apple className="w-5 h-5 text-secondary" />
-            </div>
-            <h3 className="text-lg font-bold">Nutrition du jour</h3>
-          </div>
+    <Card className="p-4 bg-card border-border/50">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-primary/5 rounded-lg shrink-0">
+          <Apple className="w-4 h-4 text-primary" />
         </div>
+        <div className="flex-1 space-y-2">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+            Nutrition du jour
+          </p>
 
-        <div className="space-y-3">
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-muted-foreground">Calories</span>
-              <span className="font-semibold">{targetCalories} kcal</span>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl font-bold">{targetCalories}</span>
+                <span className="text-xs text-muted-foreground">kcal</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Calories cible</p>
             </div>
-            <Progress value={0} className="h-2" />
+            <div className="space-y-1">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl font-bold">{protein}g</span>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Protéines</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-2 pt-1">
             <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Protéines</span>
-              </div>
-              <Progress value={0} className="h-1.5" />
-              <p className="text-xs font-semibold text-center">{protein}g</p>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Lipides</span>
-              </div>
-              <Progress value={0} className="h-1.5" />
-              <p className="text-xs font-semibold text-center">{fat}g</p>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between text-[10px]">
                 <span className="text-muted-foreground">Glucides</span>
+                <span className="font-medium">{carbs}g</span>
               </div>
-              <Progress value={0} className="h-1.5" />
-              <p className="text-xs font-semibold text-center">{carbs}g</p>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-primary/30 rounded-full" style={{ width: "0%" }} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <div className="flex justify-between text-[10px]">
+                <span className="text-muted-foreground">Lipides</span>
+                <span className="font-medium">{fat}g</span>
+              </div>
+              <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="h-full bg-primary/30 rounded-full" style={{ width: "0%" }} />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="pt-2 border-t border-white/10">
-          <p className="text-xs text-center text-muted-foreground">
-            📊 Tes objectifs nutritionnels quotidiens • Tracking disponible dans le module Nutrition
+          <p className="text-[10px] text-muted-foreground">
+            📊 Tracking disponible dans Nutrition
           </p>
         </div>
       </div>

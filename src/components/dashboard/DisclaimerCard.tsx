@@ -3,17 +3,16 @@ import { AlertTriangle } from "lucide-react";
 
 export const DisclaimerCard = () => {
   return (
-    <Card className="p-4 bg-muted/30 border-muted">
-      <div className="flex items-start gap-3">
-        <AlertTriangle className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">
-            ⚠️ Avertissement médical
+    <Card className="p-3 bg-muted/20 border-border/50">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <p className="text-xs font-medium text-foreground">
+            Avertissement médical
           </p>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Pulse.ai est un outil de coaching personnel, pas un substitut à un avis médical professionnel. 
-            Consulte un médecin ou un professionnel de santé qualifié avant de commencer tout programme d'entraînement 
-            ou de nutrition, surtout si tu as des conditions médicales préexistantes.
+          <p className="text-[10px] text-muted-foreground leading-relaxed">
+            Pulse.ai est un outil de coaching, pas un substitut médical. 
+            Consulte un professionnel de santé avant de commencer un programme.
           </p>
         </div>
       </div>

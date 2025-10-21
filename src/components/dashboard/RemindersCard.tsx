@@ -56,34 +56,32 @@ export const RemindersCard = ({ nextCheckIn }: RemindersCardProps) => {
   ];
 
   return (
-    <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
-      <h3 className="text-lg font-bold mb-4">Rappels</h3>
-      <div className="grid grid-cols-2 gap-3">
-        {reminders.map((reminder, idx) => (
-          <div
-            key={idx}
-            className={cn(
-              "p-3 rounded-lg border transition-all",
-              reminder.urgent
-                ? "bg-accent/10 border-accent/30"
-                : "bg-background/50 border-white/10"
-            )}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <reminder.icon className={cn(
-                "w-4 h-4",
-                reminder.urgent ? "text-accent" : "text-muted-foreground"
-              )} />
-              <span className="text-xs text-muted-foreground">{reminder.label}</span>
-            </div>
-            <p className={cn(
-              "text-sm font-semibold",
-              reminder.urgent && "text-accent"
-            )}>
-              {reminder.value}
-            </p>
+    <Card className="p-4 bg-card border-border/50">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-primary/5 rounded-lg shrink-0">
+          <Bell className="w-4 h-4 text-primary" />
+        </div>
+        <div className="flex-1 space-y-2">
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+            Rappels
+          </p>
+          <div className="space-y-2">
+            {reminders.map((reminder, idx) => (
+              <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-background/50 border border-border/50">
+                <div className="flex items-center gap-2">
+                  <reminder.icon className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs font-medium">{reminder.label}</span>
+                </div>
+                <span className={cn(
+                  "text-xs",
+                  reminder.urgent ? "text-red-500 font-medium" : "text-muted-foreground"
+                )}>
+                  {reminder.value}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </Card>
   );
