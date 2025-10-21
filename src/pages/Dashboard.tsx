@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { useSearchParams } from "react-router-dom";
-import { Scale, Target, Dumbbell, Clock, Apple, Flame, Loader2, Zap, Settings } from "lucide-react";
+import { Scale, Target, Dumbbell, Clock, Apple, Flame, Zap, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -12,6 +12,7 @@ import { RemindersCard } from "@/components/dashboard/RemindersCard";
 import { QuickActionsCard } from "@/components/dashboard/QuickActionsCard";
 import { AdjustmentsJournal } from "@/components/dashboard/AdjustmentsJournal";
 import { EmptyState } from "@/components/EmptyState";
+import { DashboardSkeleton } from "@/components/LoadingSkeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
@@ -27,7 +28,7 @@ const Dashboard = () => {
   const [progressOpen, setProgressOpen] = useState(false);
   
   useSaveOnboardingData();
-  const { loading, stats, upcomingSessions, latestSession } = useDashboardData();
+  const { loading, error, stats, upcomingSessions, latestSession } = useDashboardData();
 
   const { data: goals } = useQuery({
     queryKey: ["goals", user?.id],
@@ -44,6 +45,44 @@ const Dashboard = () => {
   });
 
   const frequency = goals?.frequency || 3;
+  const hasNoData = stats.totalSessions === 0 && !latestSession;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="px-4 pt-8 pb-6">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-2xl font-bold mb-1">
+              Salut {user?.user_metadata?.name || 'Champion'} 👋
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Bienvenue sur ton espace d'entraînement
+            </p>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto px-4">
+          <DashboardSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <div className="px-4 pt-8 pb-6">
+          <div className="max-w-6xl mx-auto">
+            <EmptyState
+              icon={AlertCircle}
+              title="Erreur de chargement"
+              description={error}
+              action={{ label: "Réessayer", to: "/dashboard" }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -79,11 +118,13 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* KPI Grid - 3 colonnes mobile, 6 desktop */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
+        {hasNoData ? (
+          <EmptyState
+            icon={Dumbbell}
+            title="Bienvenue sur ton tableau de bord"
+            description="Commence par générer ton premier programme d'entraînement pour voir tes statistiques"
+            action={{ label: "Créer mon programme", to: "/training-setup" }}
+          />
         ) : (
           <>
             <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">

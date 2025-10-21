@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const useNutrition = () => {
   const { user } = useAuth();
 
-  const { data: goals } = useQuery({
+  const { data: goals, isLoading } = useQuery({
     queryKey: ["goals", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -19,13 +20,13 @@ export const useNutrition = () => {
     enabled: !!user,
   });
 
-  const calculateBMI = () => {
+  const bmi = useMemo(() => {
     if (!goals?.weight || !goals?.height) return null;
     const heightInM = goals.height / 100;
     return Math.round((goals.weight / (heightInM * heightInM)) * 10) / 10;
-  };
+  }, [goals?.weight, goals?.height]);
 
-  const calculateBMR = () => {
+  const bmr = useMemo(() => {
     if (!goals?.weight || !goals?.height || !goals?.age || !goals?.sex) return null;
     
     // Mifflin-St Jeor Formula
@@ -33,10 +34,9 @@ export const useNutrition = () => {
     bmr += goals.sex === "male" ? 5 : -161;
     
     return Math.round(bmr);
-  };
+  }, [goals?.weight, goals?.height, goals?.age, goals?.sex]);
 
-  const calculateTDEE = () => {
-    const bmr = calculateBMR();
+  const tdee = useMemo(() => {
     if (!bmr || !goals?.activity_level) return null;
 
     const activityMultipliers: Record<string, number> = {
@@ -49,10 +49,9 @@ export const useNutrition = () => {
 
     const multiplier = activityMultipliers[goals.activity_level] || 1.55;
     return Math.round(bmr * multiplier);
-  };
+  }, [bmr, goals?.activity_level]);
 
-  const getTargetCalories = () => {
-    const tdee = calculateTDEE();
+  const targetCalories = useMemo(() => {
     if (!tdee || !goals?.goal_type) return null;
 
     if (goals.goal_type === "weight_loss") {
@@ -61,10 +60,9 @@ export const useNutrition = () => {
       return Math.round(tdee + 300); // Surplus of 300kcal
     }
     return tdee; // Maintenance
-  };
+  }, [tdee, goals?.goal_type]);
 
-  const getMacros = () => {
-    const targetCalories = getTargetCalories();
+  const macros = useMemo(() => {
     if (!targetCalories || !goals?.weight) return null;
 
     // Protein: 2g per kg body weight
@@ -80,14 +78,15 @@ export const useNutrition = () => {
     const carbs = Math.round(carbCals / 4);
 
     return { protein, fat, carbs };
-  };
+  }, [targetCalories, goals?.weight]);
 
   return {
-    bmi: calculateBMI(),
-    bmr: calculateBMR(),
-    tdee: calculateTDEE(),
-    targetCalories: getTargetCalories(),
-    macros: getMacros(),
+    bmi,
+    bmr,
+    tdee,
+    targetCalories,
+    macros,
     goals,
+    isLoading,
   };
 };

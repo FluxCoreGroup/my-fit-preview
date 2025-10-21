@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { startOfWeek, differenceInDays } from "date-fns";
@@ -29,6 +29,7 @@ interface UpcomingSession {
 export const useDashboardData = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats>({
     sessionsThisWeek: 0,
     totalSessions: 0,
@@ -46,12 +47,12 @@ export const useDashboardData = () => {
   const [upcomingSessions, setUpcomingSessions] = useState<UpcomingSession[]>([]);
   const [latestSession, setLatestSession] = useState<any>(null);
 
-  useEffect(() => {
+  const fetchDashboardData = useCallback(async () => {
     if (!user) return;
 
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
+    try {
+      setLoading(true);
+      setError(null);
         
         // Fetch all sessions
         const { data: allSessions, error: sessionsError } = await supabase
@@ -198,15 +199,21 @@ export const useDashboardData = () => {
 
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
+        setError("Impossible de charger les données");
       } finally {
         setLoading(false);
       }
-    };
-
-    fetchDashboardData();
   }, [user]);
 
-  return { loading, stats, upcomingSessions, latestSession };
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const refetch = useCallback(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  return { loading, error, stats, upcomingSessions, latestSession, refetch };
 };
 
 const formatSessionDate = (dateString: string): string => {

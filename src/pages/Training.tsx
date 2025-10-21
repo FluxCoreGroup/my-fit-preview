@@ -3,8 +3,9 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dumbbell, MoreVertical, RefreshCw, ChevronLeft, ChevronRight, Play, Clock, Loader2 } from "lucide-react";
+import { Dumbbell, MoreVertical, RefreshCw, ChevronLeft, ChevronRight, Play, Clock } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
+import { TrainingSkeleton } from "@/components/LoadingSkeleton";
 import { useWeeklyTraining } from "@/hooks/useWeeklyTraining";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
@@ -57,9 +58,7 @@ const Training = () => {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
+            <TrainingSkeleton />
           ) : sessions.length === 0 ? (
             <EmptyState
               icon={Dumbbell}

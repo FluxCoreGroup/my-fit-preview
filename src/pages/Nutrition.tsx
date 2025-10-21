@@ -5,20 +5,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Apple, RefreshCw, Droplet } from "lucide-react";
 import { useNutrition } from "@/hooks/useNutrition";
-import { Skeleton } from "@/components/ui/skeleton";
+import { NutritionSkeleton } from "@/components/LoadingSkeleton";
+import { EmptyState } from "@/components/EmptyState";
 
 const Nutrition = () => {
-  const { bmi, bmr, tdee, targetCalories, macros, goals } = useNutrition();
+  const { bmi, bmr, tdee, targetCalories, macros, goals, isLoading } = useNutrition();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <BackButton />
+        <div className="pt-20 px-4">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-secondary/10 rounded-xl">
+              <Apple className="w-6 h-6 text-secondary" />
+            </div>
+            <h1 className="text-2xl font-bold">Ma nutrition</h1>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <NutritionSkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!goals) {
     return (
       <div className="min-h-screen bg-background pb-24">
         <BackButton />
         <div className="pt-20 px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <p className="text-muted-foreground">
-              Renseigne tes informations dans les paramètres pour voir tes calculs nutritionnels
-            </p>
+          <div className="max-w-4xl mx-auto">
+            <EmptyState
+              icon={Apple}
+              title="Paramètres nutritionnels manquants"
+              description="Renseigne tes informations dans les paramètres pour voir tes calculs nutritionnels personnalisés"
+              action={{ label: "Aller aux paramètres", to: "/settings" }}
+            />
           </div>
         </div>
       </div>

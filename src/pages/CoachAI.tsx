@@ -5,11 +5,12 @@ import { ChatInterface } from "@/components/coach/ChatInterface";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ChatSkeleton } from "@/components/LoadingSkeleton";
 
 const CoachAI = () => {
   const { user } = useAuth();
 
-  const { data: goals } = useQuery({
+  const { data: goals, isLoading: goalsLoading } = useQuery({
     queryKey: ["goals", user?.id],
     queryFn: async () => {
       if (!user) return null;
@@ -77,33 +78,45 @@ const CoachAI = () => {
             </TabsList>
 
             <TabsContent value="alex">
-              <ChatInterface
-                functionName="chat-alex"
-                systemPrompt=""
-                shortcuts={[
-                  "Simplifier ma séance d'aujourd'hui",
-                  "Alternative sans douleur",
-                  "Adapter à 30 min",
-                ]}
-                context={alexContext}
-                avatarColor="bg-primary"
-                name="Alex"
-              />
+              {goalsLoading ? (
+                <div className="p-4">
+                  <ChatSkeleton />
+                </div>
+              ) : (
+                <ChatInterface
+                  functionName="chat-alex"
+                  systemPrompt=""
+                  shortcuts={[
+                    "Simplifier ma séance d'aujourd'hui",
+                    "Alternative sans douleur",
+                    "Adapter à 30 min",
+                  ]}
+                  context={alexContext}
+                  avatarColor="bg-primary"
+                  name="Alex"
+                />
+              )}
             </TabsContent>
 
             <TabsContent value="julie">
-              <ChatInterface
-                functionName="chat-julie"
-                systemPrompt=""
-                shortcuts={[
-                  "Générer une journée-type",
-                  "Remplacer ce plat",
-                  "Liste de courses rapide",
-                ]}
-                context={julieContext}
-                avatarColor="bg-secondary"
-                name="Julie"
-              />
+              {goalsLoading ? (
+                <div className="p-4">
+                  <ChatSkeleton />
+                </div>
+              ) : (
+                <ChatInterface
+                  functionName="chat-julie"
+                  systemPrompt=""
+                  shortcuts={[
+                    "Générer une journée-type",
+                    "Remplacer ce plat",
+                    "Liste de courses rapide",
+                  ]}
+                  context={julieContext}
+                  avatarColor="bg-secondary"
+                  name="Julie"
+                />
+              )}
             </TabsContent>
           </Tabs>
         </div>
