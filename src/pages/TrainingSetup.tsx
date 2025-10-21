@@ -183,7 +183,7 @@ const TrainingSetup = () => {
       clearTrainingSetup();
       localStorage.removeItem("onboardingData");
       toast({
-        title: "Profil d'entraînement créé ! 🎉",
+        title: "Analyse terminée ! 🎯",
         description: "Génération de ta séance personnalisée...",
       });
       

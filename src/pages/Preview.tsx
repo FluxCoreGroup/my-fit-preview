@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Utensils, Info, BarChart3, Calculator, Flame, Target, Droplets, Dumbbell, CheckCircle2, PartyPopper, Rocket, Gift } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
+import { toast } from "@/hooks/use-toast";
 
 const loadingSteps = [
   { progress: 0, text: "Analyse de ton profil...", icon: BarChart3 },
@@ -123,8 +124,13 @@ const Preview = () => {
       // Déjà connecté → aller directement à la séance
       navigate("/session");
     } else {
-      // Pas connecté → rediriger vers la page d'inscription
-      navigate("/signup");
+      // Pas connecté → afficher le toast puis rediriger
+      toast({
+        title: "Plan nutrition calculé ! 🎉",
+        description: "Crée ton compte pour continuer",
+      });
+      // Petite pause pour laisser voir le toast
+      setTimeout(() => navigate("/signup"), 800);
     }
   };
 

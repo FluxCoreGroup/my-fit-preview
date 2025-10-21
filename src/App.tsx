@@ -33,6 +33,7 @@ import Training from "./pages/Training";
 import Nutrition from "./pages/Nutrition";
 import CoachAI from "./pages/CoachAI";
 import Hub from "./pages/Hub";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 // Component to sync onboarding data to Supabase as soon as user is authenticated
 const OnboardingSyncGate = () => {
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/auth-callback" element={<AuthCallback />} />
             <Route path="/email-verified" element={<EmailVerified />} />
             <Route path="/training-setup" element={<TrainingSetup />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/support" element={<Support />} />
             

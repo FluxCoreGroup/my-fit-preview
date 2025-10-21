@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { ModuleCard } from "@/components/dashboard/ModuleCard";
+import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +10,7 @@ import { Home, Dumbbell, Apple, TrendingUp, Bot, Sparkles, Settings, HelpCircle 
 const Hub = () => {
   const { user } = useAuth();
   const { stats, loading } = useDashboardData();
+  const [showWelcome, setShowWelcome] = useState(false);
 
   const { data: goals } = useQuery({
     queryKey: ["goals", user?.id],
@@ -27,10 +30,29 @@ const Hub = () => {
 
   const userName = user?.user_metadata?.name?.split(" ")[0] || "Champion";
 
+  // Vérifier si c'est la 1ère visite post-inscription
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('hub_first_visit');
+    if (!hasSeenWelcome && user) {
+      setShowWelcome(true);
+    }
+  }, [user]);
+
+  const handleWelcomeComplete = () => {
+    localStorage.setItem('hub_first_visit', 'done');
+    setShowWelcome(false);
+  };
+
   return (
-    <div className="min-h-screen bg-muted/30 pb-8">
-      {/* Header */}
-      <div className="bg-card border-b px-4 py-6">
+    <>
+      <WelcomeModal 
+        open={showWelcome} 
+        userName={userName}
+        onComplete={handleWelcomeComplete}
+      />
+      <div className="min-h-screen bg-muted/30 pb-8">
+        {/* Header */}
+        <div className="bg-card border-b px-4 py-6">
         <h1 className="text-2xl font-bold">
           Salut {userName} 👋
         </h1>
@@ -118,7 +140,8 @@ const Hub = () => {
           />
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

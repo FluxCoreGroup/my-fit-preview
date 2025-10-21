@@ -51,8 +51,9 @@ const Feedback = () => {
       }
 
       toast({
-        title: "Merci pour ton retour !",
+        title: "Merci pour ton retour ! 🙏",
         description: "Tes feedbacks nous aident à améliorer ton programme.",
+        duration: 2000,
       });
 
       // Vérifier si c'est la première séance complétée
