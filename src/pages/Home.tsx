@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Scale, Target, Dumbbell, Clock, Apple, Flame, Zap, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import ProgressCharts from "@/components/dashboard/ProgressCharts";
 import { KPICard } from "@/components/dashboard/KPICard";
@@ -21,14 +20,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { BackButton } from "@/components/BackButton";
 
-const Dashboard = () => {
+const Home = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const subscriptionSuccess = searchParams.get('subscription') === 'success';
   const sessionGenerated = searchParams.get('generated') === 'success';
   const [progressOpen, setProgressOpen] = useState(false);
   
-  useSaveOnboardingData();
   const { loading, error, stats, upcomingSessions, latestSession } = useDashboardData();
 
   const { data: goals } = useQuery({
@@ -50,7 +48,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pb-24">
+      <div className="min-h-screen bg-background pb-8">
         <BackButton to="/hub" label="Retour au Hub" />
         <div className="px-4 pt-20 pb-6">
           <div className="max-w-6xl mx-auto">
@@ -63,7 +61,7 @@ const Dashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background pb-24">
+      <div className="min-h-screen bg-background pb-8">
         <BackButton to="/hub" label="Retour au Hub" />
         <div className="px-4 pt-20 pb-6">
           <div className="max-w-6xl mx-auto">
@@ -71,7 +69,7 @@ const Dashboard = () => {
               icon={AlertCircle}
               title="Erreur de chargement"
               description={error}
-              action={{ label: "Réessayer", to: "/dashboard" }}
+              action={{ label: "Réessayer", to: "/home" }}
             />
           </div>
         </div>
@@ -80,7 +78,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-8">
       <BackButton to="/hub" label="Retour au Hub" />
       
       <div className="max-w-6xl mx-auto px-4 pt-16 space-y-6">
@@ -195,4 +193,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Home;

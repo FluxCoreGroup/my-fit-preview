@@ -80,7 +80,7 @@ const Weekly = () => {
         description: "Tes données ont été sauvegardées avec succès.",
       });
 
-      navigate("/dashboard");
+      navigate("/hub");
     } catch (error) {
       console.error(error);
       toast({
@@ -94,8 +94,8 @@ const Weekly = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <BackButton />
+    <div className="min-h-screen bg-background pb-8">
+      <BackButton to="/hub" label="Retour au Hub" />
       
       <div className="pt-20 px-4">
         <div className="max-w-2xl mx-auto">

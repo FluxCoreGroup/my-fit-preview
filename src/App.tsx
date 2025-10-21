@@ -19,7 +19,7 @@ import Session from "./pages/Session";
 import Feedback from "./pages/Feedback";
 import Paywall from "./pages/Paywall";
 import Weekly from "./pages/Weekly";
-import Dashboard from "./pages/Dashboard";
+import Home from "./pages/Home";
 import Legal from "./pages/Legal";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
@@ -65,7 +65,7 @@ const App = () => (
           <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
           <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Weekly /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/hub" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Hub /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Dashboard /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/home" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Home /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/training" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Training /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Nutrition /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/coach" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachAI /></AppLayout></SubscriptionGuard></ProtectedRoute>} />

@@ -25,8 +25,8 @@ const Training = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <BackButton />
+    <div className="min-h-screen bg-background pb-8">
+      <BackButton to="/hub" label="Retour au Hub" />
       
       <div className="pt-20 px-4">
         <div className="flex items-center gap-3 mb-6">

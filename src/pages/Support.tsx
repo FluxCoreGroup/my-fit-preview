@@ -263,8 +263,8 @@ const Support = () => {
             <Link to="/legal">
               <Button variant="outline">Mentions légales</Button>
             </Link>
-            <Link to="/dashboard">
-              <Button variant="outline">Mon Dashboard</Button>
+            <Link to="/hub">
+              <Button variant="outline">Hub</Button>
             </Link>
             <Link to="/support">
               <Button variant="outline">Centre d'aide</Button>

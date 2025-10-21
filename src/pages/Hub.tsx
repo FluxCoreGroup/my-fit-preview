@@ -28,7 +28,7 @@ const Hub = () => {
   const userName = user?.user_metadata?.name?.split(" ")[0] || "Champion";
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-24">
+    <div className="min-h-screen bg-muted/30 pb-8">
       {/* Header */}
       <div className="bg-card border-b px-4 py-6">
         <h1 className="text-2xl font-bold">
@@ -47,7 +47,7 @@ const Hub = () => {
             icon={Home}
             title="Accueil"
             iconColor="24.6 95% 53.1%"
-            to="/dashboard"
+            to="/home"
           />
 
           {/* Mes entraînements - Teal */}

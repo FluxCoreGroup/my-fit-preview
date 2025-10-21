@@ -73,8 +73,8 @@ const CoachAI = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <BackButton />
+    <div className="min-h-screen bg-background pb-8">
+      <BackButton to="/hub" label="Retour au Hub" />
       
       <div className="pt-16 px-4">
         <div className="max-w-4xl mx-auto">
