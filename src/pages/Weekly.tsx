@@ -22,12 +22,16 @@ const Weekly = () => {
     weight1: "",
     weight2: "",
     weight3: "",
+    waist: "",
+    rpeAvg: "",
     sessionsPlanned: "",
     sessionsCompleted: "",
     diet: "",
     hunger: "",
     energy: "",
     sleep: "",
+    painZones: [] as string[],
+    painIntensity: "",
     blockers: "",
   });
 
@@ -55,14 +59,18 @@ const Weekly = () => {
 
       const { error } = await supabase.from("weekly_checkins").insert({
         user_id: user.id,
-        weight_avg: avgWeight,
+        average_weight: avgWeight,
+        waist_circumference: formData.waist ? parseFloat(formData.waist) : null,
+        rpe_avg: formData.rpeAvg ? parseInt(formData.rpeAvg) : null,
         sessions_planned: parseInt(formData.sessionsPlanned) || 0,
-        sessions_completed: parseInt(formData.sessionsCompleted) || 0,
-        diet_adherence: formData.diet,
-        hunger_level: formData.hunger,
-        energy_level: formData.energy,
-        sleep_quality: formData.sleep,
-        blockers: formData.blockers,
+        sessions_done: parseInt(formData.sessionsCompleted) || 0,
+        adherence_diet: parseInt(formData.diet) || null,
+        hunger: formData.hunger,
+        energy: formData.energy,
+        sleep: formData.sleep,
+        pain_zones: formData.painZones.length > 0 ? formData.painZones : null,
+        pain_intensity: formData.painIntensity ? parseInt(formData.painIntensity) : null,
+        blockers: formData.blockers || null,
       });
 
       if (error) throw error;
@@ -143,6 +151,40 @@ const Weekly = () => {
               </div>
             </div>
 
+            <div>
+              <Label htmlFor="waist" className="text-sm font-medium mb-2 block">
+                Tour de taille (cm)
+              </Label>
+              <Input
+                id="waist"
+                type="number"
+                step="0.1"
+                value={formData.waist}
+                onChange={(e) => updateField("waist", e.target.value)}
+                placeholder="Ex: 85"
+                className="rounded-xl"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="rpeAvg" className="text-sm font-medium mb-2 block">
+                RPE moyen de la semaine (1-10)
+              </Label>
+              <Input
+                id="rpeAvg"
+                type="number"
+                min="1"
+                max="10"
+                value={formData.rpeAvg}
+                onChange={(e) => updateField("rpeAvg", e.target.value)}
+                placeholder="Ex: 7"
+                className="rounded-xl"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                1 = Très facile, 10 = Effort maximal
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="sessionsPlanned" className="text-sm font-medium mb-2 block">
@@ -171,24 +213,66 @@ const Weekly = () => {
             </div>
 
             <div>
-              <Label className="text-sm font-medium mb-3 block">Adhérence au régime</Label>
-              <RadioGroup value={formData.diet} onValueChange={(v) => updateField("diet", v)}>
-                {["Excellente", "Bonne", "Moyenne", "Difficile"].map((option) => (
-                  <div key={option} className="flex items-center space-x-2 mb-2">
-                    <RadioGroupItem value={option} id={`diet-${option}`} />
-                    <Label htmlFor={`diet-${option}`} className="cursor-pointer">{option}</Label>
-                  </div>
+              <Label className="text-sm font-medium mb-3 block">Douleurs cette semaine</Label>
+              <div className="space-y-2">
+                {["Épaule", "Dos", "Genou", "Coude", "Poignet", "Hanche", "Autre"].map((zone) => (
+                  <label key={zone} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.painZones.includes(zone)}
+                      onChange={(e) => {
+                        const newZones = e.target.checked
+                          ? [...formData.painZones, zone]
+                          : formData.painZones.filter(z => z !== zone);
+                        setFormData(prev => ({ ...prev, painZones: newZones }));
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-sm">{zone}</span>
+                  </label>
                 ))}
-              </RadioGroup>
+              </div>
+              {formData.painZones.length > 0 && (
+                <div className="mt-4">
+                  <Label htmlFor="painIntensity" className="text-sm font-medium mb-2 block">
+                    Intensité de la douleur (0-10)
+                  </Label>
+                  <Input
+                    id="painIntensity"
+                    type="number"
+                    min="0"
+                    max="10"
+                    value={formData.painIntensity}
+                    onChange={(e) => updateField("painIntensity", e.target.value)}
+                    placeholder="0 = Aucune, 10 = Insupportable"
+                    className="rounded-xl"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Adhérence au régime (%)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                value={formData.diet}
+                onChange={(e) => updateField("diet", e.target.value)}
+                placeholder="Ex: 80"
+                className="rounded-xl"
+              />
             </div>
 
             <div>
               <Label className="text-sm font-medium mb-3 block">Niveau de faim</Label>
               <RadioGroup value={formData.hunger} onValueChange={(v) => updateField("hunger", v)}>
-                {["Faible", "Modérée", "Élevée", "Très élevée"].map((option) => (
+                {["low", "moderate", "high", "very_high"].map((option) => (
                   <div key={option} className="flex items-center space-x-2 mb-2">
                     <RadioGroupItem value={option} id={`hunger-${option}`} />
-                    <Label htmlFor={`hunger-${option}`} className="cursor-pointer">{option}</Label>
+                    <Label htmlFor={`hunger-${option}`} className="cursor-pointer capitalize">
+                      {option.replace("_", " ")}
+                    </Label>
                   </div>
                 ))}
               </RadioGroup>
@@ -197,10 +281,12 @@ const Weekly = () => {
             <div>
               <Label className="text-sm font-medium mb-3 block">Niveau d'énergie</Label>
               <RadioGroup value={formData.energy} onValueChange={(v) => updateField("energy", v)}>
-                {["Très élevé", "Bon", "Faible", "Très faible"].map((option) => (
+                {["very_high", "good", "low", "very_low"].map((option) => (
                   <div key={option} className="flex items-center space-x-2 mb-2">
                     <RadioGroupItem value={option} id={`energy-${option}`} />
-                    <Label htmlFor={`energy-${option}`} className="cursor-pointer">{option}</Label>
+                    <Label htmlFor={`energy-${option}`} className="cursor-pointer capitalize">
+                      {option.replace("_", " ")}
+                    </Label>
                   </div>
                 ))}
               </RadioGroup>
@@ -209,10 +295,12 @@ const Weekly = () => {
             <div>
               <Label className="text-sm font-medium mb-3 block">Qualité du sommeil</Label>
               <RadioGroup value={formData.sleep} onValueChange={(v) => updateField("sleep", v)}>
-                {["Excellente", "Bonne", "Moyenne", "Mauvaise"].map((option) => (
+                {["excellent", "good", "average", "poor"].map((option) => (
                   <div key={option} className="flex items-center space-x-2 mb-2">
                     <RadioGroupItem value={option} id={`sleep-${option}`} />
-                    <Label htmlFor={`sleep-${option}`} className="cursor-pointer">{option}</Label>
+                    <Label htmlFor={`sleep-${option}`} className="cursor-pointer capitalize">
+                      {option}
+                    </Label>
                   </div>
                 ))}
               </RadioGroup>

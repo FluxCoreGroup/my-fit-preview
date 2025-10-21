@@ -10,6 +10,7 @@ import { SessionSummaryCard } from "@/components/dashboard/SessionSummaryCard";
 import { NutritionDayCard } from "@/components/dashboard/NutritionDayCard";
 import { RemindersCard } from "@/components/dashboard/RemindersCard";
 import { QuickActionsCard } from "@/components/dashboard/QuickActionsCard";
+import { AdjustmentsJournal } from "@/components/dashboard/AdjustmentsJournal";
 import { EmptyState } from "@/components/EmptyState";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -145,6 +146,9 @@ const Dashboard = () => {
 
             {/* Actions rapides */}
             <QuickActionsCard />
+
+            {/* Journal des ajustements */}
+            <AdjustmentsJournal />
 
             {/* Progress Section - Collapsible */}
             <Collapsible open={progressOpen} onOpenChange={setProgressOpen} className="mt-2">
