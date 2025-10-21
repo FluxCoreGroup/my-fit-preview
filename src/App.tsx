@@ -30,7 +30,10 @@ import Settings from "./pages/Settings";
 import Profile from "./pages/settings/Profile";
 import PhysicalInfo from "./pages/settings/PhysicalInfo";
 import TrainingProgram from "./pages/settings/TrainingProgram";
-import Nutrition from "./pages/settings/Nutrition";
+import NutritionSettings from "./pages/settings/Nutrition";
+import Training from "./pages/Training";
+import Nutrition from "./pages/Nutrition";
+import CoachAI from "./pages/CoachAI";
 
 const queryClient = new QueryClient();
 
@@ -68,11 +71,14 @@ const App = () => (
           <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
           <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Weekly /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Dashboard /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/training" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Training /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Nutrition /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/coach" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachAI /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Settings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings/profile" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Profile /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings/physical-info" element={<ProtectedRoute><SubscriptionGuard><AppLayout><PhysicalInfo /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings/training-program" element={<ProtectedRoute><SubscriptionGuard><AppLayout><TrainingProgram /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Nutrition /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/settings/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><NutritionSettings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

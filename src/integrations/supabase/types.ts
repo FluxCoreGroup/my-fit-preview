@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      adjustments_log: {
+        Row: {
+          created_at: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          reason: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_preferences: {
         Row: {
           created_at: string
@@ -46,6 +76,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      exercise_logs: {
+        Row: {
+          comment: string | null
+          created_at: string
+          exercise_name: string
+          id: string
+          rpe_felt: number | null
+          session_id: string
+          set_number: number
+          user_id: string
+          weight_used: number | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          exercise_name: string
+          id?: string
+          rpe_felt?: number | null
+          session_id: string
+          set_number: number
+          user_id: string
+          weight_used?: number | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          exercise_name?: string
+          id?: string
+          rpe_felt?: number | null
+          session_id?: string
+          set_number?: number
+          user_id?: string
+          weight_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       feedback: {
         Row: {
@@ -313,10 +387,14 @@ export type Database = {
           energy: string | null
           hunger: string | null
           id: string
+          pain_intensity: number | null
+          pain_zones: string[] | null
+          rpe_avg: number | null
           sessions_done: number | null
           sessions_planned: number | null
           sleep: string | null
           user_id: string
+          waist_circumference: number | null
         }
         Insert: {
           adherence_diet?: number | null
@@ -326,10 +404,14 @@ export type Database = {
           energy?: string | null
           hunger?: string | null
           id?: string
+          pain_intensity?: number | null
+          pain_zones?: string[] | null
+          rpe_avg?: number | null
           sessions_done?: number | null
           sessions_planned?: number | null
           sleep?: string | null
           user_id: string
+          waist_circumference?: number | null
         }
         Update: {
           adherence_diet?: number | null
@@ -339,10 +421,14 @@ export type Database = {
           energy?: string | null
           hunger?: string | null
           id?: string
+          pain_intensity?: number | null
+          pain_zones?: string[] | null
+          rpe_avg?: number | null
           sessions_done?: number | null
           sessions_planned?: number | null
           sleep?: string | null
           user_id?: string
+          waist_circumference?: number | null
         }
         Relationships: []
       }

@@ -8,6 +8,14 @@ interface DashboardStats {
   totalSessions: number;
   weekStreak: number;
   nextCheckIn: string;
+  currentWeight: number | null;
+  weightChange7d: number | null;
+  weightChange30d: number | null;
+  goalWeight: number | null;
+  weeksToGoal: number | null;
+  trainingMinutes7d: number;
+  nutritionAdherence: number | null;
+  activeStreak: number;
 }
 
 interface UpcomingSession {
@@ -25,7 +33,15 @@ export const useDashboardData = () => {
     sessionsThisWeek: 0,
     totalSessions: 0,
     weekStreak: 0,
-    nextCheckIn: "Bientôt"
+    nextCheckIn: "Bientôt",
+    currentWeight: null,
+    weightChange7d: null,
+    weightChange30d: null,
+    goalWeight: null,
+    weeksToGoal: null,
+    trainingMinutes7d: 0,
+    nutritionAdherence: null,
+    activeStreak: 0,
   });
   const [upcomingSessions, setUpcomingSessions] = useState<UpcomingSession[]>([]);
   const [latestSession, setLatestSession] = useState<any>(null);
@@ -102,11 +118,82 @@ export const useDashboardData = () => {
         // Calculate week streak (simplified version)
         const weekStreak = Math.floor(totalSessions / 2) || 0; // Simple heuristic
 
+        // Fetch goals for weight data
+        const { data: goalsData } = await supabase
+          .from("goals")
+          .select("weight, target_weight_loss")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        // Fetch weekly check-ins for weight tracking
+        const { data: checkIns } = await supabase
+          .from("weekly_checkins")
+          .select("average_weight, adherence_diet, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        // Calculate weight metrics
+        const currentWeight = checkIns?.[0]?.average_weight || goalsData?.weight || null;
+        const weight7dAgo = checkIns?.find(c => {
+          const daysDiff = differenceInDays(new Date(), new Date(c.created_at));
+          return daysDiff >= 7;
+        })?.average_weight;
+        const weight30dAgo = checkIns?.find(c => {
+          const daysDiff = differenceInDays(new Date(), new Date(c.created_at));
+          return daysDiff >= 30;
+        })?.average_weight;
+
+        const weightChange7d = currentWeight && weight7dAgo 
+          ? Math.round((currentWeight - weight7dAgo) * 10) / 10 
+          : null;
+        const weightChange30d = currentWeight && weight30dAgo 
+          ? Math.round((currentWeight - weight30dAgo) * 10) / 10 
+          : null;
+
+        // Calculate goal weight and weeks to goal
+        const targetWeightLoss = goalsData?.target_weight_loss || 0;
+        const goalWeight = currentWeight ? currentWeight - targetWeightLoss : null;
+        const weeksToGoal = targetWeightLoss && weightChange7d && weightChange7d < 0
+          ? Math.ceil(Math.abs(targetWeightLoss / (weightChange7d * 4)))
+          : null;
+
+        // Calculate training minutes (estimate 45min per session)
+        const trainingMinutes7d = sessionsThisWeek * 45;
+
+        // Get latest nutrition adherence
+        const nutritionAdherence = checkIns?.[0]?.adherence_diet || null;
+
+        // Calculate active streak (days with sessions or check-ins)
+        let activeStreak = 0;
+        const today = new Date();
+        for (let i = 0; i < 30; i++) {
+          const checkDate = new Date(today);
+          checkDate.setDate(checkDate.getDate() - i);
+          const hasActivity = (allSessions || []).some(s => {
+            const sessionDate = new Date(s.created_at);
+            return sessionDate.toDateString() === checkDate.toDateString();
+          });
+          if (hasActivity) {
+            activeStreak++;
+          } else if (i > 0) {
+            break;
+          }
+        }
+
         setStats({
           sessionsThisWeek,
           totalSessions,
           weekStreak,
-          nextCheckIn
+          nextCheckIn,
+          currentWeight,
+          weightChange7d,
+          weightChange30d,
+          goalWeight,
+          weeksToGoal,
+          trainingMinutes7d,
+          nutritionAdherence,
+          activeStreak,
         });
 
       } catch (error) {

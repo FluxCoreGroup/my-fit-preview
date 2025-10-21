@@ -1,21 +1,48 @@
 import { Card } from "@/components/ui/card";
-import { Link, useSearchParams } from "react-router-dom";
-import { Calendar, Dumbbell, TrendingUp, PlayCircle, Loader2, Settings, FileText, Zap } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Scale, Target, Dumbbell, Clock, Apple, Flame, Loader2, Zap, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import ProgressCharts from "@/components/dashboard/ProgressCharts";
-import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { KPICard } from "@/components/dashboard/KPICard";
+import { SessionSummaryCard } from "@/components/dashboard/SessionSummaryCard";
+import { NutritionDayCard } from "@/components/dashboard/NutritionDayCard";
+import { RemindersCard } from "@/components/dashboard/RemindersCard";
+import { QuickActionsCard } from "@/components/dashboard/QuickActionsCard";
+import { EmptyState } from "@/components/EmptyState";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const subscriptionSuccess = searchParams.get('subscription') === 'success';
   const sessionGenerated = searchParams.get('generated') === 'success';
+  const [progressOpen, setProgressOpen] = useState(false);
   
   useSaveOnboardingData();
   const { loading, stats, upcomingSessions, latestSession } = useDashboardData();
+
+  const { data: goals } = useQuery({
+    queryKey: ["goals", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("goals")
+        .select("frequency")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const frequency = goals?.frequency || 3;
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -51,121 +78,88 @@ const Dashboard = () => {
           </Card>
         )}
 
-        {/* Quick Stats */}
+        {/* KPI Grid - 3 colonnes mobile, 6 desktop */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-xl">
-              <div className="flex flex-col gap-2">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Dumbbell className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold">{stats.sessionsThisWeek}</div>
-                  <div className="text-xs text-muted-foreground">Cette semaine</div>
-                </div>
-              </div>
-            </Card>
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+              <KPICard 
+                title="Poids actuel" 
+                value={stats.currentWeight ? `${stats.currentWeight}kg` : "-"} 
+                subtitle={stats.weightChange7d ? `${stats.weightChange7d > 0 ? '+' : ''}${stats.weightChange7d}kg (7j)` : undefined}
+                icon={Scale}
+                trend={stats.weightChange7d ? (stats.weightChange7d < 0 ? "down" : "up") : undefined}
+              />
+              <KPICard 
+                title="Objectif" 
+                value={stats.goalWeight ? `${stats.goalWeight}kg` : "-"} 
+                subtitle={stats.weeksToGoal ? `${stats.weeksToGoal} sem.` : undefined}
+                icon={Target}
+              />
+              <KPICard 
+                title="Séances / sem" 
+                value={`${stats.sessionsThisWeek}/${frequency}`}
+                icon={Dumbbell}
+                variant="primary"
+              />
+              <KPICard 
+                title="Minutes (7j)" 
+                value={stats.trainingMinutes7d}
+                icon={Clock}
+              />
+              <KPICard 
+                title="Adhérence diet" 
+                value={stats.nutritionAdherence ? `${stats.nutritionAdherence}%` : "-"}
+                icon={Apple}
+                variant="secondary"
+              />
+              <KPICard 
+                title="Streak" 
+                value={stats.activeStreak}
+                subtitle="jours"
+                icon={Flame}
+                variant="accent"
+              />
+            </div>
 
-            <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-xl">
-              <div className="flex flex-col gap-2">
-                <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-secondary" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold">{stats.totalSessions}</div>
-                  <div className="text-xs text-muted-foreground">Total séances</div>
-                </div>
-              </div>
-            </Card>
+            {/* Séance du jour - Card CTA principale */}
+            {latestSession ? (
+              <SessionSummaryCard session={latestSession} />
+            ) : (
+              <EmptyState
+                icon={Zap}
+                title="Aucune séance planifiée"
+                description="Génère ton programme pour commencer 🚀"
+                action={{ label: "Générer ma semaine", to: "/training-setup" }}
+              />
+            )}
 
-            <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-xl">
-              <div className="flex flex-col gap-2">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold">{stats.weekStreak}</div>
-                  <div className="text-xs text-muted-foreground">Semaines actives</div>
-                </div>
-              </div>
-            </Card>
+            {/* Nutrition du jour */}
+            <NutritionDayCard />
 
-            <Card className="p-4 bg-card/50 backdrop-blur-xl border-white/10 rounded-xl">
-              <div className="flex flex-col gap-2">
-                <div className="text-xs text-muted-foreground">Prochain check-in</div>
-                <div className="text-lg font-bold">{stats.nextCheckIn}</div>
-              </div>
-            </Card>
-          </div>
+            {/* Rappels */}
+            <RemindersCard nextCheckIn={stats.nextCheckIn} />
+
+            {/* Actions rapides */}
+            <QuickActionsCard />
+
+            {/* Progress Section - Collapsible */}
+            <Collapsible open={progressOpen} onOpenChange={setProgressOpen} className="mt-2">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" className="w-full justify-between p-0 hover:bg-transparent">
+                  <h2 className="text-xl font-semibold">Ta progression (12 dernières semaines)</h2>
+                  <ChevronDown className={`w-5 h-5 transition-transform ${progressOpen ? "rotate-180" : ""}`} />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-4">
+                <ProgressCharts />
+              </CollapsibleContent>
+            </Collapsible>
+          </>
         )}
-
-        {/* Prochaine séance - Card CTA principale */}
-        {!loading && (
-          <Link to={latestSession ? "/session" : "/training-setup"}>
-            <Card className="p-6 bg-gradient-to-br from-primary/20 to-primary/5 border-primary/30 backdrop-blur-xl rounded-2xl hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer shadow-lg shadow-primary/10">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-primary/20 rounded-2xl">
-                  <PlayCircle className="w-8 h-8 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold mb-1">
-                    {latestSession ? "Lancer ma séance" : "Générer ma première séance"}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    {latestSession 
-                      ? `${latestSession.exercises?.[0]?.name || "Ta prochaine séance"} t'attend !`
-                      : "Crée ton premier entraînement personnalisé"}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </Link>
-        )}
-
-        {/* Autres cards cliquables */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <DashboardCard
-            title="Check-in hebdomadaire"
-            description="Partage tes progrès et ajuste ton plan"
-            icon={TrendingUp}
-            to="/weekly"
-            variant="secondary"
-          />
-          
-          <DashboardCard
-            title="Voir mon plan"
-            description="Consulte ton programme d'entraînement"
-            icon={FileText}
-            to="/preview"
-            variant="outline"
-          />
-          
-          <DashboardCard
-            title="Générer nouvelle séance"
-            description="Crée un nouvel entraînement personnalisé"
-            icon={Zap}
-            to="/training-setup"
-            variant="outline"
-          />
-          
-          <DashboardCard
-            title="Réglages"
-            description="Modifie tes infos et préférences"
-            icon={Settings}
-            to="/settings"
-            variant="outline"
-          />
-        </div>
-
-        {/* Progress Section - Collapsible */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-4">Ta progression</h2>
-          <ProgressCharts />
-        </div>
       </div>
     </div>
   );
