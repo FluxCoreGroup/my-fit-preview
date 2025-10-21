@@ -1,9 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import { useSaveOnboardingData } from "./hooks/useSaveOnboardingData";
@@ -35,8 +33,6 @@ import Training from "./pages/Training";
 import Nutrition from "./pages/Nutrition";
 import CoachAI from "./pages/CoachAI";
 
-const queryClient = new QueryClient();
-
 // Component to sync onboarding data to Supabase as soon as user is authenticated
 const OnboardingSyncGate = () => {
   useSaveOnboardingData();
@@ -44,14 +40,11 @@ const OnboardingSyncGate = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <OnboardingSyncGate />
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
+  <TooltipProvider>
+    <OnboardingSyncGate />
+    <Toaster />
+    <Sonner />
+    <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/start" element={<Start />} />
             <Route path="/preview" element={<Preview />} />
@@ -81,11 +74,8 @@ const App = () => (
           <Route path="/settings/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><NutritionSettings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+    </Routes>
+  </TooltipProvider>
 );
 
 export default App;
