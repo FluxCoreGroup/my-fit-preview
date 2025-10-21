@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Scale, Target, Dumbbell, Clock, Apple, Flame, Zap, AlertCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,9 +17,9 @@ import { DashboardSkeleton } from "@/components/LoadingSkeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { BackButton } from "@/components/BackButton";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -50,18 +51,11 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background pb-24">
-        <div className="px-4 pt-8 pb-6">
+        <BackButton to="/hub" label="Retour au Hub" />
+        <div className="px-4 pt-20 pb-6">
           <div className="max-w-6xl mx-auto">
-            <h1 className="text-2xl font-bold mb-1">
-              Salut {user?.user_metadata?.name || 'Champion'} 👋
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              Bienvenue sur ton espace d'entraînement
-            </p>
+            <DashboardSkeleton />
           </div>
-        </div>
-        <div className="max-w-6xl mx-auto px-4">
-          <DashboardSkeleton />
         </div>
       </div>
     );
@@ -70,7 +64,8 @@ const Dashboard = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-background pb-24">
-        <div className="px-4 pt-8 pb-6">
+        <BackButton to="/hub" label="Retour au Hub" />
+        <div className="px-4 pt-20 pb-6">
           <div className="max-w-6xl mx-auto">
             <EmptyState
               icon={AlertCircle}
@@ -86,19 +81,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Hero compact */}
-      <div className="px-4 pt-8 pb-6">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-2xl font-bold mb-1">
-            Salut {user?.user_metadata?.name || 'Champion'} 👋
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Bienvenue sur ton espace d'entraînement
-          </p>
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 space-y-6">
+      <BackButton to="/hub" label="Retour au Hub" />
+      
+      <div className="max-w-6xl mx-auto px-4 pt-16 space-y-6">
         {/* Success Messages */}
         {subscriptionSuccess && (
           <Card className="p-4 bg-accent/10 border-accent rounded-2xl">

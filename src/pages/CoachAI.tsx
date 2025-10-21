@@ -1,3 +1,5 @@
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dumbbell, Apple } from "lucide-react";
@@ -9,6 +11,17 @@ import { ChatSkeleton } from "@/components/LoadingSkeleton";
 
 const CoachAI = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(
+    tabFromUrl === 'julie' ? 'julie' : 'alex'
+  );
+
+  useEffect(() => {
+    if (tabFromUrl === 'julie' || tabFromUrl === 'alex') {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
 
   const { data: goals, isLoading: goalsLoading } = useQuery({
     queryKey: ["goals", user?.id],
@@ -65,7 +78,7 @@ const CoachAI = () => {
       
       <div className="pt-16 px-4">
         <div className="max-w-4xl mx-auto">
-          <Tabs defaultValue="alex" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full mb-6">
               <TabsTrigger value="alex" className="flex-1">
                 <Dumbbell className="w-4 h-4 mr-2" />
