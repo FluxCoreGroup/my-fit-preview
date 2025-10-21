@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.send-welcome-email]
 verify_jwt = false
+
+[functions.chat-alex]
+verify_jwt = true
+
+[functions.chat-julie]
+verify_jwt = true
