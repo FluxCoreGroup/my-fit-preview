@@ -15,29 +15,50 @@ export const useNutrition = () => {
         .select("*")
         .eq("user_id", user.id)
         .maybeSingle();
+      console.log("🔍 [useNutrition] Goals loaded:", data);
       return data;
     },
     enabled: !!user,
   });
 
+  console.log("🔍 [useNutrition] Current state:", { user: user?.id, goals, isLoading });
+
   const bmi = useMemo(() => {
-    if (!goals?.weight || !goals?.height) return null;
+    if (!goals?.weight || !goals?.height) {
+      console.log("⚠️ [BMI] Missing data:", { weight: goals?.weight, height: goals?.height });
+      return null;
+    }
     const heightInM = goals.height / 100;
-    return Math.round((goals.weight / (heightInM * heightInM)) * 10) / 10;
+    const result = Math.round((goals.weight / (heightInM * heightInM)) * 10) / 10;
+    console.log("✅ [BMI] Calculated:", result);
+    return result;
   }, [goals?.weight, goals?.height]);
 
   const bmr = useMemo(() => {
-    if (!goals?.weight || !goals?.height || !goals?.age || !goals?.sex) return null;
+    if (!goals?.weight || !goals?.height || !goals?.age || !goals?.sex) {
+      console.log("⚠️ [BMR] Missing data:", { 
+        weight: goals?.weight, 
+        height: goals?.height, 
+        age: goals?.age, 
+        sex: goals?.sex 
+      });
+      return null;
+    }
     
     // Mifflin-St Jeor Formula
     let bmr = 10 * goals.weight + 6.25 * goals.height - 5 * goals.age;
     bmr += goals.sex === "male" ? 5 : -161;
+    const result = Math.round(bmr);
+    console.log("✅ [BMR] Calculated:", result, "kcal/day");
     
-    return Math.round(bmr);
+    return result;
   }, [goals?.weight, goals?.height, goals?.age, goals?.sex]);
 
   const tdee = useMemo(() => {
-    if (!bmr || !goals?.activity_level) return null;
+    if (!bmr || !goals?.activity_level) {
+      console.log("⚠️ [TDEE] Missing data:", { bmr, activity_level: goals?.activity_level });
+      return null;
+    }
 
     const activityMultipliers: Record<string, number> = {
       sedentary: 1.2,
@@ -48,22 +69,40 @@ export const useNutrition = () => {
     };
 
     const multiplier = activityMultipliers[goals.activity_level] || 1.55;
-    return Math.round(bmr * multiplier);
+    const result = Math.round(bmr * multiplier);
+    console.log("✅ [TDEE] Calculated:", result, "kcal/day", `(BMR ${bmr} × ${multiplier})`);
+    return result;
   }, [bmr, goals?.activity_level]);
 
   const targetCalories = useMemo(() => {
-    if (!tdee || !goals?.goal_type) return null;
+    if (!tdee || !goals?.goal_type) {
+      console.log("⚠️ [Target Calories] Missing data:", { tdee, goal_type: goals?.goal_type });
+      return null;
+    }
+
+    let result: number;
+    let adjustmentType: string;
 
     if (goals.goal_type === "weight-loss") {
-      return Math.round(tdee - 500); // Deficit of 500kcal
+      result = Math.round(tdee - 500); // Deficit of 500kcal
+      adjustmentType = "Deficit -500kcal";
     } else if (goals.goal_type === "muscle-gain") {
-      return Math.round(tdee + 300); // Surplus of 300kcal
+      result = Math.round(tdee + 300); // Surplus of 300kcal
+      adjustmentType = "Surplus +300kcal";
+    } else {
+      result = tdee; // Maintenance (endurance, strength, general-fitness)
+      adjustmentType = "Maintenance";
     }
-    return tdee; // Maintenance
+    
+    console.log(`✅ [Target Calories] Calculated:`, result, "kcal/day", `(${adjustmentType} for ${goals.goal_type})`);
+    return result;
   }, [tdee, goals?.goal_type]);
 
   const macros = useMemo(() => {
-    if (!targetCalories || !goals?.weight) return null;
+    if (!targetCalories || !goals?.weight) {
+      console.log("⚠️ [Macros] Missing data:", { targetCalories, weight: goals?.weight });
+      return null;
+    }
 
     // Protein: 2g per kg body weight
     const protein = Math.round(goals.weight * 2);
@@ -77,7 +116,9 @@ export const useNutrition = () => {
     const carbCals = targetCalories - proteinCals - fatCals;
     const carbs = Math.round(carbCals / 4);
 
-    return { protein, fat, carbs };
+    const result = { protein, fat, carbs };
+    console.log("✅ [Macros] Calculated:", result, `(P:${protein}g F:${fat}g C:${carbs}g)`);
+    return result;
   }, [targetCalories, goals?.weight]);
 
   // Advanced metrics
