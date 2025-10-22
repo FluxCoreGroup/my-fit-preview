@@ -477,6 +477,7 @@ export type Database = {
           id: string
           logged_at: string | null
           user_id: string
+          waist_circumference: number | null
           weight: number
         }
         Insert: {
@@ -484,6 +485,7 @@ export type Database = {
           id?: string
           logged_at?: string | null
           user_id: string
+          waist_circumference?: number | null
           weight: number
         }
         Update: {
@@ -491,6 +493,7 @@ export type Database = {
           id?: string
           logged_at?: string | null
           user_id?: string
+          waist_circumference?: number | null
           weight?: number
         }
         Relationships: []

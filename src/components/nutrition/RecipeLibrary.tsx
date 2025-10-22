@@ -90,8 +90,16 @@ const RecipeCard = ({ recipe }: { recipe: Recipe }) => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <div className="text-xs text-right">
-                <div className="text-primary font-semibold">{recipe.protein}g P</div>
+              <div className="flex gap-2 items-center">
+                <Badge className="text-xs bg-primary/20 text-primary border-primary/30">
+                  P: {recipe.protein}g
+                </Badge>
+                <Badge className="text-xs bg-accent/20 text-accent border-accent/30">
+                  G: {recipe.carbs}g
+                </Badge>
+                <Badge className="text-xs bg-secondary/20 text-secondary border-secondary/30">
+                  L: {recipe.fats}g
+                </Badge>
               </div>
               <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
             </div>

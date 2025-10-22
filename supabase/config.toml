@@ -15,6 +15,9 @@ verify_jwt = true
 [functions.generate-training-plan]
 verify_jwt = true
 
+[functions.generate-meal]
+verify_jwt = true
+
 [functions.send-support-email]
 verify_jwt = false
 
@@ -25,4 +28,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.chat-julie]
+verify_jwt = true
+
+[functions.delete-user-account]
 verify_jwt = true
