@@ -80,12 +80,73 @@ export const useNutrition = () => {
     return { protein, fat, carbs };
   }, [targetCalories, goals?.weight]);
 
+  // Advanced metrics
+  const fiber = useMemo(() => {
+    if (!targetCalories) return null;
+    return Math.round((targetCalories / 1000) * 14); // 14g per 1000 kcal
+  }, [targetCalories]);
+
+  const mealDistribution = useMemo(() => {
+    if (!goals?.meals_per_day) return null;
+    
+    const mealsCount = goals.meals_per_day;
+    if (mealsCount === 3) {
+      return { breakfast: 30, lunch: 40, dinner: 30 };
+    } else if (mealsCount === 4) {
+      return { breakfast: 25, lunch: 35, dinner: 30, snack: 10 };
+    } else if (mealsCount === 5) {
+      return { breakfast: 20, snack1: 10, lunch: 30, snack2: 10, dinner: 30 };
+    }
+    return null;
+  }, [goals?.meals_per_day]);
+
+  const hydrationGoal = useMemo(() => {
+    if (!goals?.weight) return 2500; // default 2.5L
+    const baseWater = goals.weight * 33; // 33ml per kg
+    const activityBonus = goals?.frequency ? goals.frequency * 250 : 0; // +250ml per training day
+    return Math.round(baseWater + activityBonus);
+  }, [goals?.weight, goals?.frequency]);
+
+  const macroTiming = useMemo(() => {
+    if (!macros) return null;
+    return {
+      preWorkout: { carbs: Math.round(macros.carbs * 0.3), protein: Math.round(macros.protein * 0.2) },
+      postWorkout: { carbs: Math.round(macros.carbs * 0.3), protein: Math.round(macros.protein * 0.3) },
+    };
+  }, [macros]);
+
+  const bodyFat = useMemo(() => {
+    if (!bmi || !goals?.age || !goals?.sex) return null;
+    // Deurenberg formula
+    const sexFactor = goals.sex === "male" ? 1 : 0;
+    return Math.round((1.2 * bmi + 0.23 * goals.age - 10.8 * sexFactor - 5.4) * 10) / 10;
+  }, [bmi, goals?.age, goals?.sex]);
+
+  const micronutrients = useMemo(() => {
+    if (!goals?.sex) return null;
+    const isMale = goals.sex === "male";
+    return {
+      iron: isMale ? "8mg" : "18mg",
+      calcium: "1000mg",
+      vitaminD: "15µg",
+      omega3: "1.6g (H) / 1.1g (F)",
+      sodium: "2300mg max",
+      potassium: "3400mg (H) / 2600mg (F)",
+    };
+  }, [goals?.sex]);
+
   return {
     bmi,
     bmr,
     tdee,
     targetCalories,
     macros,
+    fiber,
+    mealDistribution,
+    hydrationGoal,
+    macroTiming,
+    bodyFat,
+    micronutrients,
     goals,
     isLoading,
   };
