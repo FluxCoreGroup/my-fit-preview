@@ -46,9 +46,9 @@ export const NutritionDayCard = () => {
   };
 
   const tdee = calculateTDEE();
-  const targetCalories = goals?.goal_type === "weight_loss" 
+  const targetCalories = goals?.goal_type === "weight-loss" 
     ? Math.round(tdee - 500)
-    : goals?.goal_type === "muscle_gain"
+    : goals?.goal_type === "muscle-gain"
     ? Math.round(tdee + 300)
     : tdee;
 

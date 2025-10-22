@@ -73,7 +73,7 @@ export const CardioMobilitySection = () => {
           user_id: user.id,
           has_cardio: goalsData.has_cardio,
           cardio_frequency: goalsData.cardio_frequency ? parseInt(goalsData.cardio_frequency) : null,
-          goal_type: existingPrefs ? undefined : "general_fitness",
+          goal_type: existingPrefs ? undefined : "general-fitness",
         }, { onConflict: 'user_id' }),
         
         supabase.from("training_preferences").upsert({

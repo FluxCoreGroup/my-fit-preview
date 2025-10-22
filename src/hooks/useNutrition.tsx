@@ -54,9 +54,9 @@ export const useNutrition = () => {
   const targetCalories = useMemo(() => {
     if (!tdee || !goals?.goal_type) return null;
 
-    if (goals.goal_type === "weight_loss") {
+    if (goals.goal_type === "weight-loss") {
       return Math.round(tdee - 500); // Deficit of 500kcal
-    } else if (goals.goal_type === "muscle_gain") {
+    } else if (goals.goal_type === "muscle-gain") {
       return Math.round(tdee + 300); // Surplus of 300kcal
     }
     return tdee; // Maintenance

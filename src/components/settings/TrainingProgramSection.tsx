@@ -89,7 +89,7 @@ export const TrainingProgramSection = () => {
         supabase.from("goals").upsert({
           ...goalsRes.data,
           user_id: user.id,
-          goal_type: goalsData.goal_type || goalsRes.data?.goal_type || "general_fitness",
+          goal_type: goalsData.goal_type || goalsRes.data?.goal_type || "general-fitness",
           frequency: goalsData.frequency ? parseInt(goalsData.frequency) : null,
           session_duration: goalsData.session_duration ? parseInt(goalsData.session_duration) : null,
           equipment: goalsData.equipment,
@@ -143,11 +143,11 @@ export const TrainingProgramSection = () => {
               <SelectValue placeholder="Sélectionne" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="muscle_gain">Prise de masse</SelectItem>
-              <SelectItem value="weight_loss">Perte de poids</SelectItem>
+              <SelectItem value="muscle-gain">Prise de masse</SelectItem>
+              <SelectItem value="weight-loss">Perte de poids</SelectItem>
               <SelectItem value="strength">Force</SelectItem>
               <SelectItem value="endurance">Endurance</SelectItem>
-              <SelectItem value="general_fitness">Forme générale</SelectItem>
+              <SelectItem value="general-fitness">Forme générale</SelectItem>
             </SelectContent>
           </Select>
         </div>
