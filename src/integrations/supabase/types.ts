@@ -240,6 +240,45 @@ export type Database = {
         }
         Relationships: []
       }
+      nutrition_logs: {
+        Row: {
+          calories: number
+          carbs: number | null
+          created_at: string | null
+          fats: number | null
+          food_description: string
+          id: string
+          logged_at: string | null
+          meal_type: string
+          protein: number | null
+          user_id: string
+        }
+        Insert: {
+          calories: number
+          carbs?: number | null
+          created_at?: string | null
+          fats?: number | null
+          food_description: string
+          id?: string
+          logged_at?: string | null
+          meal_type: string
+          protein?: number | null
+          user_id: string
+        }
+        Update: {
+          calories?: number
+          carbs?: number | null
+          created_at?: string | null
+          fats?: number | null
+          food_description?: string
+          id?: string
+          logged_at?: string | null
+          meal_type?: string
+          protein?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -429,6 +468,30 @@ export type Database = {
           sleep?: string | null
           user_id?: string
           waist_circumference?: number | null
+        }
+        Relationships: []
+      }
+      weight_logs: {
+        Row: {
+          created_at: string | null
+          id: string
+          logged_at: string | null
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          logged_at?: string | null
+          user_id: string
+          weight: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          logged_at?: string | null
+          user_id?: string
+          weight?: number
         }
         Relationships: []
       }

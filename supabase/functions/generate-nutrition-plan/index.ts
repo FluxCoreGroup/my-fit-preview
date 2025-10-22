@@ -67,7 +67,7 @@ serve(async (req) => {
     }
 
     // Build system prompt
-    const systemPrompt = `Tu es un expert en nutrition sportive. Génère un plan nutritionnel personnalisé détaillé.
+    const systemPrompt = `Tu es un expert en nutrition sportive. Génère un plan nutritionnel personnalisé sur 7 JOURS COMPLETS.
 
 INFORMATIONS UTILISATEUR:
 - Objectif: ${goals.goal_type}
@@ -84,32 +84,29 @@ INFORMATIONS UTILISATEUR:
 ${goals.target_weight_loss ? `- Objectif de perte: ${goals.target_weight_loss} kg` : ''}
 
 INSTRUCTIONS:
-1. Calcule le BMR (Mifflin-St Jeor) et le TDEE
-2. Détermine l'objectif calorique selon le but (déficit/maintien/surplus)
-3. Calcule les macros optimales (protéines, glucides, lipides)
-4. Génère un plan de repas type pour une journée
-5. Fournis des recommandations pratiques
+1. Génère 7 JOURS COMPLETS de repas variés
+2. Chaque jour doit avoir ${goals.meals_per_day} repas
+3. Respecte l'objectif calorique calculé (TDEE ajusté selon le goal)
+4. Varie les aliments entre les jours
+5. Respecte les restrictions et allergies
 
-Réponds UNIQUEMENT avec un JSON structuré comme ceci (pas de markdown, juste le JSON pur):
+Réponds UNIQUEMENT avec un JSON (pas de markdown):
 {
-  "bmi": number,
-  "bmr": number,
-  "tdee": number,
-  "targetCalories": number,
-  "macros": {
-    "protein": number,
-    "carbs": number,
-    "fats": number
-  },
-  "mealPlan": [
+  "days": [
     {
-      "name": "Petit-déjeuner" (ou autre),
-      "time": "07h00" (ou autre),
-      "calories": number,
-      "foods": ["aliment 1 (quantité)", "aliment 2 (quantité)"]
+      "day": 1,
+      "meals": [
+        {
+          "name": "Petit-déjeuner",
+          "food": "Description détaillée des aliments",
+          "kcal": 400,
+          "p": 25,
+          "f": 10,
+          "g": 50
+        }
+      ]
     }
-  ],
-  "recommendations": ["conseil 1", "conseil 2", "conseil 3"]
+  ]
 }`;
 
     // Call Lovable AI

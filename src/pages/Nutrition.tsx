@@ -14,6 +14,7 @@ import { RecipeLibrary } from "@/components/nutrition/RecipeLibrary";
 import { NutritionAnalytics } from "@/components/nutrition/NutritionAnalytics";
 import { ShareNutritionButton } from "@/components/nutrition/ShareNutritionButton";
 import { IntegrationBadges } from "@/components/nutrition/IntegrationBadges";
+import { DailyTracker } from "@/components/nutrition/DailyTracker";
 import { useState } from "react";
 
 const Nutrition = () => {
@@ -236,6 +237,9 @@ const Nutrition = () => {
               </Tabs>
             )}
           </Card>
+
+          {/* Daily Tracker */}
+          <DailyTracker />
 
           {/* Hydration Tracker */}
           <HydrationTracker goalMl={hydrationGoal || 2500} />
