@@ -35,3 +35,6 @@ verify_jwt = true
 
 [functions.delete-user-account]
 verify_jwt = true
+
+[functions.send-checkin-reminder]
+verify_jwt = false

@@ -37,8 +37,9 @@ export const ChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [lastDataSources, setLastDataSources] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const loadedConversationRef = useRef<string | null>(null);
   const { toast } = useToast();
-  const CHAT_URL = `https://nsowlnpntphxwykzbwmc.supabase.co/functions/v1/${functionName}`;
+  const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
   
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
 
@@ -48,24 +49,29 @@ export const ChatInterface = ({
 
   // Load messages from DB when conversation changes
   useEffect(() => {
-    if (dbMessages.length > 0) {
-      const loadedMessages = dbMessages.map(m => ({ 
-        role: m.role, 
-        content: m.content,
-        data_sources: m.data_sources 
-      }));
-      setMessages(loadedMessages);
-      
-      // Set last data sources from most recent assistant message
-      const lastAssistant = [...dbMessages].reverse().find(m => m.role === "assistant");
-      if (lastAssistant?.data_sources) {
-        setLastDataSources(lastAssistant.data_sources);
+    // Only load if conversation has changed
+    if (conversationId !== loadedConversationRef.current) {
+      if (dbMessages.length > 0) {
+        const loadedMessages = dbMessages.map(m => ({ 
+          role: m.role, 
+          content: m.content,
+          data_sources: m.data_sources 
+        }));
+        setMessages(loadedMessages);
+        
+        // Set last data sources from most recent assistant message
+        const lastAssistant = [...dbMessages].reverse().find(m => m.role === "assistant");
+        if (lastAssistant?.data_sources) {
+          setLastDataSources(lastAssistant.data_sources);
+        }
+      } else {
+        setMessages([]);
+        setLastDataSources([]);
       }
-    } else {
-      setMessages([]);
-      setLastDataSources([]);
+      
+      loadedConversationRef.current = conversationId;
     }
-  }, [conversationId, dbMessages]);
+  }, [conversationId, dbMessages.length]);
 
   useEffect(() => {
     scrollToBottom();
@@ -125,30 +131,47 @@ export const ChatInterface = ({
         }
       }
 
-      if (resp.status === 429) {
-        toast({
-          title: "Trop de requêtes",
-          description: "Réessaye dans quelques instants.",
-          variant: "destructive",
-        });
-        setMessages((prev) => prev.slice(0, -1));
-        setIsLoading(false);
-        return;
+      if (!resp.ok) {
+        if (resp.status === 401) {
+          toast({
+            title: "Non authentifié",
+            description: "Reconnecte-toi pour continuer",
+            variant: "destructive",
+          });
+          setMessages((prev) => prev.slice(0, -1));
+          setIsLoading(false);
+          return;
+        }
+
+        if (resp.status === 429) {
+          toast({
+            title: "Trop de requêtes",
+            description: "Réessaye dans quelques instants.",
+            variant: "destructive",
+          });
+          setMessages((prev) => prev.slice(0, -1));
+          setIsLoading(false);
+          return;
+        }
+
+        if (resp.status === 402) {
+          toast({
+            title: "Crédits épuisés",
+            description: "Contacte le support pour plus d'infos.",
+            variant: "destructive",
+          });
+          setMessages((prev) => prev.slice(0, -1));
+          setIsLoading(false);
+          return;
+        }
+
+        const errorBody = await resp.text();
+        console.error("Edge function error:", resp.status, errorBody);
+        throw new Error(`HTTP ${resp.status}: ${errorBody.slice(0, 100)}`);
       }
 
-      if (resp.status === 402) {
-        toast({
-          title: "Crédits épuisés",
-          description: "Contacte le support pour plus d'infos.",
-          variant: "destructive",
-        });
-        setMessages((prev) => prev.slice(0, -1));
-        setIsLoading(false);
-        return;
-      }
-
-      if (!resp.ok || !resp.body) {
-        throw new Error("Failed to start stream");
+      if (!resp.body) {
+        throw new Error("No response body from edge function");
       }
 
       const reader = resp.body.getReader();

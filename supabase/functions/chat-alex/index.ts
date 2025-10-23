@@ -104,8 +104,12 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
           .gte("created_at", weeksAgo.toISOString())
           .order("created_at", { ascending: true });
 
-        if (error) throw error;
+        if (error) {
+          console.error("get_weight_history error:", error);
+          throw error;
+        }
 
+        console.log(`get_weight_history: Found ${data?.length || 0} records`);
         return {
           success: true,
           data: data || [],
@@ -123,8 +127,12 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
           .order("session_date", { ascending: false })
           .limit(limit);
 
-        if (error) throw error;
+        if (error) {
+          console.error("get_recent_sessions error:", error);
+          throw error;
+        }
 
+        console.log(`get_recent_sessions: Found ${data?.length || 0} records`);
         return {
           success: true,
           data: data || [],
@@ -145,7 +153,12 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
           .gte("created_at", startDate.toISOString())
           .order("created_at", { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error("get_checkin_stats error:", error);
+          throw error;
+        }
+
+        console.log(`get_checkin_stats: Found ${data?.length || 0} records`);
 
         const avgRpe = data?.length
           ? (data.reduce((sum: number, c: any) => sum + (c.rpe_avg || 0), 0) / data.length).toFixed(1)
@@ -174,8 +187,12 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
           .limit(1)
           .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          console.error("get_next_session error:", error);
+          throw error;
+        }
 
+        console.log(`get_next_session: Found ${data ? "1" : "0"} session`);
         return {
           success: true,
           data: data || null,
@@ -192,8 +209,17 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
           .eq("user_id", userId)
           .maybeSingle();
 
-        if (error) throw error;
-        if (!goals) return { success: false, error: "Aucun objectif défini" };
+        if (error) {
+          console.error("get_nutrition_targets error:", error);
+          throw error;
+        }
+        
+        if (!goals) {
+          console.log("get_nutrition_targets: No goals found");
+          return { success: false, error: "Aucun objectif défini" };
+        }
+
+        console.log("get_nutrition_targets: Goals found, calculating TDEE");
 
         // Simple TDEE calculation (Mifflin-St Jeor)
         let bmr = 0;
@@ -264,7 +290,14 @@ serve(async (req) => {
     } = await supabase.auth.getUser();
     const userId = user?.id;
 
+    console.log("Request received:", {
+      userId: userId || "NONE",
+      messagesCount: messages?.length || 0,
+      hasContext: !!context,
+    });
+
     if (!userId) {
+      console.error("Authentication failed - no user ID");
       return new Response(JSON.stringify({ error: "Non authentifié" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
