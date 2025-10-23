@@ -125,7 +125,7 @@ export type Database = {
         }
         Insert: {
           archived?: boolean
-          coach_type: string
+          coach_type?: string
           created_at?: string
           id?: string
           is_pinned?: boolean

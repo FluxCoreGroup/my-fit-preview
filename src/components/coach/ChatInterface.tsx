@@ -43,6 +43,7 @@ export const ChatInterface = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [lastDataSources, setLastDataSources] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const loadedConversationRef = useRef<string | null>(null);
@@ -91,24 +92,42 @@ export const ChatInterface = ({
   }, [messages]);
 
   const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || isLoading) return;
+    if (!messageText.trim() || isLoading || isCreatingConversation) return;
+
+    // Check auth before creating conversation
+    if (!session?.user) {
+      toast({
+        title: "Non authentifié",
+        description: "Connecte-toi pour continuer",
+        variant: "destructive",
+      });
+      return;
+    }
 
     let currentConversationId = conversationId;
 
     // If no conversation exists, create one first
     if (!currentConversationId) {
+      setIsCreatingConversation(true);
       try {
         const newConversation = await createConversation.mutateAsync(undefined);
         currentConversationId = newConversation.id;
         onConversationCreated?.(newConversation.id);
       } catch (error) {
         console.error("Failed to create conversation:", error);
+        // Log full error details
+        if (error instanceof Error) {
+          console.error("Error message:", error.message);
+          console.error("Error stack:", error.stack);
+        }
         toast({
           title: "Erreur",
-          description: "Impossible de créer la conversation",
+          description: `Impossible de créer la conversation: ${error instanceof Error ? error.message : 'Unknown error'}`,
           variant: "destructive",
         });
         return;
+      } finally {
+        setIsCreatingConversation(false);
       }
     }
 

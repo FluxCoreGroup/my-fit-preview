@@ -50,13 +50,19 @@ export const useConversations = (coachType: 'alex' | 'julie') => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error creating conversation:", error);
+        throw error;
+      }
       return data as Conversation;
     },
+    retry: 2, // Retry 2 times in case of network issues
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["conversations", coachType] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Failed to create conversation after retries:", error);
       toast({
         title: "Erreur",
         description: "Impossible de créer la conversation",
