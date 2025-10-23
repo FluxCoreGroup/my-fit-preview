@@ -1,27 +1,78 @@
+import { useState } from "react";
 import { BackButton } from "@/components/BackButton";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dumbbell, MoreVertical, RefreshCw, ChevronLeft, ChevronRight, Play, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Dumbbell, 
+  RefreshCw, 
+  ChevronLeft, 
+  ChevronRight, 
+  Plus,
+  TrendingUp,
+  Target,
+  Trophy,
+  Settings
+} from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import { TrainingSkeleton } from "@/components/LoadingSkeleton";
 import { useWeeklyTraining } from "@/hooks/useWeeklyTraining";
-import { Link } from "react-router-dom";
-import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { SessionPreviewCard } from "@/components/training/SessionPreviewCard";
+import { QuickPreferencesModal } from "@/components/training/QuickPreferencesModal";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Training = () => {
-  const { loading, sessions, currentWeek, changeWeek, goToCurrentWeek, regenerateWeek, getWeekLabel } = useWeeklyTraining();
+  const navigate = useNavigate();
+  const { 
+    loading, 
+    isGenerating,
+    sessions, 
+    currentWeek, 
+    changeWeek, 
+    goToCurrentWeek, 
+    generateWeeklyProgram,
+    getWeekLabel,
+    getCompletedCount,
+    getProgressPercentage
+  } = useWeeklyTraining();
 
-  const getSessionDay = (sessionDate: string) => {
-    const date = new Date(sessionDate);
-    const days = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-    return `${days[date.getDay()]} ${format(date, "dd/MM")}`;
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+
+  const handleStartSession = (sessionId: string) => {
+    const session = sessions.find(s => s.id === sessionId);
+    if (session) {
+      localStorage.setItem("currentSessionId", sessionId);
+      localStorage.setItem("generatedSession", JSON.stringify(session.exercises));
+      navigate("/session");
+    }
   };
 
-  const getSessionDuration = (exercises: any) => {
-    const exercisesArray = Array.isArray(exercises) ? exercises : [];
-    return exercisesArray.length * 5; // Estimate 5min per exercise
+  const handleGenerate = async () => {
+    await generateWeeklyProgram(false);
+  };
+
+  const handleRegenerate = async () => {
+    setShowRegenerateDialog(false);
+    await generateWeeklyProgram(true);
+  };
+
+  const handleOpenPreferences = () => {
+    setShowPreferencesModal(true);
+  };
+
+  const handleSavePreferences = async () => {
+    await generateWeeklyProgram(true);
   };
 
   return (
@@ -29,129 +80,219 @@ const Training = () => {
       <BackButton to="/hub" label="Retour au Hub" />
       
       <div className="pt-20 px-4">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-primary/10 rounded-xl">
-            <Dumbbell className="w-6 h-6 text-primary" />
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl">
+              <Dumbbell className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">Mes entraînements</h1>
+              <p className="text-sm text-muted-foreground">Programme de la semaine</p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold">Mes entraînements</h1>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={handleOpenPreferences}
+          >
+            <Settings className="w-4 h-4" />
+          </Button>
         </div>
 
         <div className="max-w-4xl mx-auto">
-          {/* Week Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="ghost" size="sm" onClick={() => changeWeek("prev")}>
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Précédent
-            </Button>
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-sm font-semibold">{getWeekLabel()}</span>
-              {currentWeek !== 0 && (
-                <Button variant="ghost" size="sm" onClick={goToCurrentWeek}>
-                  Semaine actuelle
-                </Button>
-              )}
+          {/* Week Navigation & Stats */}
+          <Card className="p-4 mb-6 bg-gradient-to-br from-card/80 to-card/50 backdrop-blur-xl border-white/10">
+            <div className="flex items-center justify-between mb-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => changeWeek("prev")}
+                disabled={isGenerating}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Précédent
+              </Button>
+              
+              <div className="text-center">
+                <h2 className="text-lg font-bold mb-1">{getWeekLabel()}</h2>
+                {sessions.length > 0 && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{getCompletedCount()}/{sessions.length} séances complétées</span>
+                    <Badge variant="secondary" className="text-xs">
+                      {getProgressPercentage()}%
+                    </Badge>
+                  </div>
+                )}
+                {currentWeek !== 0 && (
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    onClick={goToCurrentWeek}
+                    className="mt-1"
+                  >
+                    Retour à aujourd'hui
+                  </Button>
+                )}
+              </div>
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => changeWeek("next")}
+                disabled={isGenerating}
+              >
+                Suivant
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => changeWeek("next")}>
-              Suivant
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
+
+            {/* Progress Bar */}
+            {sessions.length > 0 && (
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
+                  style={{ width: `${getProgressPercentage()}%` }}
+                />
+              </div>
+            )}
+          </Card>
 
           {loading ? (
             <TrainingSkeleton />
           ) : sessions.length === 0 ? (
-            <EmptyState
-              icon={Dumbbell}
-              title="Aucune séance cette semaine"
-              description="Génère ton programme d'entraînement pour cette semaine"
-              action={{ label: "Générer ma semaine", to: "/training-setup" }}
-            />
+            <div className="text-center py-12">
+              <EmptyState
+                icon={Dumbbell}
+                title={currentWeek === 0 ? "Aucun programme cette semaine" : "Aucune séance trouvée"}
+                description={
+                  currentWeek === 0 
+                    ? "Génère ton programme d'entraînement personnalisé pour commencer !" 
+                    : currentWeek > 0 
+                    ? "Cette semaine n'a pas encore été programmée. Concentre-toi d'abord sur la semaine actuelle."
+                    : "Explore les semaines précédentes pour voir ton historique."
+                }
+              />
+              {currentWeek === 0 && (
+                <Button
+                  size="lg"
+                  onClick={handleGenerate}
+                  disabled={isGenerating}
+                  className="mt-6 bg-gradient-to-r from-primary to-secondary"
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Génération en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-5 h-5 mr-2" />
+                      Générer mon programme
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           ) : (
             <>
               {/* Sessions List */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-4 mb-6">
                 {sessions.map((session, idx) => (
-                  <Card key={session.id} className="p-4 bg-card/50 backdrop-blur-xl border-white/10">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-semibold px-2 py-1 bg-primary/10 rounded-full">
-                            J{idx + 1}
-                          </span>
-                          <h3 className="font-bold">
-                            {Array.isArray(session.exercises) && session.exercises[0]?.name || "Séance d'entraînement"}
-                          </h3>
-                          {session.completed && (
-                            <span className="text-xs px-2 py-1 bg-green-500/10 text-green-500 rounded-full">
-                              Terminée
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{getSessionDay(session.session_date)}</span>
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            <span>~{getSessionDuration(session.exercises)}min</span>
-                          </div>
-                          <span>{Array.isArray(session.exercises) ? session.exercises.length : 0} exercices</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {!session.completed && (
-                          <Button size="sm" asChild>
-                            <Link to="/session">
-                              <Play className="w-4 h-4 mr-1" />
-                              Lancer
-                            </Link>
-                          </Button>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem>Voir détails</DropdownMenuItem>
-                            <DropdownMenuItem>Remplacer un exo</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  </Card>
+                  <SessionPreviewCard
+                    key={session.id}
+                    session={session}
+                    sessionNumber={idx + 1}
+                    onStartSession={() => handleStartSession(session.id)}
+                  />
                 ))}
               </div>
 
-              {/* Regenerate Week Button */}
+              {/* Quick Actions */}
               {currentWeek === 0 && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={regenerateWeek}
-                >
-                  <RefreshCw className="mr-2 w-4 h-4" />
-                  Régénérer ma semaine
-                </Button>
+                <div className="mb-8">
+                  <Button
+                    variant="outline"
+                    className="w-full border-primary/20 hover:bg-primary/5"
+                    onClick={() => setShowRegenerateDialog(true)}
+                    disabled={isGenerating}
+                  >
+                    <RefreshCw className={`mr-2 w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                    Régénérer cette semaine
+                  </Button>
+                </div>
               )}
             </>
           )}
 
-          {/* Historique & Progression */}
-          <div className="mt-8 space-y-4">
-            <h2 className="text-xl font-bold">Historique</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
-                <h3 className="font-bold mb-3">Dernières séances</h3>
-                <p className="text-sm text-muted-foreground">Bientôt disponible</p>
+          {/* Mini Stats */}
+          {sessions.length > 0 && (
+            <div className="grid md:grid-cols-3 gap-4 mt-8">
+              <Card className="p-4 bg-gradient-to-br from-green-500/10 to-card/50 backdrop-blur-xl border-green-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-500/20 rounded-lg">
+                    <TrendingUp className="w-5 h-5 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{getCompletedCount()}</p>
+                    <p className="text-xs text-muted-foreground">Séances ce mois</p>
+                  </div>
+                </div>
               </Card>
-              <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10">
-                <h3 className="font-bold mb-3">Meilleures perfs</h3>
-                <p className="text-sm text-muted-foreground">Bientôt disponible</p>
+
+              <Card className="p-4 bg-gradient-to-br from-primary/10 to-card/50 backdrop-blur-xl border-primary/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/20 rounded-lg">
+                    <Target className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{sessions.length}</p>
+                    <p className="text-xs text-muted-foreground">Objectif hebdo</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4 bg-gradient-to-br from-secondary/10 to-card/50 backdrop-blur-xl border-secondary/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-secondary/20 rounded-lg">
+                    <Trophy className="w-5 h-5 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{getProgressPercentage()}%</p>
+                    <p className="text-xs text-muted-foreground">Progression</p>
+                  </div>
+                </div>
               </Card>
             </div>
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Regenerate Confirmation Dialog */}
+      <AlertDialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
+        <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Régénérer cette semaine ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action va supprimer toutes les séances non complétées de cette semaine et en générer de nouvelles.
+              Les séances déjà terminées seront conservées.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRegenerate} className="bg-gradient-to-r from-primary to-secondary">
+              Régénérer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Quick Preferences Modal */}
+      <QuickPreferencesModal
+        open={showPreferencesModal}
+        onClose={() => setShowPreferencesModal(false)}
+        onSave={handleSavePreferences}
+      />
     </div>
   );
 };

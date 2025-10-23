@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { type Exercise } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
-import { Play, Pause, ChevronRight, RefreshCw, AlertCircle, CheckCircle2, X } from "lucide-react";
+import { Play, Pause, ChevronRight, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
+import { useSessionFeedback } from "@/hooks/useSessionFeedback";
 import { BackButton } from "@/components/BackButton";
+import { SessionFeedbackModal } from "@/components/training/SessionFeedbackModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +29,8 @@ const Session = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   useSaveOnboardingData();
+  const { exerciseLogs, logSet, getSuggestedWeight } = useSessionFeedback();
+  
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
@@ -33,6 +39,9 @@ const Session = () => {
   const [isPaused, setIsPaused] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [showPauseDialog, setShowPauseDialog] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [currentWeight, setCurrentWeight] = useState("");
+  const [currentRPE, setCurrentRPE] = useState(7);
 
   useEffect(() => {
     const loadSession = async () => {
@@ -111,18 +120,36 @@ const Session = () => {
   };
 
   const handleSetComplete = async () => {
+    // Log the set with weight and RPE
+    const weight = parseFloat(currentWeight) || 0;
+    if (weight > 0) {
+      logSet(currentExercise.name, currentSet, weight, currentRPE);
+    }
+
     if (currentSet < totalSets) {
       setCurrentSet(currentSet + 1);
+      setCurrentWeight(""); // Reset for next set
       startRest();
     } else {
       if (currentExerciseIndex < exercises.length - 1) {
         setCurrentExerciseIndex(currentExerciseIndex + 1);
         setCurrentSet(1);
+        setCurrentWeight("");
+        setCurrentRPE(7);
+        
+        // Suggest weight for next exercise if available
+        const nextExercise = exercises[currentExerciseIndex + 1];
+        const suggested = getSuggestedWeight(nextExercise.name);
+        if (suggested) {
+          setCurrentWeight(suggested.toString());
+        }
+        
         toast({
           title: "Exercice terminé !",
           description: "Prends une petite pause et passe au suivant.",
         });
       } else {
+        // Session complete - mark as completed and show feedback
         if (user && sessionId) {
           await supabase
             .from('sessions')
@@ -148,11 +175,8 @@ const Session = () => {
           }
         }
         
-        toast({
-          title: "🎉 Séance terminée !",
-          description: "Bravo, excellent travail aujourd'hui !",
-        });
-        navigate("/dashboard");
+        // Show feedback modal instead of navigating immediately
+        setShowFeedbackModal(true);
       }
     }
   };
@@ -265,6 +289,36 @@ const Session = () => {
             {/* Exercise Details */}
             {!isResting && (
               <>
+                {/* Tracking Inputs */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1 block">
+                      Poids utilisé (kg)
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.5"
+                      value={currentWeight}
+                      onChange={(e) => setCurrentWeight(e.target.value)}
+                      placeholder="Ex: 20"
+                      className="text-center font-bold"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1 block">
+                      RPE ressenti
+                    </Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={currentRPE}
+                      onChange={(e) => setCurrentRPE(parseInt(e.target.value) || 7)}
+                      className="text-center font-bold"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <Card className="p-4 bg-muted/50 rounded-xl">
                     <div className="text-sm text-muted-foreground">RPE cible</div>
@@ -335,11 +389,11 @@ const Session = () => {
 
       {/* Pause Dialog */}
       <AlertDialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle>Mettre la séance en pause ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tu peux reprendre ta séance plus tard depuis le dashboard.
+              Tu peux reprendre ta séance plus tard depuis le hub.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -348,6 +402,16 @@ const Session = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Feedback Modal */}
+      {sessionId && (
+        <SessionFeedbackModal
+          open={showFeedbackModal}
+          onClose={() => setShowFeedbackModal(false)}
+          sessionId={sessionId}
+          exerciseLogs={exerciseLogs}
+        />
+      )}
     </div>
   );
 };

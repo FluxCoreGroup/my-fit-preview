@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfWeek, addWeeks, format } from "date-fns";
+import { startOfWeek, addWeeks, format, endOfWeek } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 interface Session {
   id: string;
@@ -13,38 +15,40 @@ interface Session {
 
 export const useWeeklyTraining = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [currentWeek, setCurrentWeek] = useState(0); // 0 = current, -1 = previous, +1 = next
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [currentWeek, setCurrentWeek] = useState(0);
   const [sessions, setSessions] = useState<Session[]>([]);
 
-  useEffect(() => {
+  const fetchWeeklySessions = async () => {
     if (!user) return;
 
-    const fetchWeeklySessions = async () => {
-      try {
-        setLoading(true);
-        
-        const weekStart = startOfWeek(addWeeks(new Date(), currentWeek), { weekStartsOn: 1 });
-        const weekEnd = addWeeks(weekStart, 1);
+    try {
+      setLoading(true);
+      
+      const weekStart = startOfWeek(addWeeks(new Date(), currentWeek), { weekStartsOn: 1 });
+      const weekEnd = addWeeks(weekStart, 1);
 
-        const { data, error } = await supabase
-          .from("sessions")
-          .select("*")
-          .eq("user_id", user.id)
-          .gte("session_date", weekStart.toISOString())
-          .lt("session_date", weekEnd.toISOString())
-          .order("session_date", { ascending: true });
+      const { data, error } = await supabase
+        .from("sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("session_date", weekStart.toISOString())
+        .lt("session_date", weekEnd.toISOString())
+        .order("session_date", { ascending: true });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        setSessions(data || []);
-      } catch (error) {
-        console.error("Error fetching weekly sessions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      setSessions(data || []);
+    } catch (error) {
+      console.error("Error fetching weekly sessions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchWeeklySessions();
   }, [user, currentWeek]);
 
@@ -56,23 +60,84 @@ export const useWeeklyTraining = () => {
     setCurrentWeek(0);
   };
 
-  const regenerateWeek = async () => {
-    // Placeholder for week regeneration logic
-    console.log("Regenerating week...");
+  const generateWeeklyProgram = async (regenerate = false) => {
+    if (!user) return;
+
+    if (currentWeek > 0) {
+      toast({
+        title: "Impossible de générer",
+        description: "Génère d'abord la semaine courante avant les semaines futures.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const weekStart = startOfWeek(addWeeks(new Date(), currentWeek), { weekStartsOn: 1 });
+
+      const { data, error } = await supabase.functions.invoke('generate-weekly-program', {
+        body: {
+          week_start_date: weekStart.toISOString(),
+          regenerate
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Programme généré ! 🎉",
+        description: `${data.totalGenerated} séances créées pour cette semaine.`,
+      });
+
+      await fetchWeeklySessions();
+    } catch (error) {
+      console.error("Error generating weekly program:", error);
+      toast({
+        title: "Erreur de génération",
+        description: "Impossible de générer le programme. Réessaie plus tard.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const getWeekLabel = () => {
     const weekStart = startOfWeek(addWeeks(new Date(), currentWeek), { weekStartsOn: 1 });
-    return format(weekStart, "dd MMM yyyy");
+    const weekEndDate = endOfWeek(weekStart, { weekStartsOn: 1 });
+    
+    if (currentWeek === 0) {
+      return `Semaine actuelle`;
+    } else if (currentWeek === -1) {
+      return `Semaine dernière`;
+    } else if (currentWeek === 1) {
+      return `Semaine prochaine`;
+    }
+    
+    return `${format(weekStart, "dd MMM", { locale: fr })} - ${format(weekEndDate, "dd MMM", { locale: fr })}`;
+  };
+
+  const getCompletedCount = () => {
+    return sessions.filter(s => s.completed).length;
+  };
+
+  const getProgressPercentage = () => {
+    if (sessions.length === 0) return 0;
+    return Math.round((getCompletedCount() / sessions.length) * 100);
   };
 
   return {
     loading,
+    isGenerating,
     sessions,
     currentWeek,
     changeWeek,
     goToCurrentWeek,
-    regenerateWeek,
+    generateWeeklyProgram,
     getWeekLabel,
+    getCompletedCount,
+    getProgressPercentage,
   };
 };
