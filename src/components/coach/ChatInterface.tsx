@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useChatMessages } from "@/hooks/useChatMessages";
 
 interface Message {
   role: "user" | "assistant";
@@ -12,6 +13,7 @@ interface Message {
 }
 
 interface ChatInterfaceProps {
+  conversationId: string | null;
   functionName: string;
   systemPrompt: string;
   shortcuts: string[];
@@ -21,6 +23,7 @@ interface ChatInterfaceProps {
 }
 
 export const ChatInterface = ({
+  conversationId,
   functionName,
   shortcuts,
   context,
@@ -33,22 +36,40 @@ export const ChatInterface = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const CHAT_URL = `https://nsowlnpntphxwykzbwmc.supabase.co/functions/v1/${functionName}`;
+  
+  const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Load messages from DB when conversation changes
+  useEffect(() => {
+    if (dbMessages.length > 0) {
+      setMessages(dbMessages.map(m => ({ role: m.role, content: m.content })));
+    } else {
+      setMessages([]);
+    }
+  }, [conversationId, dbMessages]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
   const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || isLoading) return;
+    if (!messageText.trim() || isLoading || !conversationId) return;
 
     const userMessage: Message = { role: "user", content: messageText };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // Save user message to DB
+    await saveMessage.mutateAsync({
+      conversation_id: conversationId,
+      role: "user",
+      content: messageText,
+    });
 
     let assistantContent = "";
     const updateAssistant = (chunk: string) => {
@@ -152,6 +173,15 @@ export const ChatInterface = ({
           } catch {}
         }
       }
+
+      // Save assistant message to DB
+      if (assistantContent && conversationId) {
+        await saveMessage.mutateAsync({
+          conversation_id: conversationId,
+          role: "assistant",
+          content: assistantContent,
+        });
+      }
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -171,6 +201,25 @@ export const ChatInterface = ({
       sendMessage(input);
     }
   };
+
+  if (messagesLoading) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-12rem)] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground mt-2">Chargement...</p>
+      </div>
+    );
+  }
+
+  if (!conversationId) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-12rem)] items-center justify-center">
+        <p className="text-muted-foreground">
+          Sélectionne une conversation ou crée-en une nouvelle
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)]">

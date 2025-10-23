@@ -4,10 +4,12 @@ import { BackButton } from "@/components/BackButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dumbbell, Apple } from "lucide-react";
 import { ChatInterface } from "@/components/coach/ChatInterface";
+import { ConversationList } from "@/components/coach/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ChatSkeleton } from "@/components/LoadingSkeleton";
+import { useConversations } from "@/hooks/useConversations";
 
 const CoachAI = () => {
   const { user } = useAuth();
@@ -16,12 +18,26 @@ const CoachAI = () => {
   const [activeTab, setActiveTab] = useState(
     tabFromUrl === 'julie' ? 'julie' : 'alex'
   );
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const { conversations, createConversation } = useConversations();
 
   useEffect(() => {
     if (tabFromUrl === 'julie' || tabFromUrl === 'alex') {
       setActiveTab(tabFromUrl);
     }
   }, [tabFromUrl]);
+
+  // Auto-select first conversation or create one if none exist
+  useEffect(() => {
+    if (conversations.length > 0 && !activeConversationId) {
+      setActiveConversationId(conversations[0].id);
+    } else if (conversations.length === 0 && !createConversation.isPending) {
+      // Create first conversation automatically
+      createConversation.mutateAsync(undefined).then((conv) => {
+        setActiveConversationId(conv.id);
+      });
+    }
+  }, [conversations, activeConversationId, createConversation]);
 
   const { data: goals, isLoading: goalsLoading } = useQuery({
     queryKey: ["goals", user?.id],
@@ -73,13 +89,20 @@ const CoachAI = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-8">
+    <div className="min-h-screen bg-background">
       <BackButton to="/hub" label="Retour au Hub" />
       
-      <div className="pt-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full mb-6">
+      <div className="pt-16 flex h-[calc(100vh-4rem)]">
+        {/* Conversation List Sidebar */}
+        <ConversationList
+          activeConversationId={activeConversationId}
+          onSelectConversation={setActiveConversationId}
+        />
+
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+            <TabsList className="mx-4 mt-4">
               <TabsTrigger value="alex" className="flex-1">
                 <Dumbbell className="w-4 h-4 mr-2" />
                 Alex - Coach Sport
@@ -90,13 +113,14 @@ const CoachAI = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="alex">
+            <TabsContent value="alex" className="flex-1 mt-0">
               {goalsLoading ? (
                 <div className="p-4">
                   <ChatSkeleton />
                 </div>
               ) : (
                 <ChatInterface
+                  conversationId={activeConversationId}
                   functionName="chat-alex"
                   systemPrompt=""
                   shortcuts={[
@@ -111,13 +135,14 @@ const CoachAI = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="julie">
+            <TabsContent value="julie" className="flex-1 mt-0">
               {goalsLoading ? (
                 <div className="p-4">
                   <ChatSkeleton />
                 </div>
               ) : (
                 <ChatInterface
+                  conversationId={activeConversationId}
                   functionName="chat-julie"
                   systemPrompt=""
                   shortcuts={[
