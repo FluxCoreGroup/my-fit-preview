@@ -6,24 +6,26 @@ export interface Conversation {
   id: string;
   user_id: string;
   title: string;
+  coach_type: 'alex' | 'julie';
   is_pinned: boolean;
   archived: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export const useConversations = () => {
+export const useConversations = (coachType: 'alex' | 'julie') => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch all conversations (non-archived)
   const { data: conversations = [], isLoading } = useQuery({
-    queryKey: ["conversations"],
+    queryKey: ["conversations", coachType],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("conversations")
         .select("*")
         .eq("archived", false)
+        .eq("coach_type", coachType)
         .order("is_pinned", { ascending: false })
         .order("updated_at", { ascending: false });
 
@@ -43,6 +45,7 @@ export const useConversations = () => {
         .insert({
           user_id: userData.user.id,
           title: title || "Nouvelle conversation",
+          coach_type: coachType,
         })
         .select()
         .single();
@@ -51,7 +54,7 @@ export const useConversations = () => {
       return data as Conversation;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations", coachType] });
     },
     onError: () => {
       toast({
@@ -82,7 +85,7 @@ export const useConversations = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations", coachType] });
     },
   });
 
@@ -97,7 +100,7 @@ export const useConversations = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations", coachType] });
       toast({
         title: "Supprimée",
         description: "Conversation supprimée avec succès",
@@ -123,7 +126,7 @@ export const useConversations = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations", coachType] });
       toast({
         title: "Archivée",
         description: "Conversation archivée avec succès",
@@ -142,7 +145,7 @@ export const useConversations = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      queryClient.invalidateQueries({ queryKey: ["conversations", coachType] });
     },
   });
 

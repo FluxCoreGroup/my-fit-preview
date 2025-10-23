@@ -26,6 +26,7 @@ interface ChatInterfaceProps {
   context: any;
   avatarColor: string;
   name: string;
+  coachType: 'alex' | 'julie';
   onConversationCreated?: (conversationId: string) => void;
 }
 
@@ -36,6 +37,7 @@ export const ChatInterface = ({
   context,
   avatarColor,
   name,
+  coachType,
   onConversationCreated,
 }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -49,10 +51,10 @@ export const ChatInterface = ({
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
   
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
-  const { createConversation } = useConversations();
+  const { createConversation } = useConversations(coachType);
   
   // Auto-generate title from first message
-  useAutoGenerateTitle(conversationId);
+  useAutoGenerateTitle(conversationId, coachType);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

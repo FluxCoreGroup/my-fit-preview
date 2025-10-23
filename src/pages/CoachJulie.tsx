@@ -19,11 +19,11 @@ const CoachJulie = () => {
   const isMobile = useIsMobile();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isConversationListOpen, setIsConversationListOpen] = useState(false);
-  const { conversations, deleteConversation } = useConversations();
+  const { conversations, deleteConversation } = useConversations('julie');
   const { messages } = useChatMessages(activeConversationId);
 
   // Auto-delete empty conversations when switching
-  useAutoDeleteEmptyConversations(activeConversationId);
+  useAutoDeleteEmptyConversations(activeConversationId, 'julie');
 
   // Auto-select first conversation if exists (don't create automatically)
   useEffect(() => {
@@ -74,6 +74,7 @@ const CoachJulie = () => {
         setActiveConversationId(id);
         if (isMobile) setIsConversationListOpen(false);
       }}
+      coachType="julie"
     />
   );
 
@@ -143,6 +144,7 @@ const CoachJulie = () => {
               context={julieContext}
               avatarColor="bg-secondary"
               name="Julie"
+              coachType="julie"
               onConversationCreated={setActiveConversationId}
             />
           )}

@@ -2,9 +2,9 @@ import { useEffect, useRef } from "react";
 import { useChatMessages } from "./useChatMessages";
 import { useConversations } from "./useConversations";
 
-export const useAutoGenerateTitle = (conversationId: string | null) => {
+export const useAutoGenerateTitle = (conversationId: string | null, coachType: 'alex' | 'julie') => {
   const { messages } = useChatMessages(conversationId);
-  const { updateConversation, conversations } = useConversations();
+  const { updateConversation, conversations } = useConversations(coachType);
   const hasGeneratedTitle = useRef<Set<string>>(new Set());
 
   useEffect(() => {

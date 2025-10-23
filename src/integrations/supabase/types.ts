@@ -115,6 +115,7 @@ export type Database = {
       conversations: {
         Row: {
           archived: boolean
+          coach_type: string
           created_at: string
           id: string
           is_pinned: boolean
@@ -124,6 +125,7 @@ export type Database = {
         }
         Insert: {
           archived?: boolean
+          coach_type: string
           created_at?: string
           id?: string
           is_pinned?: boolean
@@ -133,6 +135,7 @@ export type Database = {
         }
         Update: {
           archived?: boolean
+          coach_type?: string
           created_at?: string
           id?: string
           is_pinned?: boolean

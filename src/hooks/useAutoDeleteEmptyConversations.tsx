@@ -4,10 +4,11 @@ import { useConversations } from "./useConversations";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useAutoDeleteEmptyConversations = (
-  currentConversationId: string | null
+  currentConversationId: string | null,
+  coachType: 'alex' | 'julie'
 ) => {
   const previousConversationId = useRef<string | null>(null);
-  const { deleteConversation } = useConversations();
+  const { deleteConversation } = useConversations(coachType);
   const { messages } = useChatMessages(previousConversationId.current);
 
   useEffect(() => {

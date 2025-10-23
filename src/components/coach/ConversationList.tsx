@@ -8,11 +8,13 @@ import { ConversationItem } from "./ConversationItem";
 interface ConversationListProps {
   activeConversationId: string | null;
   onSelectConversation: (conversationId: string) => void;
+  coachType: 'alex' | 'julie';
 }
 
 export const ConversationList = ({
   activeConversationId,
   onSelectConversation,
+  coachType,
 }: ConversationListProps) => {
   const {
     pinnedConversations,
@@ -23,7 +25,7 @@ export const ConversationList = ({
     togglePin,
     archiveConversation,
     deleteConversation,
-  } = useConversations();
+  } = useConversations(coachType);
 
   const handleCreateNew = async () => {
     const result = await createConversation.mutateAsync(undefined);
