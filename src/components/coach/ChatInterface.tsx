@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { DataSourcesPanel } from "./DataSourcesPanel";
+import { useAutoGenerateTitle } from "@/hooks/useAutoGenerateTitle";
 
 interface Message {
   role: "user" | "assistant";
@@ -44,6 +45,9 @@ export const ChatInterface = ({
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
   
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
+  
+  // Auto-generate title from first message
+  useAutoGenerateTitle(conversationId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
