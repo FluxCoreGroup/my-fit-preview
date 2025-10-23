@@ -3,7 +3,7 @@ import { Dumbbell, ChevronLeft, ChevronRight, Home, Settings as SettingsIcon, Ca
 import { BackButton } from "@/components/BackButton";
 import { SessionPreviewCard } from "@/components/training/SessionPreviewCard";
 import { useWeeklyTraining } from "@/hooks/useWeeklyTraining";
-import { LoadingSkeleton } from "@/components/LoadingSkeleton";
+import { TrainingSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
@@ -144,7 +144,7 @@ const Training = () => {
           </Card>
 
           {loading ? (
-            <LoadingSkeleton count={3} />
+            <TrainingSkeleton />
           ) : sessions.length > 0 ? (
             <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
               {sessions.map((session, index) => (
@@ -152,21 +152,30 @@ const Training = () => {
                   key={session.id}
                   session={session}
                   sessionNumber={index + 1}
-                  onStartSession={handleStartSession}
+                  onStartSession={() => handleStartSession(session)}
                 />
               ))}
             </div>
           ) : (
-            <EmptyState 
-              title="Aucune séance cette semaine"
-              description={currentWeek === 0 ? "Génère ton programme hebdomadaire" : "Cette semaine n'est pas encore générée"}
-            >
+            <>
+              <EmptyState 
+                icon={Dumbbell}
+                title="Aucune séance cette semaine"
+                description={currentWeek === 0 ? "Génère ton programme hebdomadaire pour commencer tes entraînements" : "Cette semaine n'a pas encore été générée"}
+              />
               {currentWeek === 0 && !needsCheckIn && (
-                <Button onClick={handleGenerate} disabled={isGenerating} className="mt-4">
-                  {isGenerating ? "Génération..." : "Générer mon programme"}
-                </Button>
+                <div className="flex justify-center mt-6">
+                  <Button 
+                    onClick={handleGenerate} 
+                    disabled={isGenerating} 
+                    size={isMobile ? "default" : "lg"}
+                    className="rounded-xl bg-gradient-to-r from-primary to-secondary"
+                  >
+                    {isGenerating ? "Génération..." : "Générer mon programme"}
+                  </Button>
+                </div>
               )}
-            </EmptyState>
+            </>
           )}
 
           {historicalPrograms.length > 0 && (
