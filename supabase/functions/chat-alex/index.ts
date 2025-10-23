@@ -205,8 +205,10 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
       case "get_nutrition_targets": {
         const { data: goals, error } = await supabase
           .from("goals")
-          .select("weight, height, age, sex, goal_type, activity_level")
+          .select("weight, height, age, sex, goal_type, activity_level, created_at")
           .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
           .maybeSingle();
 
         if (error) {
@@ -217,6 +219,16 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
         if (!goals) {
           console.log("get_nutrition_targets: No goals found");
           return { success: false, error: "Aucun objectif défini" };
+        }
+
+        if (!goals.weight) {
+          console.log("get_nutrition_targets: Goals found but weight is missing");
+          return { 
+            success: true, 
+            weightMissing: true,
+            data: goals,
+            summary: "Objectif défini mais poids initial non renseigné" 
+          };
         }
 
         console.log("get_nutrition_targets: Goals found, calculating TDEE");
@@ -249,13 +261,14 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
         return {
           success: true,
           data: {
+            weight: goals.weight,
             tdee,
             targetCalories,
             protein,
             fat,
             carbs,
           },
-          summary: `${targetCalories} kcal/jour - P: ${protein}g, L: ${fat}g, G: ${carbs}g`,
+          summary: `Poids initial: ${goals.weight} kg - ${targetCalories} kcal/jour - P: ${protein}g, L: ${fat}g, G: ${carbs}g`,
         };
       }
 
@@ -356,6 +369,7 @@ COMPORTEMENT :
 
     // Track data sources used
     let dataSources: any[] = [];
+    let debugGoalsStatus = "not-checked";
 
     // Initial AI call with tools
     let aiMessages = [{ role: "system", content: systemPrompt }, ...messages];
@@ -367,18 +381,36 @@ COMPORTEMENT :
       iterationCount++;
       console.log(`AI iteration ${iterationCount}`);
 
+      // Detect keywords in last user message to force tool usage
+      const lastUserMessage = [...messages].reverse().find(m => m.role === "user")?.content?.toLowerCase() || "";
+      const needsWeightData = /poids|kg|weight|initial|objectif|calories|macro/i.test(lastUserMessage);
+      const needsWeightHistory = /semaine dernière|historique|évolution|progression/i.test(lastUserMessage);
+
+      const body: any = {
+        model: "google/gemini-2.5-flash",
+        messages: aiMessages,
+        tools: tools,
+        stream: false,
+      };
+
+      // Force tool_choice for weight-related questions
+      if (iterationCount === 1) {
+        if (needsWeightData) {
+          body.tool_choice = { type: "function", function: { name: "get_nutrition_targets" } };
+          console.log("Forcing tool: get_nutrition_targets");
+        } else if (needsWeightHistory) {
+          body.tool_choice = { type: "function", function: { name: "get_weight_history" } };
+          console.log("Forcing tool: get_weight_history");
+        }
+      }
+
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${LOVABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: aiMessages,
-          tools: tools,
-          stream: false, // Non-streaming pour pouvoir parser tool_calls
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -432,12 +464,30 @@ COMPORTEMENT :
           console.log(`Executing tool: ${toolName}`, toolArgs);
           const result = await executeToolCall(toolName, toolArgs, userId, supabase);
 
-          // Track data source
-          dataSources.push({
+          // Update debug status for nutrition targets
+          if (toolName === "get_nutrition_targets") {
+            if (!result.success) {
+              debugGoalsStatus = "missing";
+            } else if (result.weightMissing) {
+              debugGoalsStatus = "weight-missing";
+            } else {
+              debugGoalsStatus = "found";
+            }
+          }
+
+          // Track data source with detailed info
+          const dataSourceEntry: any = {
             tool: toolName,
             args: toolArgs,
             result: result.summary || result.error,
-          });
+          };
+
+          // Add weight value for nutrition targets
+          if (toolName === "get_nutrition_targets" && result.data?.weight) {
+            dataSourceEntry.weight = result.data.weight;
+          }
+
+          dataSources.push(dataSourceEntry);
 
           // Add tool result to conversation
           aiMessages.push({
@@ -476,7 +526,9 @@ COMPORTEMENT :
         headers: { 
           ...corsHeaders, 
           "Content-Type": "text/event-stream",
-          "X-Data-Sources": JSON.stringify(dataSources), // Send data sources in header
+          "X-Data-Sources": JSON.stringify(dataSources),
+          "X-Debug-UserId": userId,
+          "X-Debug-Goals": debugGoalsStatus,
         },
       });
     }

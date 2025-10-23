@@ -136,15 +136,27 @@ export const ChatInterface = ({
         }),
       });
 
-      // Extract data sources from headers
+      // Extract data sources and debug headers
       const dataSourcesHeader = resp.headers.get("X-Data-Sources");
+      const debugUserId = resp.headers.get("X-Debug-UserId");
+      const debugGoals = resp.headers.get("X-Debug-Goals");
+
+      // Log debug info for diagnostics
+      if (debugUserId || debugGoals) {
+        console.log("🔍 Debug Info:", { userId: debugUserId, goalsStatus: debugGoals });
+      }
+
       if (dataSourcesHeader) {
         try {
           dataSources = JSON.parse(dataSourcesHeader);
           setLastDataSources(dataSources);
+          console.log("📊 Data Sources:", dataSources);
         } catch (e) {
           console.error("Failed to parse data sources:", e);
         }
+      } else {
+        console.log("⚠️ No data sources used for this response");
+        setLastDataSources([]);
       }
 
       if (!resp.ok) {
