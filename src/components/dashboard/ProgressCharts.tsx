@@ -45,7 +45,7 @@ const ProgressCharts = () => {
         // Fetch weekly check-ins (weight data)
         const { data: checkins } = await supabase
           .from('weekly_checkins')
-          .select('average_weight, waist_circumference, created_at')
+          .select('average_weight, created_at')
           .eq('user_id', user.id)
           .gte('created_at', twelveWeeksAgo.toISOString())
           .order('created_at');
@@ -79,15 +79,12 @@ const ProgressCharts = () => {
           });
         }
 
-        // Process weight and waist check-ins
+        // Process weight check-ins
         checkins?.forEach(checkin => {
           const week = getWeekNumber(new Date(checkin.created_at));
           if (!weeklyStats[week]) weeklyStats[week] = { week, sessions: 0 };
           if (checkin.average_weight) {
             weeklyStats[week].weight = Number(checkin.average_weight);
-          }
-          if (checkin.waist_circumference) {
-            weeklyStats[week].waist = Number(checkin.waist_circumference);
           }
         });
 
@@ -133,7 +130,6 @@ const ProgressCharts = () => {
   }
 
   const hasWeightData = weeklyData.some(d => d.weight);
-  const hasWaistData = weeklyData.some(d => d.waist);
   const hasRpeData = weeklyData.some(d => d.avgRpe);
 
   return (
@@ -181,31 +177,6 @@ const ProgressCharts = () => {
         </Card>
       )}
 
-      {/* Évolution du tour de taille */}
-      {hasWaistData && (
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Évolution du tour de taille</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={weeklyData.filter(d => d.waist)}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="week" className="text-xs" />
-              <YAxis className="text-xs" domain={['dataMin - 5', 'dataMax + 5']} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))' }}
-                labelStyle={{ color: 'hsl(var(--foreground))' }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="waist" 
-                stroke="hsl(var(--chart-3))" 
-                strokeWidth={2}
-                name="Tour de taille (cm)"
-                dot={{ fill: 'hsl(var(--chart-3))' }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
-      )}
 
       {/* RPE moyen */}
       {hasRpeData && (

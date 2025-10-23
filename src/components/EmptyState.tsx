@@ -9,7 +9,8 @@ interface EmptyStateProps {
   description: string;
   action?: {
     label: string;
-    to: string;
+    to?: string;
+    onClick?: () => void;
   };
 }
 
@@ -30,9 +31,15 @@ export const EmptyState = ({
           <p className="text-sm text-muted-foreground max-w-md">{description}</p>
         </div>
         {action && (
-          <Button asChild className="mt-2">
-            <Link to={action.to}>{action.label}</Link>
-          </Button>
+          action.to ? (
+            <Button asChild className="mt-2">
+              <Link to={action.to}>{action.label}</Link>
+            </Button>
+          ) : (
+            <Button onClick={action.onClick} className="mt-2">
+              {action.label}
+            </Button>
+          )
         )}
       </div>
     </Card>

@@ -34,6 +34,7 @@ import Nutrition from "./pages/Nutrition";
 import CoachAI from "./pages/CoachAI";
 import Hub from "./pages/Hub";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import Progression from "./pages/Progression";
 
 // Component to sync onboarding data to Supabase as soon as user is authenticated
 const OnboardingSyncGate = () => {
@@ -66,6 +67,7 @@ const App = () => (
           <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
           <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
           <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Weekly /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/progression" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Progression /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/hub" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Hub /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/home" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Home /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/training" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Training /></AppLayout></SubscriptionGuard></ProtectedRoute>} />

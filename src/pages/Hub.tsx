@@ -3,6 +3,7 @@ import { ModuleCard } from "@/components/dashboard/ModuleCard";
 import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useWeeklyCheckInStatus } from "@/hooks/useWeeklyCheckInStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Home, Dumbbell, Apple, TrendingUp, Bot, Sparkles, Settings, HelpCircle } from "lucide-react";
@@ -10,6 +11,7 @@ import { Home, Dumbbell, Apple, TrendingUp, Bot, Sparkles, Settings, HelpCircle 
 const Hub = () => {
   const { user } = useAuth();
   const { stats, loading } = useDashboardData();
+  const { hasCheckInThisWeek, weightDelta, adherence } = useWeeklyCheckInStatus();
   const [showWelcome, setShowWelcome] = useState(false);
 
   const { data: goals } = useQuery({
@@ -102,9 +104,16 @@ const Hub = () => {
           <ModuleCard
             icon={TrendingUp}
             title="Mon suivi"
-            badge={!loading && stats?.nextCheckIn === "Maintenant !" ? "!" : undefined}
+            badge={hasCheckInThisWeek ? "✓" : "!"}
+            subtitle={
+              hasCheckInThisWeek && weightDelta !== null
+                ? `Δ ${weightDelta > 0 ? '+' : ''}${weightDelta.toFixed(1)}kg | ${adherence}%`
+                : hasCheckInThisWeek
+                ? "Check-in fait"
+                : "2 min pour faire le point"
+            }
             iconColor="271 81% 56%"
-            to="/weekly"
+            to={hasCheckInThisWeek ? "/progression" : "/weekly"}
           />
 
           {/* Alex (Coach IA) - Bleu */}

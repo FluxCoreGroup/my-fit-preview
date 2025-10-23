@@ -423,51 +423,48 @@ export type Database = {
           average_weight: number | null
           blockers: string | null
           created_at: string
-          energy: string | null
-          hunger: string | null
+          energy_level: string | null
+          has_pain: boolean | null
           id: string
-          pain_intensity: number | null
           pain_zones: string[] | null
           rpe_avg: number | null
-          sessions_done: number | null
-          sessions_planned: number | null
-          sleep: string | null
           user_id: string
-          waist_circumference: number | null
+          week_iso: string | null
+          weight_measure_1: number | null
+          weight_measure_2: number | null
+          weight_measure_3: number | null
         }
         Insert: {
           adherence_diet?: number | null
           average_weight?: number | null
           blockers?: string | null
           created_at?: string
-          energy?: string | null
-          hunger?: string | null
+          energy_level?: string | null
+          has_pain?: boolean | null
           id?: string
-          pain_intensity?: number | null
           pain_zones?: string[] | null
           rpe_avg?: number | null
-          sessions_done?: number | null
-          sessions_planned?: number | null
-          sleep?: string | null
           user_id: string
-          waist_circumference?: number | null
+          week_iso?: string | null
+          weight_measure_1?: number | null
+          weight_measure_2?: number | null
+          weight_measure_3?: number | null
         }
         Update: {
           adherence_diet?: number | null
           average_weight?: number | null
           blockers?: string | null
           created_at?: string
-          energy?: string | null
-          hunger?: string | null
+          energy_level?: string | null
+          has_pain?: boolean | null
           id?: string
-          pain_intensity?: number | null
           pain_zones?: string[] | null
           rpe_avg?: number | null
-          sessions_done?: number | null
-          sessions_planned?: number | null
-          sleep?: string | null
           user_id?: string
-          waist_circumference?: number | null
+          week_iso?: string | null
+          weight_measure_1?: number | null
+          weight_measure_2?: number | null
+          weight_measure_3?: number | null
         }
         Relationships: []
       }
