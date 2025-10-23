@@ -13,6 +13,15 @@ interface Session {
   session_date: string;
 }
 
+interface WeeklyProgram {
+  id: string;
+  week_start_date: string;
+  week_end_date: string;
+  total_sessions: number;
+  completed_sessions: number;
+  check_in_completed: boolean;
+}
+
 export const useWeeklyTraining = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -20,6 +29,7 @@ export const useWeeklyTraining = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentWeek, setCurrentWeek] = useState(0);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [historicalPrograms, setHistoricalPrograms] = useState<WeeklyProgram[]>([]);
 
   const fetchWeeklySessions = async () => {
     if (!user) return;
@@ -48,8 +58,27 @@ export const useWeeklyTraining = () => {
     }
   };
 
+  const fetchHistoricalPrograms = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("weekly_programs")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("week_start_date", { ascending: false })
+        .limit(4);
+
+      if (error) throw error;
+      setHistoricalPrograms(data || []);
+    } catch (error) {
+      console.error("Error fetching historical programs:", error);
+    }
+  };
+
   useEffect(() => {
     fetchWeeklySessions();
+    fetchHistoricalPrograms();
   }, [user, currentWeek]);
 
   const changeWeek = (direction: "prev" | "next") => {
@@ -60,6 +89,43 @@ export const useWeeklyTraining = () => {
     setCurrentWeek(0);
   };
 
+  const canGenerateWeek = async (): Promise<{ allowed: boolean; reason?: string }> => {
+    if (!user) return { allowed: false, reason: "Non authentifié" };
+
+    // Check if this is the first program ever
+    const { data: existingPrograms } = await supabase
+      .from("weekly_programs")
+      .select("id")
+      .eq("user_id", user.id)
+      .limit(1);
+
+    // First time = automatic authorization
+    if (!existingPrograms || existingPrograms.length === 0) {
+      return { allowed: true };
+    }
+
+    // Check if last week's check-in exists
+    const lastWeekStart = startOfWeek(addWeeks(new Date(), -1), { weekStartsOn: 1 });
+    const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 });
+
+    const { data: lastWeekCheckIn } = await supabase
+      .from("weekly_checkins")
+      .select("id")
+      .eq("user_id", user.id)
+      .gte("created_at", lastWeekStart.toISOString())
+      .lte("created_at", lastWeekEnd.toISOString())
+      .maybeSingle();
+
+    if (!lastWeekCheckIn) {
+      return {
+        allowed: false,
+        reason: "Tu dois compléter le check-in de la semaine dernière avant de générer cette semaine.",
+      };
+    }
+
+    return { allowed: true };
+  };
+
   const generateWeeklyProgram = async (regenerate = false) => {
     if (!user) return;
 
@@ -67,6 +133,17 @@ export const useWeeklyTraining = () => {
       toast({
         title: "Impossible de générer",
         description: "Génère d'abord la semaine courante avant les semaines futures.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check if generation is allowed
+    const { allowed, reason } = await canGenerateWeek();
+    if (!allowed) {
+      toast({
+        title: "Génération impossible",
+        description: reason,
         variant: "destructive"
       });
       return;
@@ -92,6 +169,7 @@ export const useWeeklyTraining = () => {
       });
 
       await fetchWeeklySessions();
+      await fetchHistoricalPrograms();
     } catch (error) {
       console.error("Error generating weekly program:", error);
       toast({
@@ -141,5 +219,7 @@ export const useWeeklyTraining = () => {
     getWeekLabel,
     getCompletedCount,
     getProgressPercentage,
+    canGenerateWeek,
+    historicalPrograms,
   };
 };

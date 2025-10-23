@@ -471,6 +471,53 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_programs: {
+        Row: {
+          check_in_completed: boolean
+          check_in_id: string | null
+          completed_sessions: number
+          created_at: string
+          generated_at: string
+          id: string
+          total_sessions: number
+          user_id: string
+          week_end_date: string
+          week_start_date: string
+        }
+        Insert: {
+          check_in_completed?: boolean
+          check_in_id?: string | null
+          completed_sessions?: number
+          created_at?: string
+          generated_at?: string
+          id?: string
+          total_sessions: number
+          user_id: string
+          week_end_date: string
+          week_start_date: string
+        }
+        Update: {
+          check_in_completed?: boolean
+          check_in_id?: string | null
+          completed_sessions?: number
+          created_at?: string
+          generated_at?: string
+          id?: string
+          total_sessions?: number
+          user_id?: string
+          week_end_date?: string
+          week_start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_programs_check_in_id_fkey"
+            columns: ["check_in_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_checkins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weight_logs: {
         Row: {
           created_at: string | null

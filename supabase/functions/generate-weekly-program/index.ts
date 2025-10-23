@@ -215,6 +215,21 @@ serve(async (req) => {
       );
     }
 
+    // Create weekly_program record
+    if (successCount > 0) {
+      const weekEnd = new Date(week_start_date);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+
+      await supabase.from('weekly_programs').insert({
+        user_id: user.id,
+        week_start_date: week_start_date,
+        week_end_date: weekEnd.toISOString(),
+        total_sessions: successCount,
+        completed_sessions: 0,
+        check_in_completed: false
+      });
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true,

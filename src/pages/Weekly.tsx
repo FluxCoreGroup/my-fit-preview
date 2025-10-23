@@ -57,7 +57,7 @@ const Weekly = () => {
     try {
       const avgWeight = weights.reduce((sum, w) => sum + parseFloat(w), 0) / weights.length;
 
-      const { error } = await supabase.from("weekly_checkins").insert({
+      const { data: checkInData, error } = await supabase.from("weekly_checkins").insert({
         user_id: user.id,
         average_weight: avgWeight,
         waist_circumference: formData.waist ? parseFloat(formData.waist) : null,
@@ -71,9 +71,26 @@ const Weekly = () => {
         pain_zones: formData.painZones.length > 0 ? formData.painZones : null,
         pain_intensity: formData.painIntensity ? parseInt(formData.painIntensity) : null,
         blockers: formData.blockers || null,
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Link check-in to weekly_program
+      if (checkInData) {
+        const { startOfWeek, endOfWeek } = await import("date-fns");
+        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
+
+        await supabase
+          .from("weekly_programs")
+          .update({
+            check_in_completed: true,
+            check_in_id: checkInData.id,
+          })
+          .eq("user_id", user.id)
+          .gte("week_start_date", weekStart.toISOString())
+          .lte("week_start_date", weekEnd.toISOString());
+      }
 
       toast({
         title: "✅ Check-in enregistré !",
