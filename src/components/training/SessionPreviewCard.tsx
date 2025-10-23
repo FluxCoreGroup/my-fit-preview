@@ -11,10 +11,7 @@ import {
   AlertCircle,
   Timer
 } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Exercise {
@@ -61,10 +58,6 @@ export const SessionPreviewCard = ({
   const estimatedTime = sessionData.estimatedTime || exercises.length * 5;
   const sessionName = sessionData.sessionName || 'Entraînement';
 
-  const sessionDate = new Date(session.session_date);
-  const dayName = format(sessionDate, 'EEEE', { locale: fr });
-  const dateStr = format(sessionDate, 'dd/MM', { locale: fr });
-
   const getStatusBadge = () => {
     if (session.completed) {
       return (
@@ -75,18 +68,9 @@ export const SessionPreviewCard = ({
       );
     }
     
-    const now = new Date();
-    if (sessionDate > now) {
-      return (
-        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-          À venir
-        </Badge>
-      );
-    }
-    
     return (
-      <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20 animate-pulse">
-        En cours
+      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+        À faire
       </Badge>
     );
   };
@@ -99,12 +83,12 @@ export const SessionPreviewCard = ({
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs font-bold px-3 py-1 bg-primary/10 rounded-full text-primary">
-                JOUR {sessionNumber}
+                SÉANCE {sessionNumber}
               </span>
               {getStatusBadge()}
             </div>
-            <h3 className="text-xl font-bold mb-1 capitalize">
-              {dayName} {dateStr}
+            <h3 className="text-xl font-bold mb-1">
+              Séance {sessionNumber}
             </h3>
             <p className="text-sm text-muted-foreground">{sessionName}</p>
           </div>
@@ -148,12 +132,12 @@ export const SessionPreviewCard = ({
                 {isOpen ? (
                   <>
                     <ChevronUp className="w-4 h-4 mr-2" />
-                    Masquer détails
+                    Masquer programme
                   </>
                 ) : (
                   <>
                     <ChevronDown className="w-4 h-4 mr-2" />
-                    Voir détails
+                    Voir le programme complet
                   </>
                 )}
               </Button>

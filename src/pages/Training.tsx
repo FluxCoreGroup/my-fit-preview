@@ -19,7 +19,12 @@ import { TrainingSkeleton } from "@/components/LoadingSkeleton";
 import { useWeeklyTraining } from "@/hooks/useWeeklyTraining";
 import { useNavigate } from "react-router-dom";
 import { SessionPreviewCard } from "@/components/training/SessionPreviewCard";
-import { QuickPreferencesModal } from "@/components/training/QuickPreferencesModal";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,7 +52,6 @@ const Training = () => {
   } = useWeeklyTraining();
 
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
-  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
 
   const handleStartSession = (sessionId: string) => {
     const session = sessions.find(s => s.id === sessionId);
@@ -67,14 +71,6 @@ const Training = () => {
     await generateWeeklyProgram(true);
   };
 
-  const handleOpenPreferences = () => {
-    setShowPreferencesModal(true);
-  };
-
-  const handleSavePreferences = async () => {
-    await generateWeeklyProgram(true);
-  };
-
   return (
     <div className="min-h-screen bg-background pb-8">
       <BackButton to="/hub" label="Retour au Hub" />
@@ -91,13 +87,24 @@ const Training = () => {
               <p className="text-sm text-muted-foreground">Programme de la semaine</p>
             </div>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={handleOpenPreferences}
-          >
-            <Settings className="w-4 h-4" />
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => navigate('/settings')}
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs max-w-[200px]">
+                  Pour modifier tes préférences (fréquence, durée, objectifs), va dans Paramètres
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <div className="max-w-4xl mx-auto">
@@ -286,13 +293,6 @@ const Training = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Quick Preferences Modal */}
-      <QuickPreferencesModal
-        open={showPreferencesModal}
-        onClose={() => setShowPreferencesModal(false)}
-        onSave={handleSavePreferences}
-      />
     </div>
   );
 };

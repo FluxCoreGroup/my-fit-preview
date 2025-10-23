@@ -108,15 +108,17 @@ export const useWeeklyTraining = () => {
     const weekStart = startOfWeek(addWeeks(new Date(), currentWeek), { weekStartsOn: 1 });
     const weekEndDate = endOfWeek(weekStart, { weekStartsOn: 1 });
     
+    const dateRange = `${format(weekStart, "dd MMM", { locale: fr })} - ${format(weekEndDate, "dd MMM", { locale: fr })}`;
+    
     if (currentWeek === 0) {
-      return `Semaine actuelle`;
+      return `Semaine actuelle : ${dateRange}`;
     } else if (currentWeek === -1) {
-      return `Semaine dernière`;
+      return `Semaine dernière : ${dateRange}`;
     } else if (currentWeek === 1) {
-      return `Semaine prochaine`;
+      return `Semaine prochaine : ${dateRange}`;
     }
     
-    return `${format(weekStart, "dd MMM", { locale: fr })} - ${format(weekEndDate, "dd MMM", { locale: fr })}`;
+    return dateRange;
   };
 
   const getCompletedCount = () => {

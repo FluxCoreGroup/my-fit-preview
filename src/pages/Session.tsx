@@ -40,8 +40,17 @@ const Session = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [showPauseDialog, setShowPauseDialog] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [currentWeight, setCurrentWeight] = useState("");
   const [currentRPE, setCurrentRPE] = useState(7);
+
+  // Check for first-time tutorial
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem('firstSessionTutorial');
+    if (!hasSeenTutorial) {
+      setShowTutorial(true);
+    }
+  }, []);
 
   useEffect(() => {
     const loadSession = async () => {
@@ -112,6 +121,21 @@ const Session = () => {
 
   const currentExercise = exercises[currentExerciseIndex];
   const totalSets = currentExercise?.sets || 0;
+
+  // Calculate granular progress (series by series)
+  const getTotalSets = () => exercises.reduce((sum, ex) => sum + ex.sets, 0);
+  const getCompletedSets = () => {
+    let completed = 0;
+    // Count all sets from previous exercises
+    for (let i = 0; i < currentExerciseIndex; i++) {
+      completed += exercises[i].sets;
+    }
+    // Add completed sets from current exercise
+    completed += (currentSet - 1);
+    return completed;
+  };
+  const totalSetsAll = getTotalSets();
+  const completedSetsAll = getCompletedSets();
 
   const startRest = () => {
     setIsResting(true);
@@ -205,7 +229,7 @@ const Session = () => {
     );
   }
 
-  const progress = ((currentExerciseIndex) / exercises.length) * 100;
+  const progress = totalSetsAll > 0 ? (completedSetsAll / totalSetsAll) * 100 : 0;
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -221,7 +245,7 @@ const Session = () => {
           {/* Progress Bar */}
           <Card className="bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl p-4">
             <div className="flex justify-between text-sm mb-2">
-              <span className="font-medium">Exercice {currentExerciseIndex + 1}/{exercises.length}</span>
+              <span className="font-medium">Série {completedSetsAll + 1}/{totalSetsAll}</span>
               <span className="text-muted-foreground">{Math.round(progress)}% complété</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -386,6 +410,48 @@ const Session = () => {
           </Card>
         </div>
       </div>
+
+      {/* Tutorial Dialog */}
+      <AlertDialog open={showTutorial} onOpenChange={setShowTutorial}>
+        <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bienvenue dans ta séance ! 🎯</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 text-left pt-2">
+              <div className="flex items-start gap-2">
+                <span className="text-primary font-bold">1.</span>
+                <span>Réalise chaque série en suivant les consignes</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-primary font-bold">2.</span>
+                <span>Note ton poids et ton RPE après chaque série</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-primary font-bold">3.</span>
+                <span>Clique sur "Série terminée" pour lancer le timer de repos</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-primary font-bold">4.</span>
+                <span>La barre de progression avance série par série</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-primary font-bold">5.</span>
+                <span>En fin de séance, donne ton feedback pour améliorer tes prochains entraînements</span>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={() => {
+                localStorage.setItem('firstSessionTutorial', 'seen');
+                setShowTutorial(false);
+              }}
+              className="bg-gradient-to-r from-primary to-secondary"
+            >
+              C'est parti ! 🚀
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Pause Dialog */}
       <AlertDialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
