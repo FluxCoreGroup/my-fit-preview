@@ -2,13 +2,15 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { DataSourcesPanel } from "./DataSourcesPanel";
 import { useAutoGenerateTitle } from "@/hooks/useAutoGenerateTitle";
+import { useConversations } from "@/hooks/useConversations";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,6 +26,7 @@ interface ChatInterfaceProps {
   context: any;
   avatarColor: string;
   name: string;
+  onConversationCreated?: (conversationId: string) => void;
 }
 
 export const ChatInterface = ({
@@ -33,6 +36,7 @@ export const ChatInterface = ({
   context,
   avatarColor,
   name,
+  onConversationCreated,
 }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -45,6 +49,7 @@ export const ChatInterface = ({
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
   
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
+  const { createConversation } = useConversations();
   
   // Auto-generate title from first message
   useAutoGenerateTitle(conversationId);
@@ -84,7 +89,26 @@ export const ChatInterface = ({
   }, [messages]);
 
   const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || isLoading || !conversationId) return;
+    if (!messageText.trim() || isLoading) return;
+
+    let currentConversationId = conversationId;
+
+    // If no conversation exists, create one first
+    if (!currentConversationId) {
+      try {
+        const newConversation = await createConversation.mutateAsync(undefined);
+        currentConversationId = newConversation.id;
+        onConversationCreated?.(newConversation.id);
+      } catch (error) {
+        console.error("Failed to create conversation:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de créer la conversation",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
 
     const userMessage: Message = { role: "user", content: messageText };
     setMessages((prev) => [...prev, userMessage]);
@@ -93,7 +117,7 @@ export const ChatInterface = ({
 
     // Save user message to DB
     await saveMessage.mutateAsync({
-      conversation_id: conversationId,
+      conversation_id: currentConversationId,
       role: "user",
       content: messageText,
     });
@@ -257,9 +281,9 @@ export const ChatInterface = ({
       }
 
       // Save assistant message to DB with data sources
-      if (assistantContent && conversationId) {
+      if (assistantContent && currentConversationId) {
         await saveMessage.mutateAsync({
-          conversation_id: conversationId,
+          conversation_id: currentConversationId,
           role: "assistant",
           content: assistantContent,
           data_sources: dataSources.length > 0 ? dataSources : undefined,
@@ -294,12 +318,47 @@ export const ChatInterface = ({
     );
   }
 
+  // Show welcome message if no conversation
   if (!conversationId) {
     return (
-      <div className="flex flex-col h-[calc(100vh-12rem)] items-center justify-center">
-        <p className="text-muted-foreground">
-          Sélectionne une conversation ou crée-en une nouvelle
-        </p>
+      <div className="flex flex-col h-[calc(100vh-12rem)] p-4">
+        <div className="flex-1 flex items-center justify-center">
+          <EmptyState
+            icon={MessageSquare}
+            title={`Discute avec ${name}`}
+            description="Commence une nouvelle conversation en envoyant ton premier message"
+            action={{
+              label: "Commencer",
+              onClick: () => {
+                const textarea = document.querySelector('textarea');
+                textarea?.focus();
+              }
+            }}
+          />
+        </div>
+        
+        {/* Input at bottom even without conversation */}
+        <div className="p-4 border-t border-white/10">
+          <div className="flex gap-2">
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Écris ton premier message..."
+              className="resize-none rounded-xl"
+              rows={1}
+              disabled={isLoading}
+            />
+            <Button
+              onClick={() => sendMessage(input)}
+              disabled={isLoading || !input.trim()}
+              size="icon"
+              className="rounded-xl"
+            >
+              {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChatSkeleton } from "@/components/LoadingSkeleton";
 import { useConversations } from "@/hooks/useConversations";
 import { useAutoDeleteEmptyConversations } from "@/hooks/useAutoDeleteEmptyConversations";
+import { useChatMessages } from "@/hooks/useChatMessages";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CoachJulie = () => {
@@ -18,21 +19,27 @@ const CoachJulie = () => {
   const isMobile = useIsMobile();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isConversationListOpen, setIsConversationListOpen] = useState(false);
-  const { conversations, createConversation } = useConversations();
+  const { conversations, deleteConversation } = useConversations();
+  const { messages } = useChatMessages(activeConversationId);
 
   // Auto-delete empty conversations when switching
   useAutoDeleteEmptyConversations(activeConversationId);
 
-  // Auto-select first conversation or create one if none exist
+  // Auto-select first conversation if exists (don't create automatically)
   useEffect(() => {
     if (conversations.length > 0 && !activeConversationId) {
       setActiveConversationId(conversations[0].id);
-    } else if (conversations.length === 0 && !createConversation.isPending) {
-      createConversation.mutateAsync(undefined).then((conv) => {
-        setActiveConversationId(conv.id);
-      });
     }
-  }, [conversations, activeConversationId, createConversation]);
+  }, [conversations, activeConversationId]);
+
+  // Cleanup: delete empty conversation on unmount
+  useEffect(() => {
+    return () => {
+      if (activeConversationId && messages.length === 0) {
+        deleteConversation.mutate(activeConversationId);
+      }
+    };
+  }, []);
 
   const { data: goals, isLoading: goalsLoading } = useQuery({
     queryKey: ["goals", user?.id],
@@ -136,6 +143,7 @@ const CoachJulie = () => {
               context={julieContext}
               avatarColor="bg-secondary"
               name="Julie"
+              onConversationCreated={setActiveConversationId}
             />
           )}
         </div>
