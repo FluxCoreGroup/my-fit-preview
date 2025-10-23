@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -227,13 +227,13 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate-weekly-program:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
 
-function getSplitTypes(split: string, frequency: number): string[] {
+const getSplitTypes = (split: string, frequency: number): string[] => {
   switch (split) {
     case 'upper_lower':
       return ['Upper Body', 'Lower Body', 'Upper Body', 'Lower Body', 'Full Body', 'Upper Body'];
@@ -242,17 +242,21 @@ function getSplitTypes(split: string, frequency: number): string[] {
     case 'body_part':
       return ['Chest & Triceps', 'Back & Biceps', 'Legs', 'Shoulders', 'Full Body', 'Arms'];
     default:
-      return Array(frequency).fill('Full Body');
+      const result: string[] = [];
+      for (let i = 0; i < frequency; i++) {
+        result.push('Full Body');
+      }
+      return result;
   }
-}
+};
 
-function buildSessionPrompt(
+const buildSessionPrompt = (
   sessionNumber: number,
   sessionType: string,
   duration: number,
-  goals: any,
-  preferences: any
-) {
+  goals: Record<string, any>,
+  preferences: Record<string, any> | null
+) => {
   const systemPrompt = `Tu es un coach sportif expert qui crée des programmes d'entraînement personnalisés. 
 Tu dois générer une séance complète et détaillée en français.
 
@@ -276,21 +280,25 @@ Chaque exercice doit inclure:
 
 Adapte la difficulté selon le niveau: ${preferences?.experience_level || 'intermediate'}`;
 
+  const equipmentStr = Array.isArray(goals.equipment) ? goals.equipment.join(', ') : 'Équipement de base';
+  const priorityStr = Array.isArray(preferences?.priority_zones) ? preferences.priority_zones.join(', ') : 'Aucune';
+  const limitationsStr = Array.isArray(preferences?.limitations) ? preferences.limitations.join(', ') : 'Aucune';
+
   const userPrompt = `Génère la séance ${sessionNumber} de type "${sessionType}" pour une semaine d'entraînement.
 
 Profil utilisateur:
-- Objectif: ${goals.goal_type}
+- Objectif: ${goals.goal_type || 'fitness'}
 - Niveau: ${preferences?.experience_level || 'intermediate'}
-- Lieu: ${goals.location}
-- Équipement: ${goals.equipment?.join(', ') || 'Équipement de base'}
+- Lieu: ${goals.location || 'salle'}
+- Équipement: ${equipmentStr}
 - Durée cible: ${duration} minutes
 - Type de session préférée: ${preferences?.session_type || 'strength'}
-- Zones prioritaires: ${preferences?.priority_zones?.join(', ') || 'Aucune'}
-- Limitations: ${preferences?.limitations?.join(', ') || 'Aucune'}
+- Zones prioritaires: ${priorityStr}
+- Limitations: ${limitationsStr}
 - Exercices à éviter: ${preferences?.exercises_to_avoid || 'Aucun'}
 - Exercices favoris: ${preferences?.favorite_exercises || 'Aucun'}
 
 Génère une séance complète et motivante !`;
 
   return { systemPrompt, userPrompt };
-}
+};
