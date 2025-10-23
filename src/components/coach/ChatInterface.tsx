@@ -6,10 +6,12 @@ import { Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useChatMessages } from "@/hooks/useChatMessages";
+import { DataSourcesPanel } from "./DataSourcesPanel";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
+  data_sources?: any[];
 }
 
 interface ChatInterfaceProps {
@@ -33,6 +35,7 @@ export const ChatInterface = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [lastDataSources, setLastDataSources] = useState<any[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const CHAT_URL = `https://nsowlnpntphxwykzbwmc.supabase.co/functions/v1/${functionName}`;
@@ -46,9 +49,21 @@ export const ChatInterface = ({
   // Load messages from DB when conversation changes
   useEffect(() => {
     if (dbMessages.length > 0) {
-      setMessages(dbMessages.map(m => ({ role: m.role, content: m.content })));
+      const loadedMessages = dbMessages.map(m => ({ 
+        role: m.role, 
+        content: m.content,
+        data_sources: m.data_sources 
+      }));
+      setMessages(loadedMessages);
+      
+      // Set last data sources from most recent assistant message
+      const lastAssistant = [...dbMessages].reverse().find(m => m.role === "assistant");
+      if (lastAssistant?.data_sources) {
+        setLastDataSources(lastAssistant.data_sources);
+      }
     } else {
       setMessages([]);
+      setLastDataSources([]);
     }
   }, [conversationId, dbMessages]);
 
@@ -72,6 +87,7 @@ export const ChatInterface = ({
     });
 
     let assistantContent = "";
+    let dataSources: any[] = [];
     const updateAssistant = (chunk: string) => {
       assistantContent += chunk;
       setMessages((prev) => {
@@ -97,6 +113,17 @@ export const ChatInterface = ({
           context,
         }),
       });
+
+      // Extract data sources from headers
+      const dataSourcesHeader = resp.headers.get("X-Data-Sources");
+      if (dataSourcesHeader) {
+        try {
+          dataSources = JSON.parse(dataSourcesHeader);
+          setLastDataSources(dataSources);
+        } catch (e) {
+          console.error("Failed to parse data sources:", e);
+        }
+      }
 
       if (resp.status === 429) {
         toast({
@@ -174,12 +201,13 @@ export const ChatInterface = ({
         }
       }
 
-      // Save assistant message to DB
+      // Save assistant message to DB with data sources
       if (assistantContent && conversationId) {
         await saveMessage.mutateAsync({
           conversation_id: conversationId,
           role: "assistant",
           content: assistantContent,
+          data_sources: dataSources.length > 0 ? dataSources : undefined,
         });
       }
     } catch (error) {
@@ -223,9 +251,10 @@ export const ChatInterface = ({
 
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)]">
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 p-4">
-        {messages.length === 0 && (
+      <div className="flex flex-1 min-h-0">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto space-y-4 p-4">
+          {messages.length === 0 && (
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-6">
               Salut ! Je suis {name}, pose-moi tes questions 👋
@@ -293,7 +322,11 @@ export const ChatInterface = ({
           </div>
         )}
 
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Data Sources Panel */}
+        <DataSourcesPanel dataSources={lastDataSources} />
       </div>
 
       {/* Input */}
