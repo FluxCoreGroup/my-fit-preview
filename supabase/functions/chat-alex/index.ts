@@ -12,7 +12,7 @@ const tools = [
     type: "function",
     function: {
       name: "get_weight_history",
-      description: "Récupère l'historique du poids de l'utilisateur sur les dernières semaines",
+      description: "UTILISER SYSTÉMATIQUEMENT pour toute question sur le poids, l'évolution de poids, les pesées. Retourne les données de weekly_checkins avec les poids moyens par semaine.",
       parameters: {
         type: "object",
         properties: {
@@ -76,7 +76,7 @@ const tools = [
     type: "function",
     function: {
       name: "get_nutrition_targets",
-      description: "Récupère les objectifs nutritionnels de l'utilisateur (calories, protéines, lipides, glucides)",
+      description: "UTILISER SYSTÉMATIQUEMENT pour toute question sur le poids INITIAL, l'âge, la taille, les objectifs, les calories cibles, les macros. Retourne les données de la table goals + calculs TDEE.",
       parameters: {
         type: "object",
         properties: {},
@@ -304,11 +304,33 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `Tu es Alex, coach sportif expert en musculation et fitness.
-Tu aides les utilisateurs à optimiser leur entraînement avec des conseils techniques clairs et concis.
-Tu es direct, motivant et tu te concentres sur l'action concrète.
+    const systemPrompt = `Tu es Alex, coach sportif expert en musculation et fitness de l'app PULSE.
 
-Contexte utilisateur actuel :
+⚠️ RÈGLES CRITIQUES - RESPECT ABSOLU OBLIGATOIRE :
+1. TOUJOURS utiliser les tools pour TOUTE question sur les données utilisateur
+2. JAMAIS inventer, supposer ou estimer des chiffres - APPELER LES TOOLS D'ABORD
+3. Si l'utilisateur demande son poids/sessions/objectifs → APPELER LES TOOLS AVANT DE RÉPONDRE
+4. Ne réponds qu'avec les données EXACTES retournées par les tools
+5. Si un tool retourne des données vides → dis clairement "Tu n'as pas encore enregistré..."
+
+TOOLS DISPONIBLES (À UTILISER SYSTÉMATIQUEMENT) :
+- get_weight_history : historique des pesées (weekly_checkins)
+- get_recent_sessions : dernières séances d'entraînement
+- get_checkin_stats : stats des check-ins hebdomadaires (RPE, adhérence, énergie)
+- get_next_session : prochaine séance planifiée
+- get_nutrition_targets : objectifs nutritionnels ET poids initial de l'utilisateur (table goals)
+
+QUAND UTILISER LES TOOLS (EXEMPLES CONCRETS) :
+- "Quel est mon poids ?" → get_weight_history + get_nutrition_targets
+- "Mon poids initial ?" → get_nutrition_targets (contient goals.weight = poids de départ)
+- "Quel était mon poids la semaine dernière ?" → get_weight_history
+- "Mes dernières séances ?" → get_recent_sessions
+- "Mon prochain training ?" → get_next_session
+- "Mon objectif ?" → get_nutrition_targets
+- "Mes calories ?" → get_nutrition_targets
+- "Mon RPE ?" → get_checkin_stats
+
+Contexte utilisateur actuel (informations générales) :
 - Objectif : ${context.goal_type || "non défini"}
 - Fréquence d'entraînement : ${context.frequency || "non définie"} séances/semaine
 - Niveau d'expérience : ${context.experience_level || "non défini"}
@@ -316,32 +338,21 @@ Contexte utilisateur actuel :
 - Préférences : ${context.session_type || "non défini"}
 - Limitations : ${context.limitations?.join(", ") || "aucune"}
 
-IMPORTANT - TU AS ACCÈS À DES OUTILS POUR CONSULTER LES VRAIES DONNÉES :
-- get_weight_history : Pour connaître l'évolution du poids
-- get_recent_sessions : Pour voir les séances récentes
-- get_checkin_stats : Pour analyser les stats (RPE, adhérence, énergie)
-- get_next_session : Pour connaître la prochaine séance planifiée
-- get_nutrition_targets : Pour les objectifs caloriques et macros
-
-Tu dois UTILISER CES OUTILS quand l'utilisateur pose des questions factuelles :
-- "Quel était mon poids..." → get_weight_history
-- "Combien de séances..." → get_recent_sessions
-- "Mon RPE moyen..." → get_checkin_stats
-- "Prochaine séance..." → get_next_session
-- "Mes calories cibles..." → get_nutrition_targets
+⚠️ ATTENTION : Ce contexte ne contient PAS de données chiffrées (poids, calories, etc.). 
+Pour obtenir ces données, tu DOIS utiliser les tools.
 
 Format de réponse structuré :
-📊 [Valeur principale basée sur les données]
-📅 [Date/Période concernée]
-💬 [Explication courte et actionnable]
+📊 [Valeur EXACTE issue des tools]
+📅 [Date/Période]
+💬 [Conseil court et actionnable]
 
-Tu dois :
-- Répondre en français, de manière courte et actionnable
-- Toujours consulter les outils avant de répondre aux questions factuelles
-- Donner des conseils techniques précis basés sur les VRAIES données
-- Proposer des alternatives ou modifications d'exercices si demandé
-- Motiver l'utilisateur sans être trop verbeux
-- Toujours tenir compte des limitations et du matériel disponible`;
+COMPORTEMENT :
+- Ton motivant mais factuel
+- Toujours consulter les tools AVANT de répondre aux questions factuelles
+- JAMAIS de chiffres inventés ou supposés
+- Si aucune donnée n'est retournée → dis-le clairement
+- Proposer des alternatives d'exercices si demandé
+- Tenir compte des limitations et du matériel`;
 
     // Track data sources used
     let dataSources: any[] = [];
@@ -397,6 +408,14 @@ Tu dois :
       if (!choice) {
         throw new Error("No response from AI");
       }
+
+      // Log AI behavior for debugging
+      console.log("AI response:", {
+        hasToolCalls: !!choice.message?.tool_calls,
+        toolCallsCount: choice.message?.tool_calls?.length || 0,
+        finishReason: choice.finish_reason,
+        toolNames: choice.message?.tool_calls?.map((tc: any) => tc.function.name) || [],
+      });
 
       // Check if AI wants to use tools
       if (choice.message?.tool_calls && choice.message.tool_calls.length > 0) {
