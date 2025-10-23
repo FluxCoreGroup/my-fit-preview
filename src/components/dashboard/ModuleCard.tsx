@@ -7,6 +7,7 @@ interface ModuleCardProps {
   icon: LucideIcon;
   title: string;
   badge?: string;
+  subtitle?: string;
   to: string;
   iconColor: string; // HSL format: "180 62% 45%"
 }
@@ -15,6 +16,7 @@ export const ModuleCard = ({
   icon: Icon,
   title,
   badge,
+  subtitle,
   to,
   iconColor,
 }: ModuleCardProps) => {
@@ -52,6 +54,13 @@ export const ModuleCard = ({
           <h3 className="text-sm font-semibold text-center text-foreground">
             {title}
           </h3>
+          
+          {/* Subtitle optionnel */}
+          {subtitle && (
+            <p className="text-xs text-muted-foreground text-center mt-1">
+              {subtitle}
+            </p>
+          )}
         </div>
       </div>
     </Link>
