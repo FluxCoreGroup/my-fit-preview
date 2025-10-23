@@ -31,7 +31,8 @@ import TrainingProgram from "./pages/settings/TrainingProgram";
 import NutritionSettings from "./pages/settings/Nutrition";
 import Training from "./pages/Training";
 import Nutrition from "./pages/Nutrition";
-import CoachAI from "./pages/CoachAI";
+import CoachAlex from "./pages/CoachAlex";
+import CoachJulie from "./pages/CoachJulie";
 import Hub from "./pages/Hub";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Progression from "./pages/Progression";
@@ -72,7 +73,8 @@ const App = () => (
           <Route path="/home" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Home /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/training" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Training /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Nutrition /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/coach" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachAI /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/coach/alex" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachAlex /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/coach/julie" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachJulie /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Settings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings/profile" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Profile /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings/physical-info" element={<ProtectedRoute><SubscriptionGuard><AppLayout><PhysicalInfo /></AppLayout></SubscriptionGuard></ProtectedRoute>} />

@@ -120,16 +120,18 @@ const Hub = () => {
           <ModuleCard
             icon={Bot}
             title="Alex"
+            subtitle="Coach Sport"
             iconColor="217.2 91.2% 59.8%"
-            to="/coach?tab=alex"
+            to="/coach/alex"
           />
 
           {/* Julie (Nutritionniste IA) - Rose */}
           <ModuleCard
             icon={Sparkles}
             title="Julie"
+            subtitle="Nutritionniste"
             iconColor="330 81% 60%"
-            to="/coach?tab=julie"
+            to="/coach/julie"
           />
 
           {/* Paramètres - Gris */}
