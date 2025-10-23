@@ -6,6 +6,7 @@ import { Send, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useChatMessages } from "@/hooks/useChatMessages";
+import { useAuth } from "@/contexts/AuthContext";
 import { DataSourcesPanel } from "./DataSourcesPanel";
 
 interface Message {
@@ -39,6 +40,7 @@ export const ChatInterface = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const loadedConversationRef = useRef<string | null>(null);
   const { toast } = useToast();
+  const { session } = useAuth();
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
   
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
@@ -107,12 +109,26 @@ export const ChatInterface = ({
       });
     };
 
+    // Check session token
+    const token = session?.access_token;
+    if (!token) {
+      toast({
+        title: "Session expirée",
+        description: "Reconnecte-toi pour continuer",
+        variant: "destructive",
+      });
+      setMessages((prev) => prev.slice(0, -1));
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
