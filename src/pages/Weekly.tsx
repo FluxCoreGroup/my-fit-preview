@@ -156,7 +156,7 @@ const Weekly = () => {
                 <Input 
                   type="number" 
                   step="0.1" 
-                  placeholder="75.0"
+                  placeholder="75,0"
                   className="h-12 text-lg rounded-xl"
                   value={weight1 || ""}
                   onChange={(e) => setWeight1(e.target.value ? parseFloat(e.target.value) : null)}
@@ -167,7 +167,7 @@ const Weekly = () => {
                 <Input 
                   type="number" 
                   step="0.1" 
-                  placeholder="74.8"
+                  placeholder="74,8"
                   className="h-12 text-lg rounded-xl"
                   value={weight2 || ""}
                   onChange={(e) => setWeight2(e.target.value ? parseFloat(e.target.value) : null)}
@@ -178,7 +178,7 @@ const Weekly = () => {
                 <Input 
                   type="number" 
                   step="0.1" 
-                  placeholder="74.5"
+                  placeholder="74,5"
                   className="h-12 text-lg rounded-xl"
                   value={weight3 || ""}
                   onChange={(e) => setWeight3(e.target.value ? parseFloat(e.target.value) : null)}

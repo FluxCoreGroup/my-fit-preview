@@ -46,7 +46,7 @@ export const BodyMetricsTracker = () => {
               <Input
                 type="number"
                 step="0.1"
-                placeholder="Poids (kg)"
+                placeholder="Ex: 70,5"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 className="pl-10 h-10 bg-background/50 border-primary/20 focus:border-primary transition-all"

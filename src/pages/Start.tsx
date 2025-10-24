@@ -241,9 +241,10 @@ const Start = () => {
                   <Input
                     id="weight"
                     type="number"
-                    placeholder="70"
+                    step="0.1"
+                    placeholder="70,5"
                     value={formData.weight || ""}
-                    onChange={(e) => updateField("weight", parseInt(e.target.value))}
+                    onChange={(e) => updateField("weight", parseFloat(e.target.value))}
                     className={`mt-2 ${errors.weight ? 'border-destructive' : ''}`}
                   />
                   {errors.weight && <p className="text-xs text-destructive mt-1">{errors.weight}</p>}
@@ -506,7 +507,7 @@ const Start = () => {
                     <SelectValue placeholder="Choisir..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {[2, 3, 4, 5].map((n) => (
+                    {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                       <SelectItem key={n} value={n.toString()}>
                         {n} repas par jour
                       </SelectItem>

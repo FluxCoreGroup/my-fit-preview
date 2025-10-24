@@ -147,7 +147,7 @@ export const PhysicalInfoSection = () => {
             step="0.1"
             value={formData.weight}
             onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-            placeholder="70"
+            placeholder="70,5"
           />
         </div>
 
