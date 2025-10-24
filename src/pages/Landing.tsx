@@ -3,10 +3,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Dumbbell, Apple, Target, ShieldCheck, Award, Users, Star, Clock, ArrowRight, Mail, Instagram, Linkedin, Facebook } from "lucide-react";
+import { Dumbbell, Apple, Target, ShieldCheck, Award, Users, Star, Clock, ArrowRight, Mail, Instagram, Linkedin, Facebook, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
+import heroBackground from "@/assets/hero-background.jpg";
 
 const Landing = () => {
   const { user } = useAuth();
@@ -15,48 +16,50 @@ const Landing = () => {
     <div className="min-h-screen bg-background">
       <Header variant="marketing" />
 
-      {/* Hero Section */}
-      <section className="pt-24 pb-20 md:pt-32 md:pb-32 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left: Text content */}
-            <div className="space-y-8 animate-in">
-              <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight">
-                En avez-vous assez de ne pas voir de progrès malgré tous vos efforts ?
-              </h1>
-              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-                Répondez à 15 questions pour comprendre ce qui freine vos progrès et recevez des conseils sur mesure pour enfin avancer. Vous allez découvrir pourquoi vous stagnez et comment changer les choses – dès maintenant.
-              </p>
-              
-              <div className="space-y-4">
-                <Link to="/start">
-                  <Button size="lg" className="w-full md:w-auto text-lg h-14 px-8">
-                    Commencer l'évaluation
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  15 questions · ~3 minutes
-                </p>
-              </div>
-            </div>
-
-            {/* Right: Illustration placeholder */}
-            <div className="relative">
-              <Card className="p-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-                <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                  <div className="text-center space-y-4">
-                    <Target className="w-20 h-20 text-primary mx-auto" />
-                    <div className="space-y-2">
-                      <div className="h-2 w-32 bg-primary/30 rounded mx-auto"></div>
-                      <div className="h-2 w-24 bg-primary/30 rounded mx-auto"></div>
-                      <div className="h-2 w-28 bg-primary/30 rounded mx-auto"></div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </div>
+      {/* Hero Section with Background Image */}
+      <section className="relative min-h-screen flex items-center justify-center px-4">
+        {/* Background Image with Overlay */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${heroBackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-5xl mx-auto text-center space-y-8 py-32 animate-fade-in">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight text-white">
+            En avez-vous assez de ne pas voir de progrès malgré tous vos efforts ?
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-white/90 leading-relaxed max-w-3xl mx-auto">
+            Même si vous vous entraînez chaque semaine
+          </p>
+          
+          <div className="pt-8 space-y-6">
+            <p className="text-lg md:text-xl text-white/80 leading-relaxed max-w-3xl mx-auto">
+              Répondez à 15 questions pour comprendre pourquoi vous ressentez cette frustration et ce qu'il faut faire pour y remédier.
+            </p>
+            
+            <Link to="/start">
+              <Button size="lg" className="text-lg h-14 px-10 bg-primary hover:bg-primary/90">
+                Commencer l'évaluation
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            
+            <p className="text-sm text-white/70 flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4" />
+              15 questions · ~3 minutes
+            </p>
+          </div>
+          
+          {/* Scroll indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <ChevronDown className="w-8 h-8 text-white/60" />
           </div>
         </div>
       </section>
