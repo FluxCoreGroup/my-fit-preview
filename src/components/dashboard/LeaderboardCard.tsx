@@ -13,37 +13,60 @@ export const LeaderboardCard = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      // Compte le nombre total d'utilisateurs
-      const { count: totalUsers } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true });
+      try {
+        // Récupère le nombre de séances de l'utilisateur
+        const { data: userSessions } = await supabase
+          .from("sessions")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("completed", true);
 
-      // Récupère le nombre de séances de l'utilisateur
-      const { data: userSessions } = await supabase
-        .from("sessions")
-        .select("id", { count: "exact" })
-        .eq("user_id", user.id)
-        .eq("completed", true);
+        const userSessionCount = userSessions?.length || 0;
 
-      const userSessionCount = userSessions?.length || 0;
+        // Compte le nombre total d'utilisateurs ayant au moins une session
+        const { data: allUserSessions } = await supabase
+          .from("sessions")
+          .select("user_id")
+          .eq("completed", true);
 
-      // Compte combien d'utilisateurs ont moins de séances
-      const { count: usersBelow } = await supabase
-        .from("sessions")
-        .select("user_id", { count: "exact", head: true })
-        .eq("completed", true)
-        .lt("created_at", new Date().toISOString());
+        if (!allUserSessions || allUserSessions.length === 0) {
+          return {
+            percentile: 50,
+            totalUsers: 1,
+            userSessions: userSessionCount,
+          };
+        }
 
-      // Calcul approximatif du percentile
-      const percentile = totalUsers && totalUsers > 0
-        ? Math.round(((usersBelow || 0) / totalUsers) * 100)
-        : 50;
+        // Groupe les sessions par utilisateur
+        const sessionsByUser = allUserSessions.reduce((acc: { [key: string]: number }, session) => {
+          acc[session.user_id] = (acc[session.user_id] || 0) + 1;
+          return acc;
+        }, {});
 
-      return {
-        percentile: Math.min(percentile, 99), // Cap à 99%
-        totalUsers: totalUsers || 0,
-        userSessions: userSessionCount,
-      };
+        const sessionCounts = Object.values(sessionsByUser);
+        const totalUsers = sessionCounts.length;
+        
+        // Compte combien d'utilisateurs ont moins de séances
+        const usersBelow = sessionCounts.filter(count => count < userSessionCount).length;
+
+        // Calcul du percentile
+        const percentile = totalUsers > 0
+          ? Math.round((usersBelow / totalUsers) * 100)
+          : 50;
+
+        return {
+          percentile: Math.min(Math.max(percentile, 1), 99), // Entre 1% et 99%
+          totalUsers,
+          userSessions: userSessionCount,
+        };
+      } catch (error) {
+        console.error('Error fetching ranking:', error);
+        return {
+          percentile: 50,
+          totalUsers: 0,
+          userSessions: 0,
+        };
+      }
     },
     enabled: !!user,
   });

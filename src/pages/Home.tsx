@@ -47,7 +47,7 @@ const Home = () => {
   });
 
   const frequency = goals?.frequency || 3;
-  const hasNoData = stats.totalSessions === 0 && !latestSession;
+  const hasNoData = (stats?.totalSessions || 0) === 0 && !latestSession;
 
   if (loading) {
     return (
@@ -138,37 +138,37 @@ const Home = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
               <KPICard 
                 title="Poids actuel" 
-                value={stats.currentWeight ? `${stats.currentWeight}kg` : "-"} 
-                subtitle={stats.weightChange7d ? `${stats.weightChange7d > 0 ? '+' : ''}${stats.weightChange7d}kg (7j)` : undefined}
+                value={stats?.currentWeight ? `${stats.currentWeight}kg` : "-"} 
+                subtitle={stats?.weightChange7d ? `${stats.weightChange7d > 0 ? '+' : ''}${stats.weightChange7d}kg (7j)` : undefined}
                 icon={Scale}
-                trend={stats.weightChange7d ? (stats.weightChange7d < 0 ? "down" : "up") : undefined}
-                sparklineData={stats.weightSparkline}
+                trend={stats?.weightChange7d ? (stats.weightChange7d < 0 ? "down" : "up") : undefined}
+                sparklineData={stats?.weightSparkline || []}
               />
               <KPICard 
                 title="Objectif" 
-                value={stats.goalWeight ? `${stats.goalWeight}kg` : "-"} 
-                subtitle={stats.weeksToGoal ? `${stats.weeksToGoal} sem.` : undefined}
+                value={stats?.goalWeight ? `${stats.goalWeight}kg` : "-"} 
+                subtitle={stats?.weeksToGoal ? `${stats.weeksToGoal} sem.` : undefined}
                 icon={Target}
               />
               <KPICard 
                 title="Séances / sem" 
-                value={`${stats.sessionsThisWeek}/${frequency}`}
+                value={`${stats?.sessionsThisWeek || 0}/${frequency}`}
                 icon={Dumbbell}
               />
               <KPICard 
                 title="Minutes (7j)" 
-                value={stats.trainingMinutes7d}
+                value={stats?.trainingMinutes7d || 0}
                 icon={Clock}
-                sparklineData={stats.trainingMinutesSparkline}
+                sparklineData={stats?.trainingMinutesSparkline || []}
               />
               <KPICard 
                 title="Adhérence diet" 
-                value={stats.nutritionAdherence ? `${stats.nutritionAdherence}%` : "-"}
+                value={stats?.nutritionAdherence ? `${stats.nutritionAdherence}%` : "-"}
                 icon={Apple}
               />
               <KPICard 
                 title="Streak" 
-                value={stats.activeStreak}
+                value={stats?.activeStreak || 0}
                 subtitle="jours"
                 icon={Flame}
               />
@@ -179,9 +179,9 @@ const Home = () => {
 
             {/* Partage progression */}
             <ShareProgressButton 
-              streak={stats.activeStreak}
-              sessionsThisWeek={stats.sessionsThisWeek}
-              weightChange={stats.weightChange7d || 0}
+              streak={stats?.activeStreak || 0}
+              sessionsThisWeek={stats?.sessionsThisWeek || 0}
+              weightChange={stats?.weightChange7d || 0}
             />
 
             {/* Séance du jour */}
@@ -203,7 +203,7 @@ const Home = () => {
             <NutritionDayCard />
 
             {/* Rappels */}
-            <RemindersCard nextCheckIn={stats.nextCheckIn} />
+            <RemindersCard nextCheckIn={stats?.nextCheckIn} />
 
             {/* Journal des ajustements */}
             <AdjustmentsJournal />

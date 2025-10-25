@@ -13,14 +13,27 @@ interface SessionSummaryCardProps {
 
 export const SessionSummaryCard = ({ session }: SessionSummaryCardProps) => {
   const [expanded, setExpanded] = useState(false);
-  const exercises = session.exercises || [];
+  
+  // Parse exercises safely - handle both array and JSON string
+  let exercises: any[] = [];
+  try {
+    if (Array.isArray(session.exercises)) {
+      exercises = session.exercises;
+    } else if (typeof session.exercises === 'string') {
+      exercises = JSON.parse(session.exercises);
+    }
+  } catch (error) {
+    console.error('Error parsing exercises:', error);
+    exercises = [];
+  }
+  
   const displayExercises = exercises.slice(0, 6);
   const estimatedDuration = exercises.length * 5;
   
   // Extract unique equipment from exercises
   const equipment = [...new Set(
     exercises
-      .map((ex: any) => ex.equipment)
+      .map((ex: any) => ex?.equipment)
       .filter(Boolean)
   )].slice(0, 3);
 
@@ -57,7 +70,7 @@ export const SessionSummaryCard = ({ session }: SessionSummaryCardProps) => {
                 <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-medium">
                   {idx + 1}
                 </div>
-                <span className="text-sm">{exercise.name}</span>
+                <span className="text-sm">{exercise?.name || 'Exercice'}</span>
               </div>
             ))}
             {exercises.length > 6 && (
@@ -84,14 +97,14 @@ export const SessionSummaryCard = ({ session }: SessionSummaryCardProps) => {
                     {idx + 1}
                   </div>
                   <div className="flex-1 space-y-0.5">
-                    <h4 className="text-sm font-semibold">{exercise.name}</h4>
+                    <h4 className="text-sm font-semibold">{exercise?.name || 'Exercice'}</h4>
                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] text-muted-foreground">
-                      {exercise.sets && <span>• {exercise.sets} séries</span>}
-                      {exercise.reps && <span>• {exercise.reps} reps</span>}
-                      {exercise.rest && <span>• {exercise.rest}s repos</span>}
-                      {exercise.tempo && <span>• Tempo: {exercise.tempo}</span>}
+                      {exercise?.sets && <span>• {exercise.sets} séries</span>}
+                      {exercise?.reps && <span>• {exercise.reps} reps</span>}
+                      {exercise?.rest && <span>• {exercise.rest}s repos</span>}
+                      {exercise?.tempo && <span>• Tempo: {exercise.tempo}</span>}
                     </div>
-                    {exercise.notes && (
+                    {exercise?.notes && (
                       <p className="text-[10px] text-muted-foreground mt-0.5">💡 {exercise.notes}</p>
                     )}
                   </div>

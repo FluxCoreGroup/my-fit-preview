@@ -54,12 +54,14 @@ const ProgressCharts = () => {
         const weeklyStats: { [key: string]: WeeklyStats } = {};
         
         // Process sessions
-        sessions?.forEach(session => {
-          const week = getWeekNumber(new Date(session.session_date));
-          if (!weeklyStats[week]) {
-            weeklyStats[week] = { week, sessions: 0 };
+        (sessions || []).forEach(session => {
+          if (session?.session_date) {
+            const week = getWeekNumber(new Date(session.session_date));
+            if (!weeklyStats[week]) {
+              weeklyStats[week] = { week, sessions: 0 };
+            }
+            weeklyStats[week].sessions++;
           }
-          weeklyStats[week].sessions++;
         });
 
         // Process feedback
@@ -80,11 +82,13 @@ const ProgressCharts = () => {
         }
 
         // Process weight check-ins
-        checkins?.forEach(checkin => {
-          const week = getWeekNumber(new Date(checkin.created_at));
-          if (!weeklyStats[week]) weeklyStats[week] = { week, sessions: 0 };
-          if (checkin.average_weight) {
-            weeklyStats[week].weight = Number(checkin.average_weight);
+        (checkins || []).forEach(checkin => {
+          if (checkin?.created_at) {
+            const week = getWeekNumber(new Date(checkin.created_at));
+            if (!weeklyStats[week]) weeklyStats[week] = { week, sessions: 0 };
+            if (checkin.average_weight) {
+              weeklyStats[week].weight = Number(checkin.average_weight);
+            }
           }
         });
 
