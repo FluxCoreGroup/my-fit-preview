@@ -26,13 +26,13 @@ export const Header = ({ variant = "marketing", showBack = false, onBack }: Head
     return (
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 font-bold text-xl">
+          <Link to="/hub" className="flex items-center gap-2 font-bold text-xl">
             <Dumbbell className="w-6 h-6 text-primary" />
             <span>Pulse.ai</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
-            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/hub" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Dashboard
             </Link>
             <Link to="/session" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -80,7 +80,7 @@ export const Header = ({ variant = "marketing", showBack = false, onBack }: Head
 
           <div className="flex items-center gap-3">
             {user ? (
-              <Link to="/dashboard">
+              <Link to="/hub">
                 <Button size="sm">Dashboard</Button>
               </Link>
             ) : (
@@ -122,7 +122,7 @@ export const Header = ({ variant = "marketing", showBack = false, onBack }: Head
 
         <div className="flex items-center gap-3">
           {user ? (
-            <Link to="/dashboard">
+            <Link to="/hub">
               <Button>Dashboard</Button>
             </Link>
           ) : (

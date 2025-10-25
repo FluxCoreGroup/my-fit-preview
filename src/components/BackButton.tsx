@@ -8,7 +8,7 @@ interface BackButtonProps {
   onClick?: () => void;
 }
 
-export const BackButton = ({ label = "Retour", to = "/dashboard", onClick }: BackButtonProps) => {
+export const BackButton = ({ label = "Retour", to = "/hub", onClick }: BackButtonProps) => {
   const navigate = useNavigate();
   
   const handleClick = () => {

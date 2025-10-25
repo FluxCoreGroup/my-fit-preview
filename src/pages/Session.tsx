@@ -215,7 +215,7 @@ const Session = () => {
 
   const handlePauseSession = () => {
     setShowPauseDialog(false);
-    navigate("/dashboard");
+    navigate("/hub");
   };
 
   if (!currentExercise) {
