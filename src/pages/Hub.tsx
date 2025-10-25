@@ -6,7 +6,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { useWeeklyCheckInStatus } from "@/hooks/useWeeklyCheckInStatus";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Home, Dumbbell, Apple, TrendingUp, Bot, Sparkles, Settings, HelpCircle } from "lucide-react";
+import { LayoutDashboard, Dumbbell, Utensils, Activity, Target, Apple, Settings, MessageCircleQuestion } from "lucide-react";
 
 const Hub = () => {
   const { user } = useAuth();
@@ -52,29 +52,29 @@ const Hub = () => {
         userName={userName}
         onComplete={handleWelcomeComplete}
       />
-      <div className="min-h-screen bg-muted/30 pb-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 pb-8">
         {/* Header */}
-        <div className="bg-card border-b px-4 py-6">
-        <h1 className="text-2xl font-bold">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-b border-blue-200/50 px-4 py-6">
+        <h1 className="text-2xl font-bold text-blue-900">
           Salut {userName} 👋
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Bienvenue sur Pulse.ai
+        <p className="text-sm text-blue-700/70">
+          Prêt à progresser aujourd'hui ?
         </p>
       </div>
 
       {/* Grid de modules */}
       <div className="p-4 max-w-4xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {/* Accueil - Orange */}
+          {/* Accueil - Bleu Ciel */}
           <ModuleCard
-            icon={Home}
+            icon={LayoutDashboard}
             title="Accueil"
-            iconColor="24.6 95% 53.1%"
+            iconColor="200 85% 65%"
             to="/home"
           />
 
-          {/* Mes entraînements - Teal */}
+          {/* Mes entraînements - Bleu Électrique */}
           <ModuleCard
             icon={Dumbbell}
             title="Mes entraînements"
@@ -83,26 +83,26 @@ const Hub = () => {
                 ? `${stats.sessionsThisWeek}/${frequency}`
                 : undefined
             }
-            iconColor="180 62% 45%"
+            iconColor="217 91% 60%"
             to="/training"
           />
 
-          {/* Ma nutrition - Ambre */}
+          {/* Ma nutrition - Bleu Océan */}
           <ModuleCard
-            icon={Apple}
+            icon={Utensils}
             title="Ma nutrition"
             badge={
               !loading && stats?.nutritionAdherence
                 ? `${stats.nutritionAdherence}%`
                 : undefined
             }
-            iconColor="45 93% 47%"
+            iconColor="210 70% 50%"
             to="/nutrition"
           />
 
-          {/* Mon suivi - Violet */}
+          {/* Mon suivi - Bleu Nuit */}
           <ModuleCard
-            icon={TrendingUp}
+            icon={Activity}
             title="Mon suivi"
             badge={hasCheckInThisWeek ? "✓" : "!"}
             subtitle={
@@ -112,41 +112,41 @@ const Hub = () => {
                 ? "Check-in fait"
                 : "2 min pour faire le point"
             }
-            iconColor="271 81% 56%"
+            iconColor="230 50% 40%"
             to={hasCheckInThisWeek ? "/progression" : "/weekly"}
           />
 
-          {/* Alex (Coach IA) - Bleu */}
+          {/* Alex (Coach IA) - Bleu Cyan */}
           <ModuleCard
-            icon={Bot}
+            icon={Target}
             title="Alex"
             subtitle="Coach Sport"
-            iconColor="217.2 91.2% 59.8%"
+            iconColor="190 75% 55%"
             to="/coach/alex"
           />
 
-          {/* Julie (Nutritionniste IA) - Rose */}
+          {/* Julie (Nutritionniste IA) - Rose/Mauve */}
           <ModuleCard
-            icon={Sparkles}
+            icon={Apple}
             title="Julie"
             subtitle="Nutritionniste"
-            iconColor="330 81% 60%"
+            iconColor="300 60% 60%"
             to="/coach/julie"
           />
 
-          {/* Paramètres - Gris */}
+          {/* Paramètres - Bleu Indigo */}
           <ModuleCard
             icon={Settings}
             title="Paramètres"
-            iconColor="215 16% 47%"
+            iconColor="245 58% 55%"
             to="/settings"
           />
 
-          {/* Aide - Indigo */}
+          {/* Aide - Bleu-Vert */}
           <ModuleCard
-            icon={HelpCircle}
+            icon={MessageCircleQuestion}
             title="Aide"
-            iconColor="239 84% 67%"
+            iconColor="180 60% 50%"
             to="/support"
           />
         </div>
