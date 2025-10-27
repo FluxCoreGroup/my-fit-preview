@@ -57,69 +57,60 @@ const Landing = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16">
-        <div className="gradient-hero min-h-[95vh] flex items-center px-4 py-12 md:py-20">
-          <div className="max-w-7xl mx-auto w-full">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              {/* Left Column - Content */}
-              <div className="text-primary-foreground space-y-6 animate-in">
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
-                  Transforme ton corps.
-                  <br />
-                  <span className="text-primary-glow">Sans deviner.</span>
-                </h1>
-                
-                <p className="text-lg md:text-xl text-primary-foreground/90 max-w-xl leading-relaxed">
-                  Obtiens un plan sport & nutrition <strong>100% personnalisé</strong>, validé par des coachs.
-                  <br />
-                  <strong className="text-primary-glow">Résultats visibles en 4 semaines, garantis.</strong>
-                </p>
-                
-                {/* Social Proof */}
-                <div className="flex items-center gap-2 text-primary-foreground/90 py-2">
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-accent text-accent" />
-                    ))}
-                  </div>
-                  <span className="text-lg font-semibold">4,9/5</span>
-                  <span className="text-primary-foreground/70">sur +1 200 utilisateurs actifs</span>
-                </div>
-                
-                {/* CTA */}
-                <div className="pt-4">
-                  {user ? (
-                    <Link to="/hub">
-                      <Button 
-                        size="lg" 
-                        className="text-lg px-8 py-6 h-auto shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-glow hover:bg-primary text-primary-foreground"
-                      >
-                        Aller au Hub <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Link to="/start">
-                      <Button 
-                        size="lg" 
-                        className="text-lg px-8 py-6 h-auto shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-glow hover:bg-primary text-primary-foreground"
-                      >
-                        Commencer mon plan gratuit <ArrowRight className="w-5 h-5 ml-2" />
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              </div>
+      <section className="relative overflow-hidden pt-4 px-4 md:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="gradient-hero rounded-[2.5rem] min-h-[90vh] flex flex-col items-center justify-between px-6 py-12 md:py-16 relative overflow-hidden">
+            {/* Content - Top */}
+            <div className="text-center text-primary-foreground space-y-6 animate-in pt-8 z-10">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
+                Transforme ton corps.
+                <br />
+                Sans deviner.
+              </h1>
               
-              {/* Right Column - Phone Mockup */}
-              <div className="relative flex justify-center lg:justify-end">
-                <div className="relative animate-in" style={{ animationDelay: '0.2s' }}>
-                  <img 
-                    src={phoneMockup} 
-                    alt="Interface Pulse.ai" 
-                    className="w-full max-w-md lg:max-w-lg drop-shadow-2xl"
-                  />
-                </div>
+              <p className="text-base md:text-lg text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed px-4">
+                Obtiens un plan sport & nutrition 100% personnalisé, validé par des coachs. Résultats visibles en 4 semaines, garantis.
+              </p>
+              
+              {/* Social Proof */}
+              <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
+                <Star className="w-5 h-5 fill-accent text-accent" />
+                <span className="text-base md:text-lg font-semibold">4,9/5 sur +1 200 utilisateurs actifs</span>
               </div>
+            </div>
+            
+            {/* Phone Mockup - Center/Bottom */}
+            <div className="relative flex justify-center items-end flex-1 z-10 w-full max-w-md mx-auto">
+              <div className="relative animate-in" style={{ animationDelay: '0.2s' }}>
+                <img 
+                  src={phoneMockup} 
+                  alt="Interface Pulse.ai" 
+                  className="w-full drop-shadow-2xl"
+                />
+              </div>
+            </div>
+            
+            {/* CTA - Bottom */}
+            <div className="pb-6 z-10">
+              {user ? (
+                <Link to="/hub">
+                  <Button 
+                    size="lg" 
+                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                  >
+                    Aller au Hub
+                  </Button>
+                </Link>
+              ) : (
+                <Link to="/start">
+                  <Button 
+                    size="lg" 
+                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                  >
+                    Commencer mon plan gratuit
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>
