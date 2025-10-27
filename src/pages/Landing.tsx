@@ -33,29 +33,31 @@ const Landing = () => {
         <div 
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop')",
+            backgroundImage: "url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop')",
             backgroundSize: "cover",
             backgroundPosition: "center",
-            backgroundRepeat: "no-repeat"
+            backgroundRepeat: "no-repeat",
+            filter: "blur(3px)",
+            transform: "scale(1.05)",
           }}
         />
         
         {/* Overlay sombre pour lisibilité */}
-        <div className="absolute inset-0 bg-black/60 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/65 to-black/75 z-10" />
         
         {/* Contenu hero */}
-        <div className="relative z-20 max-w-4xl mx-auto px-4 py-20 text-center text-white space-y-8">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight" style={{ textShadow: "0 4px 12px rgba(0,0,0,0.5)" }}>
+        <div className="relative z-20 max-w-4xl mx-auto px-6 py-24 md:py-20 text-center text-white space-y-8">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight" style={{ textShadow: "0 4px 16px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)" }}>
             Es-tu prêt à enfin voir des résultats concrets chaque semaine ?
           </h1>
           
-          <p className="text-lg md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>
+          <p className="text-lg md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed" style={{ textShadow: "0 3px 12px rgba(0,0,0,0.7), 0 1px 6px rgba(0,0,0,0.5)" }}>
             Réponds à ces 15 questions pour que nous puissions mesurer et améliorer : ton meilleur physique, ta santé, ton alimentation.
           </p>
           
           <div className="pt-4">
             <Link to="/start">
-              <Button size="lg" variant="hero" className="text-lg px-8 py-6 h-auto">
+              <Button size="lg" variant="hero" className="text-lg px-8 py-6 h-auto shadow-2xl shadow-primary/50 hover:shadow-primary/70 hover:scale-105 transition-all duration-300">
                 Commencer le quiz <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
