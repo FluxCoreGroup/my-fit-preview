@@ -7,6 +7,7 @@ import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles,
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
+import phoneMockup from "@/assets/phone-mockup.png";
 const testimonials = [{
   name: "Sophie M.",
   role: "Perdu 12kg en 3 mois",
@@ -55,65 +56,71 @@ const Landing = () => {
   return <div className="min-h-screen">
       <Header />
       
-      {/* Hero Section - Amélioré */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden pt-16">
-        <div className="gradient-hero min-h-[90vh] flex items-center justify-center px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center text-primary-foreground space-y-8 animate-in">
-            <Badge variant="secondary" className="mb-4">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Nouveau : Plans IA adaptatifs en temps réel
-            </Badge>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-              Ton coach fitness
-              <br />
-              <span className="text-primary-glow">dans ta poche</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-primary-foreground/90 max-w-2xl mx-auto">
-              Des plans sport + nutrition 100% personnalisés par IA.
-              <br />
-              <strong>Résultats visibles en 4 semaines, garantis.</strong>
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-              {user ? <Link to="/hub">
-                  <Button size="lg" variant="hero" className="text-lg">
-                    Aller au Hub <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link> : <>
-                  <Link to="/start">
-                    <Button size="lg" variant="hero" className="text-lg">
-                      Commencer gratuitement <ArrowRight className="w-5 h-5 ml-2" />
-                    </Button>
-                  </Link>
-                  <Link to="/preview">
-                    <Button size="lg" variant="outline" className="text-lg border-primary-foreground hover:bg-primary-foreground text-neutral-800">
-                      Voir une démo
-                    </Button>
-                  </Link>
-                </>}
+        <div className="gradient-hero min-h-[95vh] flex items-center px-4 py-12 md:py-20">
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left Column - Content */}
+              <div className="text-primary-foreground space-y-6 animate-in">
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-tight">
+                  Transforme ton corps.
+                  <br />
+                  <span className="text-primary-glow">Sans deviner.</span>
+                </h1>
+                
+                <p className="text-lg md:text-xl text-primary-foreground/90 max-w-xl leading-relaxed">
+                  Obtiens un plan sport & nutrition <strong>100% personnalisé</strong>, validé par des coachs.
+                  <br />
+                  <strong className="text-primary-glow">Résultats visibles en 4 semaines, garantis.</strong>
+                </p>
+                
+                {/* Social Proof */}
+                <div className="flex items-center gap-2 text-primary-foreground/90 py-2">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 fill-accent text-accent" />
+                    ))}
+                  </div>
+                  <span className="text-lg font-semibold">4,9/5</span>
+                  <span className="text-primary-foreground/70">sur +1 200 utilisateurs actifs</span>
+                </div>
+                
+                {/* CTA */}
+                <div className="pt-4">
+                  {user ? (
+                    <Link to="/hub">
+                      <Button 
+                        size="lg" 
+                        className="text-lg px-8 py-6 h-auto shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-glow hover:bg-primary text-primary-foreground"
+                      >
+                        Aller au Hub <ArrowRight className="w-5 h-5 ml-2" />
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link to="/start">
+                      <Button 
+                        size="lg" 
+                        className="text-lg px-8 py-6 h-auto shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-glow hover:bg-primary text-primary-foreground"
+                      >
+                        Commencer mon plan gratuit <ArrowRight className="w-5 h-5 ml-2" />
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              </div>
+              
+              {/* Right Column - Phone Mockup */}
+              <div className="relative flex justify-center lg:justify-end">
+                <div className="relative animate-in" style={{ animationDelay: '0.2s' }}>
+                  <img 
+                    src={phoneMockup} 
+                    alt="Interface Pulse.ai" 
+                    className="w-full max-w-md lg:max-w-lg drop-shadow-2xl"
+                  />
+                </div>
+              </div>
             </div>
-            
-            {/* Trust badges */}
-            <div className="flex flex-wrap justify-center gap-6 pt-4 text-sm text-primary-foreground/80">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4" />
-                Sans engagement
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4" />
-                Setup en 2 min
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4" />
-                1ère séance offerte
-              </div>
-            </div>
-            
-            {/* Compteur de confiance */}
-            <p className="text-sm text-primary-foreground/70 pt-2">
-              <Users className="w-4 h-4 inline mr-1" />
-              Déjà <strong>1,247 membres actifs</strong> qui transforment leur corps
-            </p>
           </div>
         </div>
       </section>
