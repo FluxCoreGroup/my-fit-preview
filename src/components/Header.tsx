@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Dumbbell, ArrowLeft, LogOut, Settings } from "lucide-react";
 
 interface HeaderProps {
-  variant?: "marketing" | "onboarding" | "app" | "landing-overlay";
+  variant?: "marketing" | "onboarding" | "app";
   showBack?: boolean;
   onBack?: () => void;
 }
@@ -96,43 +96,7 @@ export const Header = ({ variant = "marketing", showBack = false, onBack }: Head
     );
   }
 
-  // Header Landing Overlay (transparent sur image de fond)
-  if (variant === "landing-overlay") {
-    return (
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl text-white">
-            <Dumbbell className="w-6 h-6 text-white" />
-            <span>Pulse.ai</span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to="/preview" className="text-sm text-white/80 hover:text-white transition-colors">
-              Démo
-            </Link>
-            <Link to="/support" className="text-sm text-white/80 hover:text-white transition-colors">
-              Support
-            </Link>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Link to="/auth">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white">
-                Connexion
-              </Button>
-            </Link>
-            <Link to="/start">
-              <Button size="sm" variant="hero" className="bg-white text-primary hover:bg-white/90">
-                Commencer
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
-  // Header Marketing (pour autres pages)
+  // Header Marketing (pour landing)
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -145,6 +109,12 @@ export const Header = ({ variant = "marketing", showBack = false, onBack }: Head
           <Link to="/preview" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Démo
           </Link>
+          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Fonctionnalités
+          </a>
+          <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            FAQ
+          </a>
           <Link to="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Support
           </Link>

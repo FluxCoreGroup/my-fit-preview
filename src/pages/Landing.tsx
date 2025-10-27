@@ -1,258 +1,666 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Shield, Award, Users, Clock, Gift, Target, ArrowRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles, ShieldCheck, ArrowRight, X, Smartphone, Apple, Heart } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
-import { useEffect } from "react";
-
+const testimonials = [{
+  name: "Sophie M.",
+  role: "Perdu 12kg en 3 mois",
+  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
+  quote: "J'ai enfin trouvé un programme qui s'adapte à ma vie de maman. Les résultats sont là !"
+}, {
+  name: "Thomas L.",
+  role: "Prise de masse réussie",
+  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas",
+  quote: "Le suivi nutrition est incroyable. J'ai pris 8kg de muscle en gardant mes abdos visibles."
+}, {
+  name: "Marie K.",
+  role: "Débutante motivée",
+  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
+  quote: "Je n'avais jamais fait de sport. Les exercices sont clairs et j'adore les alternatives proposées."
+}];
+const faqItems = [{
+  q: "C'est vraiment gratuit pour commencer ?",
+  a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à partir de 9,90€/mois sans engagement."
+}, {
+  q: "Je suis débutant(e), ça marche pour moi ?",
+  a: "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo."
+}, {
+  q: "Comment les plans sont-ils générés ?",
+  a: "Notre IA analyse tes réponses (âge, poids, objectif, niveau, matériel disponible, contraintes...) et crée un plan 100% sur mesure en quelques secondes. Il s'ajuste ensuite automatiquement selon tes feedbacks hebdomadaires."
+}, {
+  q: "Puis-je annuler à tout moment ?",
+  a: "Oui, tu peux annuler ton abonnement quand tu veux, directement depuis ton tableau de bord en 1 clic. Aucune question posée, aucun frais cachés."
+}, {
+  q: "Quel matériel ai-je besoin ?",
+  a: "Aucun matériel obligatoire ! Pulse.ai s'adapte à ce que tu as : poids du corps uniquement, haltères, barre, machines en salle... Tu sélectionnes ton équipement lors de la configuration."
+}, {
+  q: "Les résultats sont-ils garantis ?",
+  a: "Nous garantissons des résultats visibles en 4 semaines si tu suis ton plan à 80% minimum. Sinon, tu es remboursé(e) intégralement, sans justification."
+}, {
+  q: "Puis-je suivre mes progrès ?",
+  a: "Oui ! Dashboard complet avec historique des séances, évolution du poids/mensurations, graphiques de progression et ajustements automatiques du plan."
+}, {
+  q: "Le support est-il inclus ?",
+  a: "Oui, support par email 7j/7 inclus dans tous les abonnements. Réponse garantie sous 24h (souvent bien plus rapide)."
+}];
 const Landing = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirection automatique si l'utilisateur est connecté
-  useEffect(() => {
-    if (user) {
-      navigate("/hub");
-    }
-  }, [user, navigate]);
-
-  // Ne rien afficher pendant la redirection
-  if (user) {
-    return null;
-  }
-
-  return (
-    <div className="min-h-screen">
-      {/* Header transparent overlay */}
-      <Header variant="landing-overlay" />
+  const {
+    user
+  } = useAuth();
+  return <div className="min-h-screen">
+      <Header />
       
-      {/* Hero Section - Fullscreen avec image de fond */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Image de fond Unsplash */}
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=2070&auto=format&fit=crop')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            filter: "blur(3px)",
-            transform: "scale(1.05)",
-          }}
-        />
-        
-        {/* Overlay sombre pour lisibilité */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/65 to-black/75 z-10" />
-        
-        {/* Contenu hero */}
-        <div className="relative z-20 max-w-4xl mx-auto px-6 py-24 md:py-20 text-center text-white space-y-8">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight" style={{ textShadow: "0 4px 16px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)" }}>
-            Es-tu prêt à enfin voir des résultats concrets chaque semaine ?
-          </h1>
-          
-          <p className="text-lg md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed" style={{ textShadow: "0 3px 12px rgba(0,0,0,0.7), 0 1px 6px rgba(0,0,0,0.5)" }}>
-            Réponds à ces 15 questions pour que nous puissions mesurer et améliorer : ton meilleur physique, ta santé, ton alimentation.
-          </p>
-          
-          <div className="pt-4">
-            <Link to="/start">
-              <Button size="lg" variant="hero" className="text-lg px-8 py-6 h-auto shadow-2xl shadow-primary/50 hover:shadow-primary/70 hover:scale-105 transition-all duration-300">
-                Commencer le quiz <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+      {/* Hero Section - Amélioré */}
+      <section className="relative overflow-hidden pt-16">
+        <div className="gradient-hero min-h-[90vh] flex items-center justify-center px-4 py-20">
+          <div className="max-w-4xl mx-auto text-center text-primary-foreground space-y-8 animate-in">
+            <Badge variant="secondary" className="mb-4">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Nouveau : Plans IA adaptatifs en temps réel
+            </Badge>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+              Ton coach fitness
+              <br />
+              <span className="text-primary-glow">dans ta poche</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-primary-foreground/90 max-w-2xl mx-auto">
+              Des plans sport + nutrition 100% personnalisés par IA.
+              <br />
+              <strong>Résultats visibles en 4 semaines, garantis.</strong>
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+              {user ? <Link to="/hub">
+                  <Button size="lg" variant="hero" className="text-lg">
+                    Aller au Hub <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link> : <>
+                  <Link to="/start">
+                    <Button size="lg" variant="hero" className="text-lg">
+                      Commencer gratuitement <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </Link>
+                  <Link to="/preview">
+                    <Button size="lg" variant="outline" className="text-lg border-primary-foreground hover:bg-primary-foreground text-neutral-800">
+                      Voir une démo
+                    </Button>
+                  </Link>
+                </>}
+            </div>
+            
+            {/* Trust badges */}
+            <div className="flex flex-wrap justify-center gap-6 pt-4 text-sm text-primary-foreground/80">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4" />
+                Sans engagement
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4" />
+                Setup en 2 min
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4" />
+                1ère séance offerte
+              </div>
+            </div>
+            
+            {/* Compteur de confiance */}
+            <p className="text-sm text-primary-foreground/70 pt-2">
+              <Users className="w-4 h-4 inline mr-1" />
+              Déjà <strong>1,247 membres actifs</strong> qui transforment leur corps
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Section Crédibilité */}
-      <section className="py-20 px-4 bg-background">
+      {/* Social Proof Section - NOUVEAU */}
+      <section className="py-12 border-y bg-muted/20">
+        <div className="max-w-6xl mx-auto px-4">
+          {/* Stats clés */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-12">
+            <div>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">1,247+</div>
+              <div className="text-muted-foreground">Membres actifs</div>
+            </div>
+            <div>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">4.8/5</div>
+              <div className="text-muted-foreground flex items-center justify-center gap-1">
+                <Star className="w-4 h-4 fill-primary text-primary" />
+                Note moyenne
+              </div>
+            </div>
+            <div>
+              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">-8kg</div>
+              <div className="text-muted-foreground">Perte moyenne en 2 mois</div>
+            </div>
+          </div>
+          
+          {/* Témoignages */}
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => <Card key={i} className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Avatar>
+                    <AvatarImage src={t.avatar} />
+                    <AvatarFallback>{t.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-bold text-sm">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+                <p className="text-sm italic text-muted-foreground">"{t.quote}"</p>
+                <div className="flex gap-1 mt-3">
+                  {[...Array(5)].map((_, j) => <Star key={j} className="w-3 h-3 fill-primary text-primary" />)}
+                </div>
+              </Card>)}
+          </div>
+        </div>
+      </section>
+
+      {/* Comment ça marche Section - NOUVEAU */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto text-center mb-16">
+          <h2 className="mb-4">Comment ça marche ?</h2>
+          <p className="text-xl text-muted-foreground">3 étapes simples pour transformer ton corps</p>
+        </div>
+        
+        <div className="max-w-5xl mx-auto space-y-16">
+          {/* Étape 1 */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="order-2 md:order-1 space-y-4">
+              <Badge variant="default" className="mb-2">
+                Étape 1 • 2 minutes
+              </Badge>
+              <h3 className="text-3xl font-bold">Réponds à 5 questions</h3>
+              <p className="text-muted-foreground text-lg">
+                Âge, objectif, niveau, matériel disponible... Notre IA analyse ton profil pour créer un plan 100% personnalisé.
+              </p>
+              <ul className="space-y-3 pt-2">
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Aucune connaissance requise</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Questions simples et rapides</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Adapté à ton emploi du temps</span>
+                </li>
+              </ul>
+            </div>
+            <Card className="p-6 order-1 md:order-2 bg-muted/30">
+              <div className="aspect-[4/3] bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
+                <Target className="w-20 h-20 text-primary/40" />
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-4">Questionnaire personnalisé</p>
+            </Card>
+          </div>
+          
+          {/* Étape 2 */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <Card className="p-6 bg-muted/30">
+              <div className="aspect-[4/3] bg-gradient-to-br from-secondary/10 to-primary/10 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-20 h-20 text-primary/40" />
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-4">Analyse IA instantanée</p>
+            </Card>
+            <div className="space-y-4">
+              <Badge variant="default" className="mb-2">
+                Étape 2 • Instantané
+              </Badge>
+              <h3 className="text-3xl font-bold">Reçois ton plan complet</h3>
+              <p className="text-muted-foreground text-lg">
+                Nutrition (calories, macros, hydratation) + Programme d'entraînement adapté à ton matériel et ton emploi du temps.
+              </p>
+              <ul className="space-y-3 pt-2">
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Plan généré en 15 secondes</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Explications détaillées de chaque métrique</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Ajustements automatiques chaque semaine</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Étape 3 */}
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="order-2 md:order-1 space-y-4">
+              <Badge variant="default" className="mb-2">
+                Étape 3 • Suivi continu
+              </Badge>
+              <h3 className="text-3xl font-bold">Lance ta 1ère séance gratuite</h3>
+              <p className="text-muted-foreground text-lg">
+                Timer intégré, alternatives d'exercices, tracking RPE/RIR... Tout pour progresser efficacement.
+              </p>
+              <ul className="space-y-3 pt-2">
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Vidéos de démonstration pour chaque exercice</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Ajustements automatiques selon tes feedbacks</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span>Historique complet de tes progrès</span>
+                </li>
+              </ul>
+            </div>
+            <Card className="p-6 order-1 md:order-2 bg-muted/30">
+              <div className="aspect-[4/3] bg-gradient-to-br from-accent/10 to-secondary/10 rounded-lg flex items-center justify-center">
+                <Dumbbell className="w-20 h-20 text-primary/40" />
+              </div>
+              <p className="text-center text-sm text-muted-foreground mt-4">Séance en cours avec timer</p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-20 px-4 bg-muted/30">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-center mb-12">Pourquoi Pulse.ai ?</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card className="p-6 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">100% personnalisé</h3>
+              <p className="text-muted-foreground">
+                Plans adaptés à ton âge, ton niveau, ton matériel et tes contraintes de temps.
+              </p>
+            </Card>
+            
+            <Card className="p-6 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center mb-4">
+                <Clock className="w-6 h-6 text-secondary" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Rapide & efficace</h3>
+              <p className="text-muted-foreground">
+                Ton plan en moins de 5 minutes. Des séances de 30 à 60 minutes adaptées à ton emploi du temps.
+              </p>
+            </Card>
+            
+            <Card className="p-6 hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-accent" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Suivi & progression</h3>
+              <p className="text-muted-foreground">
+                Feedback après chaque séance. Ajustements automatiques pour des résultats constants.
+              </p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="mb-6">Ce que tu obtiens</h2>
+              <ul className="space-y-4">
+                {["Plans nutrition personnalisés (calories + macros)", "Séances d'entraînement détaillées avec alternatives", "Timer intégré et suivi RPE/RIR", "Check-in hebdomadaire pour ajustements", "Exercices en vidéo avec consignes claires", "Support par email 7j/7"].map((feature, i) => <li key={i} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>)}
+              </ul>
+            </div>
+            <Card className="p-8 bg-card">
+              <Dumbbell className="w-16 h-16 text-primary mb-4" />
+              <h3 className="text-2xl font-bold mb-4">À la maison ou en salle</h3>
+              <p className="text-muted-foreground mb-6">
+                Que tu aies une salle complète ou juste ton poids du corps, Pulse.ai adapte tes séances à ton matériel disponible.
+              </p>
+              <Link to="/start">
+                <Button variant="default" size="lg" className="w-full">
+                  Essayer maintenant
+                </Button>
+              </Link>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparaison Section */}
+      <section className="py-20 px-4 bg-muted/30" id="features">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Fondé sur la science, conçu par des experts
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Pulse.ai a été créé par des coachs sportifs certifiés et s'appuie sur des décennies de recherche scientifique en sport et nutrition.
+            <h2 className="mb-4">Pourquoi choisir Pulse.ai ?</h2>
+            <p className="text-muted-foreground text-lg">
+              Compare notre approche avec les alternatives traditionnelles
             </p>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Card 1 - Recherche scientifique */}
-            <Card className="p-8 text-center hover:shadow-xl transition-shadow">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">
-                Basé sur 20+ études scientifiques
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Nos algorithmes s'appuient sur les recherches les plus récentes en science de l'entraînement et nutrition sportive.
-              </p>
-              <ul className="space-y-2 text-sm text-left">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>Progressive Overload (Schoenfeld et al., 2017)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>Periodization Training (Rhea et al., 2003)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>Protein Timing (Morton et al., 2018)</span>
-                </li>
-              </ul>
-            </Card>
-
-            {/* Card 2 - Créateurs */}
-            <Card className="p-8 text-center hover:shadow-xl transition-shadow">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-secondary/10 flex items-center justify-center">
-                <Award className="w-8 h-8 text-secondary" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">
-                Créé par des coachs certifiés
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Notre équipe fondatrice cumule plus de 15 ans d'expérience en coaching sportif et nutrition.
-              </p>
-              <ul className="space-y-2 text-sm text-left">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>Certifications NASM, ACE, ISSA</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>+500 clients suivis en coaching privé</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>Spécialistes en transformation physique</span>
-                </li>
-              </ul>
-            </Card>
-
-            {/* Card 3 - Collaboration */}
-            <Card className="p-8 text-center hover:shadow-xl transition-shadow">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent/10 flex items-center justify-center">
-                <Users className="w-8 h-8 text-accent" />
-              </div>
-              <h3 className="text-2xl font-bold mb-4">
-                Collaboration avec des professionnels
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Nous travaillons main dans la main avec des experts reconnus pour garantir la qualité de nos programmes.
-              </p>
-              <ul className="space-y-2 text-sm text-left">
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>Nutritionnistes diplômés d'État</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>Kinésithérapeutes du sport</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-primary font-bold">•</span>
-                  <span>Préparateurs physiques professionnels</span>
-                </li>
-              </ul>
-            </Card>
-          </div>
-
-          {/* Bandeau de confiance */}
-          <div className="mt-16 text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              Pulse.ai est approuvé par des professionnels de santé et du sport
-            </p>
-            <div className="flex flex-wrap justify-center gap-8 items-center opacity-60">
-              <div className="text-2xl font-bold">NASM</div>
-              <div className="text-2xl font-bold">ACE</div>
-              <div className="text-2xl font-bold">ISSA</div>
-              <div className="text-2xl font-bold">ISO 27001</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Section CTA Finale */}
-      <section className="py-20 px-4 gradient-primary">
-        <div className="max-w-4xl mx-auto text-center text-white space-y-8">
-          <h2 className="text-3xl md:text-5xl font-bold" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.3)" }}>
-            Prêt à transformer ton corps ?
-          </h2>
           
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Commence dès maintenant avec notre quiz personnalisé et reçois tes premières recommandations.
-          </p>
-
-          {/* 3 arguments clés */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto pt-4">
-            <Card className="p-6 bg-white/10 backdrop-blur-sm border-white/20 text-white">
-              <Clock className="w-10 h-10 mx-auto mb-3" />
-              <p className="font-bold text-lg mb-1">Durée : 3 minutes</p>
-              <p className="text-sm text-white/80">Quiz rapide et simple</p>
-            </Card>
-            
-            <Card className="p-6 bg-white/10 backdrop-blur-sm border-white/20 text-white">
-              <Gift className="w-10 h-10 mx-auto mb-3" />
-              <p className="font-bold text-lg mb-1">Complètement gratuit</p>
-              <p className="text-sm text-white/80">Sans engagement ni CB</p>
-            </Card>
-            
-            <Card className="p-6 bg-white/10 backdrop-blur-sm border-white/20 text-white">
-              <Target className="w-10 h-10 mx-auto mb-3" />
-              <p className="font-bold text-lg mb-1">Résultats immédiats</p>
-              <p className="text-sm text-white/80">Recommandations personnalisées</p>
-            </Card>
+          <div className="overflow-x-auto">
+            <table className="w-full bg-card rounded-lg overflow-hidden">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-6 px-6 font-semibold"></th>
+                  <th className="text-center py-6 px-6 bg-primary/5">
+                    <div className="font-bold text-primary text-lg">Pulse.ai</div>
+                  </th>
+                  <th className="text-center py-6 px-6">
+                    <div className="font-semibold text-muted-foreground">Coach personnel</div>
+                  </th>
+                  <th className="text-center py-6 px-6">
+                    <div className="font-semibold text-muted-foreground">Apps génériques</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Prix mensuel</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <span className="font-bold text-primary">9,90€</span>
+                  </td>
+                  <td className="text-center py-4 px-6 text-muted-foreground">50-150€</td>
+                  <td className="text-center py-4 px-6 text-muted-foreground">0-15€</td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Personnalisation IA</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Ajustements automatiques</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Disponibilité 24/7</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Plans nutrition + sport</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 font-medium">Support 7j/7</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          <div className="pt-6">
+          
+          <div className="text-center mt-12">
             <Link to="/start">
-              <Button size="lg" variant="hero" className="text-lg px-8 py-6 h-auto bg-white text-primary hover:bg-white/90">
-                Commencer le quiz <ArrowRight className="w-5 h-5 ml-2" />
+              <Button size="lg">
+                Essayer Pulse.ai gratuitement <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
           </div>
-
-          <p className="text-sm text-white/70 pt-4">
-            Déjà <strong className="text-white">1,247+ personnes</strong> ont commencé leur transformation
-          </p>
         </div>
       </section>
 
-      {/* Footer minimaliste */}
-      <footer className="py-12 px-4 bg-muted/30 border-t">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2 font-bold text-xl">
-              <Target className="w-6 h-6 text-primary" />
-              <span>Pulse.ai</span>
-            </div>
-            
-            <nav className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
-              <Link to="/legal" className="hover:text-foreground transition-colors">
-                Mentions légales
-              </Link>
-              <Link to="/legal" className="hover:text-foreground transition-colors">
-                CGU
-              </Link>
-              <Link to="/legal" className="hover:text-foreground transition-colors">
-                Confidentialité
-              </Link>
-              <Link to="/support" className="hover:text-foreground transition-colors">
-                Support
-              </Link>
-            </nav>
+      {/* Intégrations Section */}
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="mb-4">Synchronise avec tes apps préférées</h2>
+          <p className="text-muted-foreground text-lg mb-12">
+            Connecte Pulse.ai à tes applications de santé et fitness pour un suivi optimal
+          </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
+              <Apple className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="font-semibold">Apple Health</p>
+            </Card>
+            <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
+              <Smartphone className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="font-semibold">Google Fit</p>
+            </Card>
+            <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
+              <Heart className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="font-semibold">Fitbit</p>
+            </Card>
+            <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
+              <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="font-semibold">Strava</p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section - Améliorée avec Accordion */}
+      <section className="py-20 px-4 bg-muted/30" id="faq">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-center mb-4">Questions fréquentes</h2>
+          <p className="text-center text-muted-foreground mb-12">
+            Tout ce que tu dois savoir sur Pulse.ai
+          </p>
+          <Accordion type="single" collapsible className="space-y-4">
+            {faqItems.map((faq, i) => <AccordionItem key={i} value={`item-${i}`} className="bg-card border rounded-lg px-6">
+                <AccordionTrigger className="text-left hover:no-underline">
+                  <span className="font-semibold">{faq.q}</span>
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>)}
+          </Accordion>
+        </div>
+      </section>
+
+      {/* CTA Section - Amélioré */}
+      <section className="relative py-20 px-4 overflow-hidden">
+        <div className="absolute inset-0 gradient-hero opacity-90" />
+        <div className="absolute inset-0 bg-grid-white/5" />
+        
+        <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10 text-primary-foreground">
+          <Badge variant="secondary" className="mb-4">
+            <ShieldCheck className="w-3 h-3 mr-1" />
+            Satisfait ou remboursé sous 30 jours
+          </Badge>
+          <h2 className="text-4xl md:text-5xl font-bold">
+            Prêt(e) à transformer ton corps ?
+          </h2>
+          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+            Rejoins <strong>1,247 membres</strong> qui progressent chaque jour avec Pulse.ai.
+            Résultats visibles en 4 semaines ou remboursé.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <Link to="/start">
+              <Button size="lg" variant="secondary" className="text-lg">
+                Commencer gratuitement <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <Link to="/preview">
+              <Button size="lg" variant="outline" className="text-lg border-primary-foreground hover:bg-primary-foreground text-zinc-800">
+                Voir une démo
+              </Button>
+            </Link>
           </div>
           
-          <div className="text-center text-sm text-muted-foreground mt-8">
-            © 2025 Pulse.ai • Tous droits réservés
+          <div className="flex flex-wrap justify-center gap-8 pt-8 text-sm opacity-80">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              Sans carte bancaire
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              Setup en 2 min
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4" />
+              Annulation en 1 clic
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer Amélioré */}
+      <footer className="border-t py-16 px-4 bg-card">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            {/* Logo + Tagline */}
+            <div className="space-y-4">
+              <Link to="/" className="flex items-center gap-2 font-bold text-xl">
+                <Dumbbell className="w-6 h-6 text-primary" />
+                <span>Pulse.ai</span>
+              </Link>
+              <p className="text-sm text-muted-foreground">
+                Ton coach fitness IA, disponible 24/7 pour transformer ton corps.
+              </p>
+              <div className="flex gap-4 pt-2">
+                <Badge variant="outline" className="text-xs">
+                  🔒 Paiement sécurisé
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  ✓ RGPD
+                </Badge>
+              </div>
+            </div>
+
+            {/* Produit */}
+            <div>
+              <h4 className="font-semibold mb-4">Produit</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <a href="#features" className="hover:text-foreground transition-colors">
+                    Fonctionnalités
+                  </a>
+                </li>
+                <li>
+                  <Link to="/preview" className="hover:text-foreground transition-colors">
+                    Voir une démo
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/start" className="hover:text-foreground transition-colors">
+                    Commencer
+                  </Link>
+                </li>
+                <li>
+                  <a href="#faq" className="hover:text-foreground transition-colors">
+                    FAQ
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Ressources */}
+            <div>
+              <h4 className="font-semibold mb-4">Ressources</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link to="/support" className="hover:text-foreground transition-colors">
+                    Support
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/feedback" className="hover:text-foreground transition-colors">
+                    Feedback
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Légal */}
+            <div>
+              <h4 className="font-semibold mb-4">Légal</h4>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li>
+                  <Link to="/legal" className="hover:text-foreground transition-colors">
+                    Mentions légales
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/legal" className="hover:text-foreground transition-colors">
+                    CGU
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/legal" className="hover:text-foreground transition-colors">
+                    Confidentialité
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom bar */}
+          <div className="pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+            <p>© 2025 Pulse.ai - Tous droits réservés</p>
+            <div className="flex gap-4">
+              <span>Fait avec ❤️ pour ta transformation</span>
+            </div>
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Landing;
