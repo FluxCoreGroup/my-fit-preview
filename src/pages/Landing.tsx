@@ -7,7 +7,7 @@ import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles,
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
-import phoneMockup from "@/assets/phone-mockup.png";
+import handPhoneMockup from "@/assets/hand-phone-mockup.png";
 const testimonials = [{
   name: "Sophie M.",
   role: "Perdu 12kg en 3 mois",
@@ -57,19 +57,19 @@ const Landing = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-4 px-4 md:px-6 lg:px-8">
+      <section className="relative overflow-hidden pt-20 md:pt-24 px-4 md:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="gradient-hero rounded-[2.5rem] min-h-[90vh] flex flex-col items-center justify-between px-6 py-12 md:py-16 relative overflow-hidden">
             {/* Content - Top */}
             <div className="text-center text-primary-foreground space-y-6 animate-in pt-8 z-10">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
-                Transforme ton corps.
+                Ton coach fitness
                 <br />
-                Sans deviner.
+                dans ta poche.
               </h1>
               
               <p className="text-base md:text-lg text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed px-4">
-                Obtiens un plan sport & nutrition 100% personnalisé, validé par des coachs. Résultats visibles en 4 semaines, garantis.
+                Obtiens un plan sport & nutrition <strong>100% personnalisé</strong>. Résultats visibles en 4 semaines, garantis.
               </p>
               
               {/* Social Proof */}
@@ -79,15 +79,13 @@ const Landing = () => {
               </div>
             </div>
             
-            {/* Phone Mockup - Center/Bottom */}
-            <div className="relative flex justify-center items-end flex-1 z-10 w-full max-w-md mx-auto">
-              <div className="relative animate-in" style={{ animationDelay: '0.2s' }}>
-                <img 
-                  src={phoneMockup} 
-                  alt="Interface Pulse.ai" 
-                  className="w-full drop-shadow-2xl"
-                />
-              </div>
+            {/* Phone Mockup - Right side with overflow */}
+            <div className="absolute -right-8 md:-right-12 bottom-0 z-10 w-1/2 md:w-2/5 max-w-sm animate-in" style={{ animationDelay: '0.2s' }}>
+              <img 
+                src={handPhoneMockup} 
+                alt="Interface Pulse.ai" 
+                className="w-full drop-shadow-2xl"
+              />
             </div>
             
             {/* CTA - Bottom */}
@@ -107,7 +105,7 @@ const Landing = () => {
                     size="lg" 
                     className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
                   >
-                    Commencer mon plan gratuit
+                    Faire le quiz
                   </Button>
                 </Link>
               )}
