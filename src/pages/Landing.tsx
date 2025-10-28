@@ -79,8 +79,8 @@ const Landing = () => {
               </div>
             </div>
             
-            {/* Phone Mockup - Right side with overflow */}
-            <div className="absolute -right-8 md:-right-12 bottom-0 z-10 w-1/2 md:w-2/5 max-w-sm animate-in" style={{ animationDelay: '0.2s' }}>
+            {/* Phone Mockup - Centered in red rectangle area */}
+            <div className="absolute left-1/2 -translate-x-1/2 top-[52%] md:top-1/2 -translate-y-1/2 z-10 w-[35%] md:w-[28%] max-w-[280px] animate-in" style={{ animationDelay: '0.2s' }}>
               <img 
                 src={handPhoneMockup} 
                 alt="Interface Pulse.ai" 
