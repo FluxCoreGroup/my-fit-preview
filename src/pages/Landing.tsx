@@ -83,7 +83,7 @@ const Landing = () => {
           <div className="lg:hidden flex justify-center z-10 my-8">
             <img 
               src={handPhoneMockup} 
-              alt="Interface Pulse.ai" 
+              alt="Interface du Hub Pulse.ai" 
               className="w-[clamp(180px,45vw,300px)] drop-shadow-2xl pointer-events-none select-none"
             />
           </div>
@@ -92,7 +92,7 @@ const Landing = () => {
           <div className="hidden lg:block absolute -right-12 bottom-0 z-10 w-[420px] max-w-[40%]">
             <img 
               src={handPhoneMockup} 
-              alt="Interface Pulse.ai" 
+              alt="Interface du Hub Pulse.ai" 
               className="w-full drop-shadow-2xl pointer-events-none select-none"
             />
           </div>
