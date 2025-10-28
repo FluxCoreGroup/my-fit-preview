@@ -72,23 +72,32 @@ const Landing = () => {
                 Obtiens un plan sport & nutrition <strong>100% personnalisé</strong>. Résultats visibles en 4 semaines, garantis.
               </p>
               
-              {/* Social Proof */}
-              <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
-                <Star className="w-5 h-5 fill-accent text-accent" />
-                <span className="text-base md:text-lg font-semibold">4,9/5 sur +1 200 utilisateurs actifs</span>
-              </div>
+            {/* Social Proof */}
+            <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
+              <Star className="w-5 h-5 fill-accent text-accent" />
+              <span className="text-base md:text-lg font-semibold">4,9/5 sur +1 200 utilisateurs actifs</span>
             </div>
-            
-            {/* Phone Mockup - Centered between social proof and CTA on mobile, bottom right on desktop */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-[52%] -translate-y-1/2 lg:-right-12 lg:left-auto lg:translate-x-0 lg:bottom-0 lg:top-auto lg:translate-y-0 z-10 w-[35%] sm:w-[30%] md:w-[28%] lg:w-[32%] max-w-[200px] md:max-w-[240px] lg:max-w-sm animate-in" style={{ animationDelay: '0.2s' }}>
-              <img 
-                src={handPhoneMockup} 
-                alt="Interface Pulse.ai" 
-                className="w-full drop-shadow-2xl"
-              />
-            </div>
-            
-            {/* CTA - Bottom */}
+          </div>
+          
+          {/* Phone Mockup - Mobile only (in flow between social proof and CTA) */}
+          <div className="lg:hidden flex justify-center z-10 my-8">
+            <img 
+              src={handPhoneMockup} 
+              alt="Interface Pulse.ai" 
+              className="w-[clamp(180px,45vw,300px)] drop-shadow-2xl pointer-events-none select-none"
+            />
+          </div>
+          
+          {/* Phone Mockup - Desktop only (bottom right) */}
+          <div className="hidden lg:block absolute -right-12 bottom-0 z-10 w-[420px] max-w-[40%]">
+            <img 
+              src={handPhoneMockup} 
+              alt="Interface Pulse.ai" 
+              className="w-full drop-shadow-2xl pointer-events-none select-none"
+            />
+          </div>
+          
+          {/* CTA - Bottom */}
             <div className="pb-6 z-10">
               {user ? (
                 <Link to="/hub">
