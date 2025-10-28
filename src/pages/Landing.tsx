@@ -59,7 +59,7 @@ const Landing = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 md:pt-24 px-4 md:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <div className="gradient-hero rounded-[2.5rem] min-h-[90vh] flex flex-col items-center justify-between px-6 py-12 md:py-16 relative overflow-hidden">
+          <div className="gradient-hero rounded-[2.5rem] min-h-[90vh] flex flex-col items-center justify-between px-6 py-12 md:py-16 relative overflow-visible lg:overflow-hidden">
             {/* Content - Top */}
             <div className="text-center text-primary-foreground space-y-6 animate-in pt-8 z-10">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
@@ -79,8 +79,17 @@ const Landing = () => {
               </div>
             </div>
             
-            {/* Phone Mockup - Right side with overflow */}
-            <div className="absolute -right-8 md:-right-12 bottom-0 z-10 w-1/2 md:w-2/5 max-w-sm animate-in" style={{ animationDelay: '0.2s' }}>
+            {/* Phone Mockup - Mobile: from right side */}
+            <div className="absolute -right-4 bottom-0 w-[75%] max-w-[320px] z-10 lg:hidden animate-in" style={{ animationDelay: '0.2s' }}>
+              <img 
+                src={handPhoneMockup} 
+                alt="Interface Pulse.ai" 
+                className="w-full drop-shadow-2xl"
+              />
+            </div>
+
+            {/* Phone Mockup - Desktop: from bottom center */}
+            <div className="hidden lg:block absolute bottom-0 right-1/4 w-[45%] max-w-[500px] z-10 animate-in" style={{ animationDelay: '0.2s' }}>
               <img 
                 src={handPhoneMockup} 
                 alt="Interface Pulse.ai" 
@@ -89,7 +98,7 @@ const Landing = () => {
             </div>
             
             {/* CTA - Bottom */}
-            <div className="pb-6 z-10">
+            <div className="relative z-20 pb-6 w-full max-w-md mx-auto px-4 lg:px-0">
               {user ? (
                 <Link to="/hub">
                   <Button 
