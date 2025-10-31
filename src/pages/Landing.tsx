@@ -80,8 +80,8 @@ const Landing = () => {
           </div>
           
           {/* Phone Mockup - Centered */}
-          <div className="flex justify-center z-10 my-8">
-            <img src={heroPhone} alt="Interface du Hub Pulse.ai" className="w-[clamp(200px,50vw,400px)] drop-shadow-2xl pointer-events-none select-none" />
+          <div className="flex justify-center z-10 my-6">
+            <img src={heroPhone} alt="Interface du Hub Pulse.ai" className="w-[clamp(140px,35vw,280px)] max-h-[40vh] object-contain drop-shadow-2xl pointer-events-none select-none" />
           </div>
           
           
