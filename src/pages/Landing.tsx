@@ -7,7 +7,7 @@ import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles,
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
-import phoneHubMockup from "@/assets/phone-hub-mockup.png";
+import handPhoneMockup from "@/assets/hand-phone-mockup.png";
 const testimonials = [{
   name: "Sophie M.",
   role: "Perdu 12kg en 3 mois",
@@ -80,9 +80,9 @@ const Landing = () => {
           </div>
           
           {/* Phone Mockup - Mobile only (in flow between social proof and CTA) */}
-          <div className="lg:hidden flex justify-center z-10 my-8">
+          	<div className="lg:hidden flex justify-center z-10 my-8">
             <img 
-              src={phoneHubMockup} 
+              src={handPhoneMockup} 
               alt="Interface du Hub Pulse.ai" 
               className="w-[clamp(180px,45vw,300px)] drop-shadow-2xl pointer-events-none select-none"
             />
@@ -91,7 +91,7 @@ const Landing = () => {
           {/* Phone Mockup - Desktop only (bottom right) */}
           <div className="hidden lg:block absolute -right-12 bottom-0 z-10 w-[420px] max-w-[40%]">
             <img 
-              src={phoneHubMockup} 
+              src={handPhoneMockup} 
               alt="Interface du Hub Pulse.ai" 
               className="w-full drop-shadow-2xl pointer-events-none select-none"
             />
