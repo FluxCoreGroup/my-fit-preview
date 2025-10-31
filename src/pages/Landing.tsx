@@ -81,43 +81,23 @@ const Landing = () => {
           
           {/* Phone Mockup - Mobile only (in flow between social proof and CTA) */}
           	<div className="lg:hidden flex justify-center z-10 my-8">
-            <img 
-              src={handPhoneMockup} 
-              alt="Interface du Hub Pulse.ai" 
-              className="w-[clamp(180px,45vw,300px)] drop-shadow-2xl pointer-events-none select-none"
-            />
+            <img src={handPhoneMockup} alt="Interface du Hub Pulse.ai" className="w-[clamp(180px,45vw,300px)] drop-shadow-2xl pointer-events-none select-none" />
           </div>
           
           {/* Phone Mockup - Desktop only (bottom right) */}
-          <div className="hidden lg:block absolute -right-12 bottom-0 z-10 w-[420px] max-w-[40%]">
-            <img 
-              src={handPhoneMockup} 
-              alt="Interface du Hub Pulse.ai" 
-              className="w-full drop-shadow-2xl pointer-events-none select-none"
-            />
-          </div>
+          
           
           {/* CTA - Bottom */}
             <div className="pb-6 z-10">
-              {user ? (
-                <Link to="/hub">
-                  <Button 
-                    size="lg" 
-                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
-                  >
+              {user ? <Link to="/hub">
+                  <Button size="lg" className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold">
                     Aller au Hub
                   </Button>
-                </Link>
-              ) : (
-                <Link to="/start">
-                  <Button 
-                    size="lg" 
-                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
-                  >
+                </Link> : <Link to="/start">
+                  <Button size="lg" className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold">
                     Faire le quiz
                   </Button>
-                </Link>
-              )}
+                </Link>}
             </div>
           </div>
         </div>
