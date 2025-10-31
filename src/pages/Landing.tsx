@@ -7,7 +7,7 @@ import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles,
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
-import handPhoneMockup from "@/assets/hand-phone-mockup.png";
+import heroPhone from "@/assets/hero-phone.png";
 const testimonials = [{
   name: "Sophie M.",
   role: "Perdu 12kg en 3 mois",
@@ -79,12 +79,10 @@ const Landing = () => {
             </div>
           </div>
           
-          {/* Phone Mockup - Mobile only (in flow between social proof and CTA) */}
-          	<div className="lg:hidden flex justify-center z-10 my-8">
-            <img src={handPhoneMockup} alt="Interface du Hub Pulse.ai" className="w-[clamp(180px,45vw,300px)] drop-shadow-2xl pointer-events-none select-none" />
+          {/* Phone Mockup - Centered */}
+          <div className="flex justify-center z-10 my-8">
+            <img src={heroPhone} alt="Interface du Hub Pulse.ai" className="w-[clamp(200px,50vw,400px)] drop-shadow-2xl pointer-events-none select-none" />
           </div>
-          
-          {/* Phone Mockup - Desktop only (bottom right) */}
           
           
           {/* CTA - Bottom */}
