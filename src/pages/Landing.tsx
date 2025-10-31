@@ -158,7 +158,7 @@ const Landing = () => {
               <Badge variant="default" className="mb-2">
                 Étape 1 • 2 minutes
               </Badge>
-              <h3 className="text-3xl font-bold">Réponds à 5 questions</h3>
+              <h3 className="text-3xl font-bold">Réponds à 15 questions</h3>
               <p className="text-muted-foreground text-lg">
                 Âge, objectif, niveau, matériel disponible... Notre IA analyse ton profil pour créer un plan 100% personnalisé.
               </p>
