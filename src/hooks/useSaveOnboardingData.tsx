@@ -74,6 +74,7 @@ export const useSaveOnboardingData = () => {
           });
         } else {
           console.log("✅ Données goals enregistrées avec succès pour l'utilisateur:", user.id);
+          console.log("📋 Payload upsert:", { location: data.location, equipment: data.equipment });
           // Retirer le flag de sauvegarde
           localStorage.removeItem("onboarding_saving");
           // Ne pas supprimer le localStorage ici, il sera supprimé après TrainingSetup

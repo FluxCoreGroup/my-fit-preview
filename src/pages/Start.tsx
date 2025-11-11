@@ -55,9 +55,11 @@ const Start = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const updateField = (field: keyof OnboardingInput, value: any) => {
-    const updated = { ...formData, [field]: value };
-    setFormData(updated);
-    saveProgress(updated); // Save to localStorage
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      saveProgress(updated); // Save to localStorage
+      return updated;
+    });
     // Clear error when field is updated
     if (errors[field]) {
       setErrors(prev => {
@@ -447,21 +449,25 @@ const Start = () => {
               key={option.label}
               type="button"
               onClick={() => {
-                updateField("location", option.value ? "gym" : "home");
-                if (option.value) {
-                          // Si salle, auto-remplir l'équipement
-                          updateField("equipment", [
-                            "Haltères",
-                            "Barre + poids",
-                            "Banc de musculation",
-                            "Barre de traction",
-                            "Machines guidées"
-                          ]);
-                        } else {
-                          // Si maison, réinitialiser
-                          updateField("equipment", []);
-                        }
-                      }}
+                const nextLocation: "gym" | "home" = option.value ? "gym" : "home";
+                const nextEquipment = option.value
+                  ? ["Haltères", "Barre + poids", "Banc de musculation", "Barre de traction", "Machines guidées"]
+                  : [];
+                
+                setFormData(prev => {
+                  const updated = { ...prev, location: nextLocation, equipment: nextEquipment };
+                  saveProgress(updated);
+                  return updated;
+                });
+                
+                // Clear related errors
+                setErrors(prevErr => {
+                  const e = { ...prevErr };
+                  delete e.location;
+                  delete e.equipment;
+                  return e;
+                });
+              }}
                       className={`p-4 rounded-lg border-2 transition-all hover:border-primary ${
                         formData.location === (option.value ? "gym" : "home") ? "border-primary bg-primary/5" : "border-border"
                       } ${errors.location ? 'border-destructive' : ''}`}
