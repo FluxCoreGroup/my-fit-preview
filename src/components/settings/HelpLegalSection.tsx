@@ -18,7 +18,7 @@ export const HelpLegalSection = () => {
             Centre d'aide
           </h3>
           <div className="space-y-2">
-            <Link to="/support">
+            <Link to="/settings/support">
               <Button variant="outline" className="w-full justify-start">
                 <Mail className="w-4 h-4 mr-2" />
                 Contacter le support

@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,26 +19,7 @@ function sanitizeHtml(text: string): string {
 }
 
 // Input validation
-function validateInput(name: string, email: string, subject: string, message: string): { valid: boolean; error?: string } {
-  if (!name || name.trim().length === 0) {
-    return { valid: false, error: 'Name is required' };
-  }
-  if (name.length > 100) {
-    return { valid: false, error: 'Name must be less than 100 characters' };
-  }
-  
-  if (!email || email.trim().length === 0) {
-    return { valid: false, error: 'Email is required' };
-  }
-  if (email.length > 255) {
-    return { valid: false, error: 'Email must be less than 255 characters' };
-  }
-  // Basic email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return { valid: false, error: 'Invalid email format' };
-  }
-  
+function validateInput(subject: string, message: string): { valid: boolean; error?: string } {
   if (!subject || subject.trim().length === 0) {
     return { valid: false, error: 'Subject is required' };
   }
@@ -77,10 +59,31 @@ serve(async (req) => {
       );
     }
 
-    const { name, email, subject, message } = await req.json();
+    // Get authenticated user
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    
+    if (userError || !user?.email) {
+      console.error('User not authenticated:', userError);
+      return new Response(
+        JSON.stringify({ error: 'User not authenticated' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      );
+    }
+
+    const { subject, message } = await req.json();
 
     // Validate inputs
-    const validation = validateInput(name, email, subject, message);
+    const validation = validateInput(subject, message);
     if (!validation.valid) {
       return new Response(
         JSON.stringify({ error: validation.error }),
@@ -92,8 +95,6 @@ serve(async (req) => {
     }
 
     // Sanitize inputs to prevent XSS
-    const sanitizedName = sanitizeHtml(name.trim());
-    const sanitizedEmail = sanitizeHtml(email.trim());
     const sanitizedSubject = sanitizeHtml(subject.trim());
     const sanitizedMessage = sanitizeHtml(message.trim());
 
@@ -103,11 +104,12 @@ serve(async (req) => {
     const { data, error } = await resend.emails.send({
       from: 'Pulse-AI Support <support@notifications.pulse-ai.app>',
       to: ['general@pulse-ai.app'],
-      replyTo: email.trim(),
+      replyTo: user.email,
       subject: `[Support] ${sanitizedSubject}`,
       html: `
         <h2>Nouveau message de support</h2>
-        <p><strong>De:</strong> ${sanitizedName} (${sanitizedEmail})</p>
+        <p><strong>De:</strong> ${user.email}</p>
+        <p><strong>User ID:</strong> ${user.id}</p>
         <p><strong>Sujet:</strong> ${sanitizedSubject}</p>
         <hr>
         <p><strong>Message:</strong></p>
@@ -129,12 +131,12 @@ serve(async (req) => {
     // Send confirmation to user
     await resend.emails.send({
       from: 'Pulse-AI <noreply@notifications.pulse-ai.app>',
-      to: [email.trim()],
-      subject: 'Nous avons bien reçu votre message',
+      to: [user.email],
+      subject: 'Nous avons bien reçu ton message',
       html: `
-        <h2>Bonjour ${sanitizedName},</h2>
-        <p>Nous avons bien reçu votre message et nous vous répondrons dans les plus brefs délais.</p>
-        <p><strong>Votre message:</strong></p>
+        <h2>Salut !</h2>
+        <p>Nous avons bien reçu ton message et nous te répondrons dans les plus brefs délais.</p>
+        <p><strong>Ton message:</strong></p>
         <p>${sanitizedMessage.replace(/\n/g, '<br>')}</p>
         <hr>
         <p>L'équipe Pulse-AI</p>

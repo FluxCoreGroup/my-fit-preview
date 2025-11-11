@@ -51,7 +51,7 @@ const settingsItems = [
     title: "Aide & Support",
     description: "FAQ, contact et mentions légales",
     icon: HelpCircle,
-    to: "/support",
+    to: "/settings/support",
   },
 ];
 
