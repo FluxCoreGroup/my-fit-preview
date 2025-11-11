@@ -18,15 +18,6 @@ export const useSaveOnboardingData = () => {
       try {
         const data = JSON.parse(onboardingDataStr);
 
-        // Helper pour normaliser les champs texte libres en arrays
-        const splitFreeText = (val?: string | null) =>
-          val
-            ? val
-                .split(/[,\n;|/]+/g)
-                .map((s: string) => s.trim())
-                .filter(Boolean)
-            : null;
-
         // Marquer que la sauvegarde est en cours
         console.log("💾 useSaveOnboardingData : Début sauvegarde...");
         localStorage.setItem("onboarding_saving", "true");
@@ -66,9 +57,9 @@ export const useSaveOnboardingData = () => {
           // Étape 5 : Alimentation et santé
           meals_per_day: data.mealsPerDay || 3,
           has_breakfast: data.hasBreakfast !== undefined ? data.hasBreakfast : true,
-          allergies: splitFreeText(data.allergies),
-          restrictions: splitFreeText(data.restrictions),
-          health_conditions: splitFreeText(data.healthConditions),
+          allergies: data.allergies ? data.allergies.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
+          restrictions: data.restrictions ? data.restrictions.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
+          health_conditions: data.healthConditions ? data.healthConditions.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
         }, {
           onConflict: 'user_id'
         });

@@ -8,7 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import type { OnboardingInput } from "@/services/planner";
@@ -439,46 +438,39 @@ const Start = () => {
 
               <div>
                 <Label>As-tu la possibilité d'aller en salle de sport ? *</Label>
-                <div className="mt-2">
-                  <ToggleGroup
-                    type="single"
-                    value={formData.location === "gym" ? "gym" : formData.location === "home" ? "home" : undefined}
-                    onValueChange={(val) => {
-                      if (!val) return;
-                      updateField("location", val);
-                      if (val === "gym") {
-                        updateField("equipment", [
-                          "Haltères",
-                          "Barre + poids",
-                          "Banc de musculation",
-                          "Barre de traction",
-                          "Machines guidées",
-                        ]);
-                      } else {
-                        updateField("equipment", []);
-                      }
-                    }}
-                    className="relative z-[60] pointer-events-auto grid grid-cols-2 gap-4"
-                  >
-                    <ToggleGroupItem
-                      value="gym"
-                      aria-label="Accès salle de sport: Oui"
-                      className="w-full p-4 border-2 data-[state=on]:border-primary data-[state=on]:bg-primary/5"
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  {[
+                    { value: true, label: "Oui" },
+                    { value: false, label: "Non" }
+                  ].map((option) => (
+            <button
+              key={option.label}
+              type="button"
+              onClick={() => {
+                updateField("location", option.value ? "gym" : "home");
+                if (option.value) {
+                          // Si salle, auto-remplir l'équipement
+                          updateField("equipment", [
+                            "Haltères",
+                            "Barre + poids",
+                            "Banc de musculation",
+                            "Barre de traction",
+                            "Machines guidées"
+                          ]);
+                        } else {
+                          // Si maison, réinitialiser
+                          updateField("equipment", []);
+                        }
+                      }}
+                      className={`p-4 rounded-lg border-2 transition-all hover:border-primary ${
+                        formData.location === (option.value ? "gym" : "home") ? "border-primary bg-primary/5" : "border-border"
+                      } ${errors.location ? 'border-destructive' : ''}`}
                     >
-                      Oui
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                      value="home"
-                      aria-label="Accès salle de sport: Non"
-                      className="w-full p-4 border-2 data-[state=on]:border-primary data-[state=on]:bg-primary/5"
-                    >
-                      Non
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                  {errors.location && (
-                    <p className="text-xs text-destructive mt-1">{errors.location}</p>
-                  )}
+                      <div className="font-semibold">{option.label}</div>
+                    </button>
+                  ))}
                 </div>
+                {errors.location && <p className="text-xs text-destructive mt-1">{errors.location}</p>}
               </div>
 
               {/* Afficher l'équipement seulement si location = "home" */}
