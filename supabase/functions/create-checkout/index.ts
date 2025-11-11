@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 const logStep = (step: string, details?: any) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
@@ -17,16 +17,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-  );
+  const supabaseClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_ANON_KEY") ?? "");
 
   try {
     logStep("Function started");
 
-    const { mode = 'subscription' } = await req.json();
-    const priceId = 'price_NOUVEAU_8_99_MENSUEL'; // 8,99€/mois All In - À REMPLACER après création dans Stripe
+    const { mode = "subscription" } = await req.json();
+    const priceId = "price_1SS9BTFHkkJtNHC3dr9vpvNP"; // 8,99€/mois All In - À REMPLACER après création dans Stripe
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
@@ -39,10 +36,10 @@ serve(async (req) => {
       const token = authHeader.replace("Bearer ", "");
       const { data } = await supabaseClient.auth.getUser(token);
       user = data.user;
-      
+
       if (user?.email) {
         logStep("User authenticated", { userId: user.id, email: user.email });
-        
+
         const customers = await stripe.customers.list({ email: user.email, limit: 1 });
         if (customers.data.length > 0) {
           customerId = customers.data[0].id;
@@ -54,15 +51,14 @@ serve(async (req) => {
     }
 
     const origin = req.headers.get("origin") || "http://localhost:5173";
-    
+
     // For trial mode, redirect to signup with session_id
-    const successUrl = mode === 'trial' || !user
-      ? `${origin}/signup?payment_success=true&session_id={CHECKOUT_SESSION_ID}`
-      : `${origin}/hub?subscription=success`;
-    
-    const cancelUrl = mode === 'trial' || !user
-      ? `${origin}/tarif?canceled=true`
-      : `${origin}/paywall?canceled=true`;
+    const successUrl =
+      mode === "trial" || !user
+        ? `${origin}/signup?payment_success=true&session_id={CHECKOUT_SESSION_ID}`
+        : `${origin}/hub?subscription=success`;
+
+    const cancelUrl = mode === "trial" || !user ? `${origin}/tarif?canceled=true` : `${origin}/paywall?canceled=true`;
 
     // Build session config dynamically to avoid passing empty customer
     const sessionConfig: any = {
@@ -77,17 +73,17 @@ serve(async (req) => {
         trial_period_days: 7,
         trial_settings: {
           end_behavior: {
-            missing_payment_method: 'cancel',
-          }
-        }
+            missing_payment_method: "cancel",
+          },
+        },
       },
       payment_method_collection: "always",
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: {
         supabase_user_id: user?.id || "PENDING",
-        plan_type: 'all_in',
-      }
+        plan_type: "all_in",
+      },
     };
 
     // Only add customer if we have a valid ID
