@@ -7,7 +7,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.create-checkout]
-verify_jwt = true
+verify_jwt = false
 
 [functions.check-subscription]
 verify_jwt = true
@@ -38,3 +38,9 @@ verify_jwt = true
 
 [functions.send-checkin-reminder]
 verify_jwt = false
+
+[functions.get-checkout-session]
+verify_jwt = false
+
+[functions.link-stripe-subscription]
+verify_jwt = true

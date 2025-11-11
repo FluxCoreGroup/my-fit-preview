@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, name: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, name: string, skipEmailConfirm?: boolean) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
@@ -43,21 +43,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, skipEmailConfirm = false) => {
     try {
       const redirectUrl = `${window.location.origin}/auth-callback`;
       
-      console.log("📝 SignUp : Création compte avec redirect vers", redirectUrl);
+      console.log("📝 SignUp : Création compte", skipEmailConfirm ? "(skip email confirm)" : `avec redirect vers ${redirectUrl}`);
+      
+      const options: any = {
+        data: {
+          name,
+        },
+      };
+
+      // Only add emailRedirectTo if we need email confirmation
+      if (!skipEmailConfirm) {
+        options.emailRedirectTo = redirectUrl;
+      }
       
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            name,
-          },
-        },
+        options,
       });
 
       if (error) {
@@ -70,11 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           variant: 'destructive',
         });
       } else {
-        console.log("✅ Compte créé, email envoyé à", email);
-        toast({
-          title: "Compte créé !",
-          description: "Vérifie ton email pour confirmer ton inscription.",
-        });
+        console.log("✅ Compte créé", skipEmailConfirm ? "(accès direct)" : `, email envoyé à ${email}`);
+        if (!skipEmailConfirm) {
+          toast({
+            title: "Compte créé !",
+            description: "Vérifie ton email pour confirmer ton inscription.",
+          });
+        }
       }
 
       return { error };

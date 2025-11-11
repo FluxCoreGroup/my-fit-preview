@@ -25,33 +25,50 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
-    
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    const { planType = 'monthly', mode = 'subscription' } = await req.json();
+    const priceId = planType === 'monthly' 
+      ? 'price_1SJEiuFHkkJtNHC3MV242ab4' // 24,99€/mois
+      : 'price_1SJEjAFHkkJtNHC3WE3Di3IZ'; // 299€/an
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
-    
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    let customerId;
-    if (customers.data.length > 0) {
-      customerId = customers.data[0].id;
-      logStep("Existing customer found", { customerId });
+
+    // Check if user is authenticated (optional for trial flow)
+    const authHeader = req.headers.get("Authorization");
+    let user = null;
+    let customerId = null;
+
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data } = await supabaseClient.auth.getUser(token);
+      user = data.user;
+      
+      if (user?.email) {
+        logStep("User authenticated", { userId: user.id, email: user.email });
+        
+        const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+        if (customers.data.length > 0) {
+          customerId = customers.data[0].id;
+          logStep("Existing customer found", { customerId });
+        }
+      }
     } else {
-      logStep("Creating new customer");
+      logStep("No auth header - trial flow from /tarif");
     }
 
-    const { planType = 'monthly' } = await req.json();
-    const priceId = planType === 'monthly' 
-      ? 'price_1SJEiuFHkkJtNHC3MV242ab4' // 29,99€/mois
-      : 'price_1SJEjAFHkkJtNHC3WE3Di3IZ'; // 299,90€/an
+    const origin = req.headers.get("origin") || "http://localhost:5173";
+    
+    // For trial mode, redirect to signup with session_id
+    const successUrl = mode === 'trial' || !user
+      ? `${origin}/signup?payment_success=true&session_id={CHECKOUT_SESSION_ID}`
+      : `${origin}/hub?subscription=success`;
+    
+    const cancelUrl = mode === 'trial' || !user
+      ? `${origin}/tarif?canceled=true`
+      : `${origin}/paywall?canceled=true`;
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      customer_email: customerId ? undefined : user.email,
+      customer_email: customerId ? undefined : undefined, // Will be collected in checkout
       line_items: [
         {
           price: priceId,
@@ -59,10 +76,20 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/dashboard?subscription=success`,
-      cancel_url: `${req.headers.get("origin")}/paywall?canceled=true`,
+      subscription_data: {
+        trial_period_days: 7,
+        trial_settings: {
+          end_behavior: {
+            missing_payment_method: 'cancel',
+          }
+        }
+      },
+      payment_method_collection: "always",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
-        supabase_user_id: user.id
+        supabase_user_id: user?.id || "PENDING",
+        plan_type: planType,
       }
     });
 
