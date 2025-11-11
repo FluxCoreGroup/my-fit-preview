@@ -38,11 +38,11 @@ const Start = () => {
     sessionDuration: undefined,
     location: undefined,
     equipment: [],
-    allergies: [],
-    restrictions: [],
+    allergies: "",
+    restrictions: "",
     mealsPerDay: 3,
     hasBreakfast: true,
-    healthConditions: [],
+    healthConditions: "",
   });
 
   // Load saved progress on mount
@@ -443,11 +443,12 @@ const Start = () => {
                     { value: true, label: "Oui" },
                     { value: false, label: "Non" }
                   ].map((option) => (
-                    <button
-                      key={option.label}
-                      onClick={() => {
-                        updateField("location", option.value ? "gym" : "home");
-                        if (option.value) {
+            <button
+              key={option.label}
+              type="button"
+              onClick={() => {
+                updateField("location", option.value ? "gym" : "home");
+                if (option.value) {
                           // Si salle, auto-remplir l'équipement
                           updateField("equipment", [
                             "Haltères",
@@ -549,44 +550,44 @@ const Start = () => {
                 </Label>
               </div>
 
-              <div>
-                <Label htmlFor="allergies">Allergies ou intolérances (optionnel)</Label>
-                <Textarea
-                  id="allergies"
-                  placeholder="Décris tes allergies ou intolérances librement..."
-                  value={formData.allergies?.join(", ") || ""}
-                  onChange={(e) => updateField("allergies", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                  className="mt-2"
-                  rows={2}
-                />
-                <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
-              </div>
+            <div>
+              <Label htmlFor="allergies">Allergies ou intolérances (optionnel)</Label>
+              <Textarea
+                id="allergies"
+                placeholder="Décris tes allergies ou intolérances librement..."
+                value={formData.allergies || ""}
+                onChange={(e) => updateField("allergies", e.target.value)}
+                className="mt-2"
+                rows={2}
+              />
+              <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
+            </div>
 
-              <div>
-                <Label htmlFor="restrictions">Aliments que tu ne veux pas (optionnel)</Label>
-                <Textarea
-                  id="restrictions"
-                  placeholder="Décris les aliments que tu souhaites éviter..."
-                  value={formData.restrictions?.join(", ") || ""}
-                  onChange={(e) => updateField("restrictions", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                  className="mt-2"
-                  rows={2}
-                />
-                <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
-              </div>
+            <div>
+              <Label htmlFor="restrictions">Aliments que tu ne veux pas (optionnel)</Label>
+              <Textarea
+                id="restrictions"
+                placeholder="Décris les aliments que tu souhaites éviter..."
+                value={formData.restrictions || ""}
+                onChange={(e) => updateField("restrictions", e.target.value)}
+                className="mt-2"
+                rows={2}
+              />
+              <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
+            </div>
 
-              <div>
-                <Label htmlFor="healthConditions">Conditions de santé (optionnel)</Label>
-                <Textarea
-                  id="healthConditions"
-                  placeholder="Décris tes conditions de santé si pertinent..."
-                  value={formData.healthConditions?.join(", ") || ""}
-                  onChange={(e) => updateField("healthConditions", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
-                  className="mt-2"
-                  rows={2}
-                />
-                <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
-              </div>
+            <div>
+              <Label htmlFor="healthConditions">Conditions de santé (optionnel)</Label>
+              <Textarea
+                id="healthConditions"
+                placeholder="Décris tes conditions de santé si pertinent..."
+                value={formData.healthConditions || ""}
+                onChange={(e) => updateField("healthConditions", e.target.value)}
+                className="mt-2"
+                rows={2}
+              />
+              <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
+            </div>
 
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground">

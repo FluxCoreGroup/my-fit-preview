@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { nutritionPlanner, type OnboardingInput, type NutritionPreview } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
-import { Utensils, Info, BarChart3, Calculator, Flame, Target, Droplets, Dumbbell, CheckCircle2, PartyPopper, Rocket, Gift } from "lucide-react";
+import { Utensils, Info, BarChart3, Calculator, Flame, Target, Droplets, Dumbbell, CheckCircle2, PartyPopper, Rocket, Gift, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { toast } from "@/hooks/use-toast";
@@ -86,9 +87,15 @@ const LoadingAnalysis = () => {
 const Preview = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [input, setInput] = useState<OnboardingInput | null>(null);
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPreview | null>(null);
   const [loadingPhase, setLoadingPhase] = useState<'loading' | 'results'>('loading');
-  const [input, setInput] = useState<OnboardingInput | null>(null);
+  const [formattedHealthData, setFormattedHealthData] = useState<{
+    allergies: string;
+    restrictions: string;
+    healthConditions: string;
+  } | null>(null);
+  const [isFormattingHealth, setIsFormattingHealth] = useState(false);
 
   useEffect(() => {
     const dataStr = localStorage.getItem("onboardingData");
@@ -118,6 +125,53 @@ const Preview = () => {
       navigate("/start");
     }
   }, [navigate]);
+
+  // Formater les données de santé avec l'IA
+  useEffect(() => {
+    const formatHealthData = async () => {
+      if (!input || loadingPhase !== 'results') return;
+      
+      // Ne formater que si au moins un champ est rempli
+      if (!input.allergies && !input.restrictions && !input.healthConditions) {
+        setFormattedHealthData({
+          allergies: "Aucune allergie signalée",
+          restrictions: "Aucune restriction alimentaire",
+          healthConditions: "Aucune condition particulière"
+        });
+        return;
+      }
+
+      setIsFormattingHealth(true);
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('format-health-data', {
+          body: {
+            allergies: input.allergies || "",
+            restrictions: input.restrictions || "",
+            healthConditions: input.healthConditions || ""
+          }
+        });
+
+        if (error) throw error;
+
+        if (data) {
+          setFormattedHealthData(data);
+        }
+      } catch (error) {
+        console.error('Erreur lors du formatage des données santé:', error);
+        // Fallback : afficher les données brutes
+        setFormattedHealthData({
+          allergies: input.allergies || "Aucune allergie signalée",
+          restrictions: input.restrictions || "Aucune restriction alimentaire",
+          healthConditions: input.healthConditions || "Aucune condition particulière"
+        });
+      } finally {
+        setIsFormattingHealth(false);
+      }
+    };
+
+    formatHealthData();
+  }, [input, loadingPhase]);
 
   const handleCreateAccount = () => {
     if (user) {
@@ -254,36 +308,63 @@ const Preview = () => {
           {/* Profil santé et nutrition */}
           <Card className="p-6 animate-in">
             <h3 className="text-xl font-bold mb-4">Ton profil santé et nutrition</h3>
-            <div className="space-y-3">
-              <div>
-                <span className="font-semibold">Allergies/Intolérances :</span>{" "}
-                <span className="text-muted-foreground">
-                  {input.allergies && input.allergies.length > 0 
-                    ? input.allergies.join(", ") 
-                    : "Aucune allergie signalée"}
-                </span>
+            
+            {isFormattingHealth ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
+                <span className="text-muted-foreground">Formatage des données...</span>
               </div>
-              <div>
-                <span className="font-semibold">Aliments à éviter :</span>{" "}
-                <span className="text-muted-foreground">
-                  {input.restrictions && input.restrictions.length > 0 
-                    ? input.restrictions.join(", ") 
-                    : "Aucune restriction alimentaire"}
-                </span>
+            ) : formattedHealthData ? (
+              <div className="space-y-3">
+                <div>
+                  <span className="font-semibold">Allergies/Intolérances :</span>{" "}
+                  <span className="text-muted-foreground">
+                    {formattedHealthData.allergies}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">Aliments à éviter :</span>{" "}
+                  <span className="text-muted-foreground">
+                    {formattedHealthData.restrictions}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">Conditions de santé :</span>{" "}
+                  <span className="text-muted-foreground">
+                    {formattedHealthData.healthConditions}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">Repas par jour :</span>{" "}
+                  <span className="text-muted-foreground">{input.mealsPerDay} repas</span>
+                </div>
               </div>
-              <div>
-                <span className="font-semibold">Conditions de santé :</span>{" "}
-                <span className="text-muted-foreground">
-                  {input.healthConditions && input.healthConditions.length > 0 
-                    ? input.healthConditions.join(", ") 
-                    : "Aucune condition particulière"}
-                </span>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <span className="font-semibold">Allergies/Intolérances :</span>{" "}
+                  <span className="text-muted-foreground">
+                    {input.allergies || "Aucune allergie signalée"}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">Aliments à éviter :</span>{" "}
+                  <span className="text-muted-foreground">
+                    {input.restrictions || "Aucune restriction alimentaire"}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">Conditions de santé :</span>{" "}
+                  <span className="text-muted-foreground">
+                    {input.healthConditions || "Aucune condition particulière"}
+                  </span>
+                </div>
+                <div>
+                  <span className="font-semibold">Repas par jour :</span>{" "}
+                  <span className="text-muted-foreground">{input.mealsPerDay} repas</span>
+                </div>
               </div>
-              <div>
-                <span className="font-semibold">Repas par jour :</span>{" "}
-                <span className="text-muted-foreground">{input.mealsPerDay} repas</span>
-              </div>
-            </div>
+            )}
           </Card>
 
           {/* Recommandations complémentaires */}

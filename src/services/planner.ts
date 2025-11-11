@@ -26,11 +26,11 @@ export interface OnboardingInput {
   sessionDuration: number; // minutes
   location: 'home' | 'gym';
   equipment: string[];
-  allergies: string[];
-  restrictions: string[];
+  allergies?: string;
+  restrictions?: string;
   mealsPerDay: number; // 2-5
   hasBreakfast: boolean;
-  healthConditions: string[];
+  healthConditions?: string;
 }
 
 export interface NutritionPreview {
@@ -234,8 +234,8 @@ function generateSampleDay(
   targetCalories: number,
   mealsPerDay: number,
   hasBreakfast: boolean,
-  restrictions: string[],
-  allergies: string[]
+  restrictions?: string,
+  allergies?: string
 ): NutritionPreview['sampleDay'] {
   const meals = [];
   const caloriesPerMeal = Math.round(targetCalories / mealsPerDay);

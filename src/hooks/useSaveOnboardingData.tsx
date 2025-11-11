@@ -57,9 +57,9 @@ export const useSaveOnboardingData = () => {
           // Étape 5 : Alimentation et santé
           meals_per_day: data.mealsPerDay || 3,
           has_breakfast: data.hasBreakfast !== undefined ? data.hasBreakfast : true,
-          allergies: data.allergies || null,
-          restrictions: data.restrictions || null,
-          health_conditions: data.healthConditions || null,
+          allergies: data.allergies ? data.allergies.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
+          restrictions: data.restrictions ? data.restrictions.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
+          health_conditions: data.healthConditions ? data.healthConditions.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
         }, {
           onConflict: 'user_id'
         });
