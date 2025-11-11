@@ -438,7 +438,7 @@ const Start = () => {
 
               <div>
                 <Label>As-tu la possibilité d'aller en salle de sport ? *</Label>
-                <div className="grid grid-cols-2 gap-4 mt-2">
+                <div className="grid grid-cols-2 gap-4 mt-2 relative isolate z-20">
                   {[
                     { value: true, label: "Oui" },
                     { value: false, label: "Non" }
