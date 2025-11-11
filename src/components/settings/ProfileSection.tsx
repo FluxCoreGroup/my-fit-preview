@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Lock, Mail, User } from "lucide-react";
+import { Loader2, Lock, Mail, User, AlertTriangle, Calendar, Euro } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,12 +18,28 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+
+interface SubscriptionInfo {
+  hasSubscription: boolean;
+  plan_type: string;
+  ends_at: string;
+  price: number;
+  status: string;
+}
 
 export const ProfileSection = () => {
   const { user, signOut } = useAuth();
   const [name, setName] = useState(user?.user_metadata?.name || "");
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null);
+  const [checkingSubscription, setCheckingSubscription] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleNameUpdate = async () => {
     if (!name.trim()) {
@@ -73,6 +89,54 @@ export const ProfileSection = () => {
     }
   };
 
+  const checkSubscriptionBeforeDelete = async () => {
+    setCheckingSubscription(true);
+    setDialogOpen(true);
+    
+    try {
+      const { data: sub, error } = await supabase
+        .from('subscriptions')
+        .select('plan_type, ends_at, status')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (error || !sub || (sub.status !== 'active' && sub.status !== 'trialing')) {
+        setSubscriptionInfo({ 
+          hasSubscription: false, 
+          plan_type: '', 
+          ends_at: '', 
+          price: 0,
+          status: '' 
+        });
+      } else {
+        // Mapper plan_type au prix
+        const priceMap: Record<string, number> = {
+          'month': 2999, // 29.99€
+          'year': 29990  // 299.90€
+        };
+        
+        setSubscriptionInfo({
+          hasSubscription: true,
+          plan_type: sub.plan_type,
+          ends_at: sub.ends_at,
+          price: priceMap[sub.plan_type] || 0,
+          status: sub.status
+        });
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      setSubscriptionInfo({ 
+        hasSubscription: false, 
+        plan_type: '', 
+        ends_at: '', 
+        price: 0,
+        status: '' 
+      });
+    } finally {
+      setCheckingSubscription(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     setLoading(true);
     try {
@@ -108,7 +172,16 @@ export const ProfileSection = () => {
       console.error(error);
     } finally {
       setLoading(false);
+      setDialogOpen(false);
     }
+  };
+
+  const formatPrice = (price: number) => {
+    return (price / 100).toFixed(2).replace('.', ',') + '€';
+  };
+
+  const getPlanLabel = (planType: string) => {
+    return planType === 'year' ? 'Annuel' : 'Mensuel';
   };
 
   return (
@@ -182,22 +255,96 @@ export const ProfileSection = () => {
       </div>
 
       <div className="pt-6 border-t">
-        <AlertDialog>
+        <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <AlertDialogTrigger asChild>
-            <Button variant="destructive" className="w-full">
+            <Button 
+              variant="destructive" 
+              className="w-full"
+              onClick={checkSubscriptionBeforeDelete}
+              disabled={checkingSubscription}
+            >
+              {checkingSubscription && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Supprimer mon compte
             </Button>
           </AlertDialogTrigger>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
-              <AlertDialogTitle>Es-tu sûr(e) ?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Cette action est irréversible. Toutes tes données seront définitivement supprimées.
-              </AlertDialogDescription>
+              <AlertDialogTitle className="flex items-center gap-2">
+                {subscriptionInfo?.hasSubscription && (
+                  <AlertTriangle className="w-5 h-5 text-orange-500" />
+                )}
+                Es-tu sûr(e) ?
+              </AlertDialogTitle>
+              
+              {subscriptionInfo?.hasSubscription ? (
+                <div className="space-y-4">
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
+                    <Badge variant="destructive" className="mb-2">
+                      Abonnement actif
+                    </Badge>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Date de fin :</span>
+                        <span className="font-semibold">
+                          {format(new Date(subscriptionInfo.ends_at), "dd MMMM yyyy", { locale: fr })}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Euro className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-muted-foreground">Plan :</span>
+                        <span className="font-semibold">
+                          {getPlanLabel(subscriptionInfo.plan_type)} - {formatPrice(subscriptionInfo.price)}
+                          {subscriptionInfo.plan_type === 'month' ? '/mois' : '/an'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <AlertDialogDescription className="text-base">
+                    <span className="font-semibold text-destructive">
+                      Ton abonnement sera immédiatement annulé
+                    </span>{" "}
+                    et tu ne seras plus facturé. Toutes tes données seront définitivement supprimées.
+                  </AlertDialogDescription>
+                  
+                  <div className="flex items-start space-x-3 bg-muted/50 p-3 rounded-lg">
+                    <Checkbox 
+                      id="confirm-delete" 
+                      checked={confirmDelete}
+                      onCheckedChange={(checked) => setConfirmDelete(checked === true)}
+                      className="mt-1"
+                    />
+                    <label
+                      htmlFor="confirm-delete"
+                      className="text-sm leading-tight cursor-pointer select-none"
+                    >
+                      Je comprends que mon abonnement sera annulé et que cette action est irréversible
+                    </label>
+                  </div>
+                </div>
+              ) : (
+                <AlertDialogDescription>
+                  Cette action est irréversible. Toutes tes données seront définitivement supprimées.
+                </AlertDialogDescription>
+              )}
             </AlertDialogHeader>
+            
             <AlertDialogFooter>
-              <AlertDialogCancel>Annuler</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive text-destructive-foreground">
+              <AlertDialogCancel onClick={() => {
+                setConfirmDelete(false);
+                setDialogOpen(false);
+              }}>
+                Annuler
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteAccount} 
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={subscriptionInfo?.hasSubscription && !confirmDelete}
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Supprimer définitivement
               </AlertDialogAction>
             </AlertDialogFooter>
