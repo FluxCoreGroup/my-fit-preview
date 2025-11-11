@@ -66,9 +66,8 @@ serve(async (req) => {
       ? `${origin}/tarif?canceled=true`
       : `${origin}/paywall?canceled=true`;
 
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : undefined, // Will be collected in checkout
+    // Build session config dynamically to avoid passing empty customer
+    const sessionConfig: any = {
       line_items: [
         {
           price: priceId,
@@ -91,7 +90,14 @@ serve(async (req) => {
         supabase_user_id: user?.id || "PENDING",
         plan_type: planType,
       }
-    });
+    };
+
+    // Only add customer if we have a valid ID
+    if (customerId) {
+      sessionConfig.customer = customerId;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
