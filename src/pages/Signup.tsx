@@ -143,11 +143,10 @@ const Signup = () => {
           } catch (linkError: any) {
             console.error('Error linking subscription:', linkError);
             toast({
-              title: "Avertissement",
-              description: "Compte créé mais erreur de liaison. Contacte le support.",
-              variant: "destructive",
+              title: "Compte créé ! 🎉",
+              description: "Continue ton questionnaire, on vérifiera ton abonnement ensuite.",
             });
-            navigate("/hub");
+            navigate("/training-setup");
           }
         } else {
           // Normal flow with email confirmation

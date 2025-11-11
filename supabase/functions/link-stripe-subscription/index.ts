@@ -12,6 +12,23 @@ const logStep = (step: string, details?: any) => {
   console.log(`[LINK-STRIPE-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
+// Helper function to safely convert Stripe timestamp to ISO string
+const safeTimestampToISO = (timestamp: number | null | undefined): string | null => {
+  if (!timestamp || timestamp <= 0) {
+    return null;
+  }
+  try {
+    const date = new Date(timestamp * 1000);
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+    return date.toISOString();
+  } catch (e) {
+    logStep("ERROR converting timestamp", { timestamp, error: e });
+    return null;
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -58,6 +75,24 @@ serve(async (req) => {
       ? await stripe.subscriptions.retrieve(session.subscription)
       : session.subscription;
 
+    // Log raw subscription data for debugging
+    logStep("Raw subscription data", { 
+      trial_end: subscription.trial_end,
+      current_period_start: subscription.current_period_start,
+      current_period_end: subscription.current_period_end,
+      status: subscription.status
+    });
+
+    // Calculate dates safely
+    const startedAt = safeTimestampToISO(subscription.current_period_start);
+    const trialEnd = safeTimestampToISO(subscription.trial_end);
+    const periodEnd = safeTimestampToISO(subscription.current_period_end);
+    
+    // Determine end date: prioritize trial_end, fallback to current_period_end
+    const endsAt = trialEnd || periodEnd;
+
+    logStep("Calculated dates", { startedAt, trialEnd, periodEnd, endsAt });
+    
     logStep("Stripe data retrieved", { 
       customerId, 
       subscriptionId: subscription.id,
@@ -81,10 +116,8 @@ serve(async (req) => {
           stripe_subscription_id: subscription.id,
           status: subscription.status,
           plan_type: session.metadata?.plan_type || 'monthly',
-          started_at: new Date(subscription.current_period_start * 1000).toISOString(),
-          ends_at: subscription.trial_end 
-            ? new Date(subscription.trial_end * 1000).toISOString()
-            : new Date(subscription.current_period_end * 1000).toISOString(),
+          started_at: startedAt,
+          ends_at: endsAt,
         })
         .eq('id', existingSub.id);
 
@@ -100,10 +133,8 @@ serve(async (req) => {
           stripe_subscription_id: subscription.id,
           status: subscription.status,
           plan_type: session.metadata?.plan_type || 'monthly',
-          started_at: new Date(subscription.current_period_start * 1000).toISOString(),
-          ends_at: subscription.trial_end 
-            ? new Date(subscription.trial_end * 1000).toISOString()
-            : new Date(subscription.current_period_end * 1000).toISOString(),
+          started_at: startedAt,
+          ends_at: endsAt,
         });
 
       if (insertError) throw insertError;
