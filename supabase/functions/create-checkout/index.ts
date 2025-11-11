@@ -25,10 +25,8 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { planType = 'monthly', mode = 'subscription' } = await req.json();
-    const priceId = planType === 'monthly' 
-      ? 'price_1SJEiuFHkkJtNHC3MV242ab4' // 24,99€/mois
-      : 'price_1SJEjAFHkkJtNHC3WE3Di3IZ'; // 299€/an
+    const { mode = 'subscription' } = await req.json();
+    const priceId = 'price_NOUVEAU_8_99_MENSUEL'; // 8,99€/mois All In - À REMPLACER après création dans Stripe
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
@@ -88,7 +86,7 @@ serve(async (req) => {
       cancel_url: cancelUrl,
       metadata: {
         supabase_user_id: user?.id || "PENDING",
-        plan_type: planType,
+        plan_type: 'all_in',
       }
     };
 

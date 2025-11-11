@@ -11,18 +11,14 @@ const Paywall = () => {
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('yearly');
 
-  const monthlyPrice = 29.99;
-  const yearlyPrice = 299.90;
-  const yearlyMonthlyEquivalent = (yearlyPrice / 12).toFixed(2);
-  const savingsPercent = Math.round(((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12)) * 100);
+  const price = 8.99;
 
   const handleSubscribe = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planType: selectedPlan }
+        body: {}
       });
 
       if (error) throw error;
@@ -56,88 +52,49 @@ const Paywall = () => {
           </p>
         </div>
 
-        {/* Pricing Cards */}
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto animate-in">
-          {/* Plan Annuel - Recommandé */}
-          <Card 
-            className={`p-8 relative cursor-pointer transition-all ${
-              selectedPlan === 'yearly' 
-                ? 'ring-2 ring-primary shadow-glow scale-105' 
-                : 'hover:scale-102'
-            }`}
-            onClick={() => setSelectedPlan('yearly')}
-          >
-            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary">
-              <TrendingUp className="w-3 h-3 mr-1" />
-              Recommandé pour ton objectif
-            </Badge>
-            
-            <div className="text-center mb-6 mt-2">
-              <div className="mb-2">
-                <span className="text-5xl font-bold">{yearlyMonthlyEquivalent}€</span>
-                <span className="text-xl text-muted-foreground">/mois</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Facturé {yearlyPrice}€/an</p>
-              <Badge variant="secondary" className="mt-2">
-                Économise {savingsPercent}% 🎉
+        {/* Pricing Card */}
+        <div className="max-w-lg mx-auto animate-in">
+          <Card className="p-10 border-2 border-primary shadow-2xl bg-gradient-to-br from-background to-primary/5">
+            <div className="text-center mb-8">
+              <Badge className="mb-4 text-base px-4 py-1.5 bg-gradient-primary">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Plan Unique
               </Badge>
+              <h2 className="text-4xl font-bold mb-2">All In</h2>
+              <p className="text-muted-foreground">
+                Toutes les fonctionnalités débloquées
+              </p>
             </div>
-
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                <span className="font-medium">Meilleur pour résultats long terme</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                <span>Économise {Math.round(monthlyPrice * 12 - yearlyPrice)}€ sur l'année</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                <span>Programme complet sport + nutrition</span>
-              </div>
-            </div>
-
-            <div className="w-full h-12 rounded-lg bg-primary/10 flex items-center justify-center text-sm font-medium">
-              {selectedPlan === 'yearly' ? '✓ Plan sélectionné' : 'Choisir ce plan'}
-            </div>
-          </Card>
-
-          {/* Plan Mensuel */}
-          <Card 
-            className={`p-8 cursor-pointer transition-all ${
-              selectedPlan === 'monthly' 
-                ? 'ring-2 ring-primary shadow-glow scale-105' 
-                : 'hover:scale-102'
-            }`}
-            onClick={() => setSelectedPlan('monthly')}
-          >
-            <div className="text-center mb-6 mt-9">
-              <div className="mb-2">
-                <span className="text-5xl font-bold">{monthlyPrice}€</span>
+            
+            <div className="text-center mb-8">
+              <div className="flex items-baseline justify-center gap-2 mb-2">
+                <span className="text-6xl font-bold text-primary">{price}€</span>
                 <span className="text-xl text-muted-foreground">/mois</span>
               </div>
-              <p className="text-sm text-muted-foreground">Sans engagement</p>
+              <p className="text-sm text-muted-foreground">
+                Sans engagement • Annulation en 1 clic
+              </p>
             </div>
-
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                <span>Flexible et résiliable à tout moment</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                <span>Idéal pour tester le programme</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                <span>Programme complet sport + nutrition</span>
-              </div>
-            </div>
-
-            <div className="w-full h-12 rounded-lg bg-muted/50 flex items-center justify-center text-sm font-medium">
-              {selectedPlan === 'monthly' ? '✓ Plan sélectionné' : 'Choisir ce plan'}
-            </div>
+            
+            <ul className="space-y-4 mb-8">
+              {[
+                "Programme sport + nutrition personnalisé",
+                "Nouvelles séances chaque semaine",
+                "Ajustements automatiques",
+                "Alternatives d'exercices illimitées",
+                "Vidéos et fiches techniques",
+                "Support par email 7j/7",
+                "Accès communauté Discord",
+                "Toutes les futures fonctionnalités"
+              ].map((feature, i) => (
+                <li key={i} className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
           </Card>
         </div>
 

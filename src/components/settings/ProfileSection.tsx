@@ -109,17 +109,14 @@ export const ProfileSection = () => {
           status: '' 
         });
       } else {
-        // Mapper plan_type au prix
-        const priceMap: Record<string, number> = {
-          'month': 2999, // 29.99€
-          'year': 29990  // 299.90€
-        };
+        // Prix unique All In
+        const price = 899; // 8,99€
         
         setSubscriptionInfo({
           hasSubscription: true,
           plan_type: sub.plan_type,
           ends_at: sub.ends_at,
-          price: priceMap[sub.plan_type] || 0,
+          price: price,
           status: sub.status
         });
       }

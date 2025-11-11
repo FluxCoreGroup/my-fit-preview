@@ -26,7 +26,7 @@ const testimonials = [{
 }];
 const faqItems = [{
   q: "C'est vraiment gratuit pour commencer ?",
-  a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à partir de 9,90€/mois sans engagement."
+  a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à 8,99€/mois sans engagement."
 }, {
   q: "Je suis débutant(e), ça marche pour moi ?",
   a: "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo."

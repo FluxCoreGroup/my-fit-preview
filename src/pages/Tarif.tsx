@@ -17,17 +17,20 @@ import {
   Utensils,
   TrendingUp,
   MessageCircle,
-  ChevronDown
+  ChevronDown,
+  Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const Tarif = () => {
   const navigate = useNavigate();
-  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'yearly'>('monthly');
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [openFaq, setOpenFaq] = useState<string | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<string | undefined>(undefined);
 
   // Protection de la route - accessible uniquement après /preview
   useEffect(() => {
@@ -41,39 +44,39 @@ const Tarif = () => {
 
   const handleStartTrial = async () => {
     setLoading(true);
-    
     try {
+      // Sauvegarder le contexte du checkout
+      sessionStorage.setItem('checkout_context', JSON.stringify({
+        plan: 'all_in',
+        timestamp: new Date().toISOString(),
+        from: 'tarif'
+      }));
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
-          planType: selectedPlan,
-          mode: 'subscription'
+          mode: 'trial'
         }
       });
 
       if (error) throw error;
 
-      // Sauvegarder le contexte avant redirection
-      localStorage.setItem("checkoutContext", JSON.stringify({
-        plan: selectedPlan,
-        timestamp: Date.now()
-      }));
-
-      // Redirection vers Stripe Checkout
-      window.location.href = data.url;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
     } catch (error: any) {
-      console.error('Error creating checkout:', error);
+      console.error('Checkout error:', error);
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de lancer le paiement",
+        description: "Impossible de créer la session de paiement",
         variant: "destructive",
       });
+    } finally {
       setLoading(false);
     }
   };
 
-  const monthlyPrice = 24.99;
-  const yearlyPrice = 299;
-  const yearlySavings = ((monthlyPrice * 12 - yearlyPrice) / (monthlyPrice * 12) * 100).toFixed(0);
+  // Prix unique
+  const price = 8.99;
 
   const features = [
     { icon: Dumbbell, text: "Programme d'entraînement personnalisé", highlight: true },
@@ -158,144 +161,72 @@ const Tarif = () => {
             </div>
           </div>
 
-          {/* Pricing Cards */}
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Plan Mensuel avec Trial */}
-            <Card 
-              className={`relative p-8 cursor-pointer transition-all duration-300 ${
-                selectedPlan === 'monthly'
-                  ? 'border-primary/50 shadow-glow scale-105'
-                  : 'border-border hover:border-primary/30'
-              }`}
-              onClick={() => setSelectedPlan('monthly')}
-            >
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground">
-                Recommandé
-              </Badge>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-6 h-6 text-accent" />
-                    <h3 className="text-2xl font-bold">Essai Gratuit 7 Jours</h3>
-                  </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-primary">{monthlyPrice}€</span>
-                    <span className="text-muted-foreground">/mois</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Puis facturation mensuelle
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">7 jours gratuits pour tout tester</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">Programme complet sport + nutrition</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">Nouvelles séances chaque semaine</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">Ajustements automatiques</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">Support 7j/7</span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-                  Sans engagement • Résilie quand tu veux
-                </p>
+        {/* Pricing Card */}
+        <div className="max-w-lg mx-auto mb-12 animate-in">
+          <Card className="p-10 border-2 border-primary shadow-2xl bg-gradient-to-br from-background to-primary/5 relative overflow-hidden">
+            {/* Badge */}
+            <div className="text-center mb-8">
+              <Badge className="mb-4 text-base px-4 py-1.5">Plan Unique</Badge>
+              <h2 className="text-4xl font-bold mb-2">All In</h2>
+              <p className="text-muted-foreground">
+                Toutes les fonctionnalités incluses
+              </p>
+            </div>
+            
+            {/* Prix */}
+            <div className="text-center mb-8">
+              <div className="flex items-baseline justify-center gap-2 mb-2">
+                <span className="text-6xl font-bold text-primary">{price}€</span>
+                <span className="text-xl text-muted-foreground">/mois</span>
               </div>
-            </Card>
-
-            {/* Plan Annuel */}
-            <Card 
-              className={`relative p-8 cursor-pointer transition-all duration-300 ${
-                selectedPlan === 'yearly'
-                  ? 'border-primary/50 shadow-glow scale-105'
-                  : 'border-border hover:border-primary/30'
-              }`}
-              onClick={() => setSelectedPlan('yearly')}
-            >
-              <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary text-secondary-foreground">
-                Économise {yearlySavings}%
-              </Badge>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-6 h-6 text-secondary" />
-                    <h3 className="text-2xl font-bold">Plan Annuel</h3>
+              <p className="text-sm text-muted-foreground">
+                Sans engagement • Annulation en 1 clic
+              </p>
+            </div>
+            
+            {/* Fonctionnalités */}
+            <ul className="space-y-4 mb-8">
+              {[
+                "Programme sport + nutrition personnalisé",
+                "Nouvelles séances chaque semaine",
+                "Ajustements automatiques selon tes feedbacks",
+                "Alternatives d'exercices illimitées",
+                "Vidéos et fiches techniques détaillées",
+                "Support par email 7j/7",
+                "Accès communauté Discord",
+                "Toutes les futures fonctionnalités incluses"
+              ].map((feature, i) => (
+                <li key={i} className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Check className="w-4 h-4 text-primary" />
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-secondary">{yearlyPrice}€</span>
-                    <span className="text-muted-foreground">/an</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Soit {(yearlyPrice / 12).toFixed(2)}€/mois
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm font-semibold">Tous les avantages du plan mensuel</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">Économise {(monthlyPrice * 12 - yearlyPrice).toFixed(0)}€ par an</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">Pas de renouvellement mensuel</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Check className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-                    <span className="text-sm">Meilleur tarif garanti</span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-muted-foreground pt-4 border-t border-border">
-                  Paiement unique annuel • Résiliable à tout moment
-                </p>
-              </div>
-            </Card>
-          </div>
-
-          {/* CTA Principal */}
-          <div className="text-center space-y-4">
-            <Button
-              size="lg"
+                  <span className="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            
+            {/* CTA */}
+            <Button 
+              size="lg" 
+              className="w-full text-lg py-6" 
               onClick={handleStartTrial}
               disabled={loading}
-              className="text-lg px-12 py-6 gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all inline-flex items-center gap-2"
             >
               {loading ? (
                 <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  Redirection en cours...
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  Redirection...
                 </>
               ) : (
-                <>
-                  Démarrer mon essai gratuit 7 jours
-                  <ArrowRight className="w-5 h-5" />
-                </>
+                'Démarrer mon essai gratuit 7 jours'
               )}
             </Button>
             
-            <p className="text-sm text-muted-foreground">
-              Aucun paiement aujourd'hui • Annulation en 1 clic
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              Essai gratuit de 7 jours • Aucune carte bancaire requise
             </p>
-          </div>
+          </Card>
+        </div>
 
           {/* Réassurance */}
           <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
@@ -344,13 +275,13 @@ const Tarif = () => {
             {faqs.map((faq) => (
               <Collapsible
                 key={faq.id}
-                open={openFaq === faq.id}
-                onOpenChange={(isOpen) => setOpenFaq(isOpen ? faq.id : null)}
+                open={openAccordion === faq.id}
+                onOpenChange={(isOpen) => setOpenAccordion(isOpen ? faq.id : undefined)}
               >
                 <Card className="overflow-hidden">
                   <CollapsibleTrigger className="w-full p-6 text-left flex items-center justify-between hover:bg-muted/50 transition-colors">
                     <span className="font-semibold">{faq.question}</span>
-                    <ChevronDown className={`w-5 h-5 transition-transform ${openFaq === faq.id ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-5 h-5 transition-transform ${openAccordion === faq.id ? 'rotate-180' : ''}`} />
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="px-6 pb-6 text-sm text-muted-foreground">
@@ -362,27 +293,27 @@ const Tarif = () => {
             ))}
           </div>
 
-          {/* CTA Sticky sur Mobile */}
-          <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-lg border-t border-border shadow-lg">
-            <Button
-              size="lg"
-              onClick={handleStartTrial}
-              disabled={loading}
-              className="w-full gradient-hero text-primary-foreground shadow-glow"
-            >
-              {loading ? (
-                <>
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  Chargement...
-                </>
-              ) : (
-                <>
-                  Démarrer mon essai gratuit 7 jours
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
-            </Button>
-          </div>
+        {/* CTA fixe mobile */}
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t md:hidden z-50">
+          <Button 
+            size="lg" 
+            className="w-full shadow-glow" 
+            onClick={handleStartTrial}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                Redirection...
+              </>
+            ) : (
+              <>
+                8,99€/mois • Essai gratuit 7 jours
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </Button>
+        </div>
         </div>
       </div>
     </>
