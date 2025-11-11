@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CancellationFeedbackDialogProps {
   open: boolean;
@@ -21,6 +22,7 @@ export const CancellationFeedbackDialog = ({
   actionType,
   onConfirm 
 }: CancellationFeedbackDialogProps) => {
+  const { user } = useAuth();
   const [reason, setReason] = useState("");
   const [comments, setComments] = useState("");
   const [loading, setLoading] = useState(false);
@@ -40,15 +42,21 @@ export const CancellationFeedbackDialog = ({
       return;
     }
 
+    if (!user) {
+      toast.error("Session expirée. Veuillez vous reconnecter.");
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
         .from('cancellation_feedback')
         .insert({
+          user_id: user.id,
           action_type: actionType,
           reason: reason,
           additional_comments: comments || null
-        } as any);
+        });
 
       if (error) throw error;
 
