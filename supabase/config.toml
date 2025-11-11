@@ -1,5 +1,8 @@
 project_id = "nsowlnpntphxwykzbwmc"
 
+[functions.customer-portal]
+verify_jwt = true
+
 [functions.generate-training-session]
 verify_jwt = true
 

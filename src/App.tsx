@@ -30,6 +30,7 @@ import Profile from "./pages/settings/Profile";
 import PhysicalInfo from "./pages/settings/PhysicalInfo";
 import TrainingProgram from "./pages/settings/TrainingProgram";
 import NutritionSettings from "./pages/settings/Nutrition";
+import Subscription from "./pages/settings/Subscription";
 import Training from "./pages/Training";
 import Nutrition from "./pages/Nutrition";
 import CoachAlex from "./pages/CoachAlex";
@@ -82,6 +83,7 @@ const App = () => (
           <Route path="/settings/physical-info" element={<ProtectedRoute><SubscriptionGuard><AppLayout><PhysicalInfo /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings/training-program" element={<ProtectedRoute><SubscriptionGuard><AppLayout><TrainingProgram /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/settings/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><NutritionSettings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+          <Route path="/settings/subscription" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Subscription /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
             
             <Route path="*" element={<NotFound />} />
     </Routes>

@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { CancellationFeedbackDialog } from "./CancellationFeedbackDialog";
 
 interface SubscriptionInfo {
   hasSubscription: boolean;
@@ -40,6 +41,7 @@ export const ProfileSection = () => {
   const [checkingSubscription, setCheckingSubscription] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
 
   const handleNameUpdate = async () => {
     if (!name.trim()) {
@@ -132,6 +134,11 @@ export const ProfileSection = () => {
     } finally {
       setCheckingSubscription(false);
     }
+  };
+
+  const proceedWithAccountDeletion = () => {
+    setShowFeedbackDialog(false);
+    setDialogOpen(true);
   };
 
   const handleDeleteAccount = async () => {
@@ -252,17 +259,26 @@ export const ProfileSection = () => {
       </div>
 
       <div className="pt-6 border-t">
+        <Button 
+          variant="destructive" 
+          className="w-full"
+          onClick={() => setShowFeedbackDialog(true)}
+        >
+          Supprimer mon compte
+        </Button>
+
+        <CancellationFeedbackDialog
+          open={showFeedbackDialog}
+          onOpenChange={setShowFeedbackDialog}
+          actionType="delete_account"
+          onConfirm={() => {
+            checkSubscriptionBeforeDelete();
+          }}
+        />
+
         <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <AlertDialogTrigger asChild>
-            <Button 
-              variant="destructive" 
-              className="w-full"
-              onClick={checkSubscriptionBeforeDelete}
-              disabled={checkingSubscription}
-            >
-              {checkingSubscription && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-              Supprimer mon compte
-            </Button>
+            <div style={{ display: 'none' }} />
           </AlertDialogTrigger>
           <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>

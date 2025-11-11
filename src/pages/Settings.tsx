@@ -45,7 +45,7 @@ const settingsItems = [
     title: "Abonnement",
     description: "Gérer ton abonnement Pulse.ai",
     icon: CreditCard,
-    to: "/paywall",
+    to: "/settings/subscription",
   },
   {
     title: "Aide & Support",

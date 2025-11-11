@@ -6,12 +6,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader2, CreditCard, ExternalLink, CheckCircle2 } from "lucide-react";
+import { CancellationFeedbackDialog } from "./CancellationFeedbackDialog";
 
 export const SubscriptionSection = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [portalLoading, setPortalLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
+  const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
 
   useEffect(() => {
     fetchSubscription();
@@ -56,6 +59,29 @@ export const SubscriptionSection = () => {
       console.error(error);
     } finally {
       setPortalLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setShowFeedbackDialog(false);
+    setCancelLoading(true);
+    
+    try {
+      const { error } = await supabase.functions.invoke("cancel-subscription", {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Ton abonnement a été annulé avec succès");
+      fetchSubscription();
+    } catch (error: any) {
+      toast.error("Erreur lors de l'annulation de l'abonnement");
+      console.error(error);
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -122,6 +148,23 @@ export const SubscriptionSection = () => {
             Tu seras redirigé vers le portail sécurisé Stripe pour gérer ton abonnement, 
             modifier ton moyen de paiement ou consulter tes factures.
           </p>
+
+          <Button
+            variant="ghost"
+            className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => setShowFeedbackDialog(true)}
+            disabled={cancelLoading}
+          >
+            {cancelLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            Annuler mon abonnement
+          </Button>
+
+          <CancellationFeedbackDialog
+            open={showFeedbackDialog}
+            onOpenChange={setShowFeedbackDialog}
+            actionType="cancel_subscription"
+            onConfirm={handleCancelSubscription}
+          />
         </div>
       ) : (
         <div className="text-center py-8 space-y-6">
