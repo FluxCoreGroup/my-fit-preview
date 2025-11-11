@@ -279,20 +279,30 @@ const Preview = () => {
           {/* CTA intermédiaire */}
           <Card className="p-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30 animate-in">
             <div className="text-center space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 border border-accent/30 rounded-full mb-2">
+                <Gift className="w-4 h-4 text-accent" />
+                <span className="text-sm font-semibold text-accent">Offre de lancement</span>
+              </div>
               <div className="flex items-center justify-center gap-2">
                 <PartyPopper className="w-8 h-8 text-primary" />
                 <h3 className="text-2xl font-bold">Ton plan est prêt !</h3>
               </div>
               <p className="text-muted-foreground">
-                Crée ton compte maintenant pour débloquer ta première séance d'entraînement personnalisée
+                Continue la création de ton programme personnalisé complet
               </p>
               <Button 
                 size="lg" 
-                onClick={handleCreateAccount}
-                className="bg-gradient-to-r from-primary to-secondary"
+                onClick={() => {
+                  localStorage.setItem("hasSeenPreview", "true");
+                  navigate("/tarif");
+                }}
+                className="gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all"
               >
-                Créer mon compte gratuitement
+                Continuer la création de mon programme personnalisé
               </Button>
+              <p className="text-sm text-muted-foreground">
+                Essai gratuit 7 jours • Sans engagement • Accès immédiat
+              </p>
             </div>
           </Card>
 
@@ -325,7 +335,7 @@ const Preview = () => {
           </div>
 
           {/* CTA */}
-          <div className="mt-12 text-center space-y-4 animate-in">
+          <div className="mt-12 text-center space-y-4 animate-in pb-8">
             <div className="flex items-center justify-center gap-3">
               <Rocket className="w-10 h-10 text-primary" />
               <h2 className="text-3xl font-bold">
@@ -333,22 +343,24 @@ const Preview = () => {
               </h2>
             </div>
             <p className="text-muted-foreground max-w-lg mx-auto text-lg">
-              Crée ton compte gratuitement pour accéder à ta première séance d'entraînement 
-              personnalisée et suivre tes progrès.
+              Continue la création de ton programme sport + nutrition personnalisé
             </p>
             
             <Button 
               size="lg" 
-              className="text-lg px-8 py-6 bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg inline-flex items-center gap-2"
-              onClick={handleCreateAccount}
+              className="text-lg px-8 py-6 gradient-hero text-primary-foreground hover:opacity-90 shadow-glow transition-all inline-flex items-center gap-2"
+              onClick={() => {
+                localStorage.setItem("hasSeenPreview", "true");
+                navigate("/tarif");
+              }}
             >
-              <Dumbbell className="w-5 h-5" />
-              Créer mon compte et voir ma séance
+              <Rocket className="w-5 h-5" />
+              Continuer la création de mon programme
             </Button>
             
             <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
               <Gift className="w-4 h-4" />
-              Ta première séance est gratuite, sans engagement
+              Essai gratuit 7 jours • Sans engagement
             </p>
           </div>
         </div>

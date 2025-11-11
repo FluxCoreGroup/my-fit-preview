@@ -9,6 +9,7 @@ import { AppLayout } from "./components/layouts/AppLayout";
 import Landing from "./pages/Landing";
 import Start from "./pages/Start";
 import Preview from "./pages/Preview";
+import Tarif from "./pages/Tarif";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
 import EmailConfirmation from "./pages/EmailConfirmation";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/start" element={<Start />} />
             <Route path="/preview" element={<Preview />} />
+            <Route path="/tarif" element={<Tarif />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/email-confirmation" element={<EmailConfirmation />} />
