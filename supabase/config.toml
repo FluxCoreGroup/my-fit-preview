@@ -51,3 +51,6 @@ verify_jwt = true
 [functions.cancel-subscription]
 verify_jwt = true
 
+[functions.format-health-data]
+verify_jwt = false
+

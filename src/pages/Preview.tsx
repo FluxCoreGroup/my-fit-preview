@@ -251,6 +251,41 @@ const Preview = () => {
             </div>
           </Card>
 
+          {/* Profil santé et nutrition */}
+          <Card className="p-6 animate-in">
+            <h3 className="text-xl font-bold mb-4">Ton profil santé et nutrition</h3>
+            <div className="space-y-3">
+              <div>
+                <span className="font-semibold">Allergies/Intolérances :</span>{" "}
+                <span className="text-muted-foreground">
+                  {input.allergies && input.allergies.length > 0 
+                    ? input.allergies.join(", ") 
+                    : "Aucune allergie signalée"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold">Aliments à éviter :</span>{" "}
+                <span className="text-muted-foreground">
+                  {input.restrictions && input.restrictions.length > 0 
+                    ? input.restrictions.join(", ") 
+                    : "Aucune restriction alimentaire"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold">Conditions de santé :</span>{" "}
+                <span className="text-muted-foreground">
+                  {input.healthConditions && input.healthConditions.length > 0 
+                    ? input.healthConditions.join(", ") 
+                    : "Aucune condition particulière"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold">Repas par jour :</span>{" "}
+                <span className="text-muted-foreground">{input.mealsPerDay} repas</span>
+              </div>
+            </div>
+          </Card>
+
           {/* Recommandations complémentaires */}
           <div className="grid md:grid-cols-2 gap-4 animate-in">
             <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">

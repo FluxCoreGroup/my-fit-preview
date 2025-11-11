@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import type { OnboardingInput } from "@/services/planner";
@@ -84,7 +85,7 @@ const Start = () => {
         return !!formData.activityLevel;
       case 4:
         return !!(formData.frequency && formData.sessionDuration && formData.location && 
-                  formData.equipment && formData.equipment.length > 0);
+                  (formData.location === "gym" || (formData.equipment && formData.equipment.length > 0)));
       case 5:
         return true; // Toujours valide
       default:
@@ -119,7 +120,9 @@ const Start = () => {
         if (!formData.frequency) newErrors.frequency = "Fréquence requise";
         if (!formData.sessionDuration) newErrors.sessionDuration = "Durée requise";
         if (!formData.location) newErrors.location = "Lieu requis";
-        if (!formData.equipment || formData.equipment.length === 0) newErrors.equipment = "Sélectionne au moins un équipement";
+        if (formData.location === "home" && (!formData.equipment || formData.equipment.length === 0)) {
+          newErrors.equipment = "Sélectionne au moins un équipement";
+        }
         break;
       case 5:
         // Étape 5 est toujours valide (champs pré-remplis et optionnels)
@@ -405,7 +408,7 @@ const Start = () => {
                     <SelectValue placeholder="Choisir..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {[2, 3, 4, 5, 6].map((n) => (
+                    {[1, 2, 3, 4, 5, 6, 7].map((n) => (
                       <SelectItem key={n} value={n.toString()}>
                         {n} fois par semaine
                       </SelectItem>
@@ -416,37 +419,50 @@ const Start = () => {
               </div>
 
               <div>
-                <Label htmlFor="duration">Durée par séance *</Label>
-                <Select
-                  value={formData.sessionDuration?.toString()}
-                  onValueChange={(value) => updateField("sessionDuration", parseInt(value))}
-                >
-                  <SelectTrigger className={`mt-2 ${errors.sessionDuration ? 'border-destructive' : ''}`}>
-                    <SelectValue placeholder="Choisir..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[30, 45, 60, 75, 90].map((n) => (
-                      <SelectItem key={n} value={n.toString()}>
-                        {n} minutes
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="duration">Durée par séance * (Min 30min - Max 120min)</Label>
+                <div className="mt-4">
+                  <Slider
+                    value={[formData.sessionDuration || 60]}
+                    onValueChange={(value) => updateField("sessionDuration", value[0])}
+                    min={30}
+                    max={120}
+                    step={15}
+                    className="mb-2"
+                  />
+                  <div className="text-center text-2xl font-bold text-primary">
+                    {formData.sessionDuration || 60} minutes
+                  </div>
+                </div>
                 {errors.sessionDuration && <p className="text-xs text-destructive mt-1">{errors.sessionDuration}</p>}
               </div>
 
               <div>
-                <Label>Où vas-tu t'entraîner ? *</Label>
+                <Label>As-tu la possibilité d'aller en salle de sport ? *</Label>
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   {[
-                    { value: "home", label: "À la maison" },
-                    { value: "gym", label: "En salle" }
+                    { value: true, label: "Oui" },
+                    { value: false, label: "Non" }
                   ].map((option) => (
                     <button
-                      key={option.value}
-                      onClick={() => updateField("location", option.value)}
+                      key={option.label}
+                      onClick={() => {
+                        updateField("location", option.value ? "gym" : "home");
+                        if (option.value) {
+                          // Si salle, auto-remplir l'équipement
+                          updateField("equipment", [
+                            "Haltères",
+                            "Barre + poids",
+                            "Banc de musculation",
+                            "Barre de traction",
+                            "Machines guidées"
+                          ]);
+                        } else {
+                          // Si maison, réinitialiser
+                          updateField("equipment", []);
+                        }
+                      }}
                       className={`p-4 rounded-lg border-2 transition-all hover:border-primary ${
-                        formData.location === option.value ? "border-primary bg-primary/5" : "border-border"
+                        formData.location === (option.value ? "gym" : "home") ? "border-primary bg-primary/5" : "border-border"
                       } ${errors.location ? 'border-destructive' : ''}`}
                     >
                       <div className="font-semibold">{option.label}</div>
@@ -456,38 +472,41 @@ const Start = () => {
                 {errors.location && <p className="text-xs text-destructive mt-1">{errors.location}</p>}
               </div>
 
-              <div>
-                <Label>Matériel disponible (minimum 1) *</Label>
-                <div className={`mt-3 space-y-3 ${errors.equipment ? 'p-3 border-2 border-destructive rounded-lg' : ''}`}>
-                  {[
-                    "Haltères",
-                    "Barre + poids",
-                    "Élastiques",
-                    "Kettlebell",
-                    "Banc de musculation",
-                    "Barre de traction",
-                    "Aucun (poids du corps)"
-                  ].map((item) => (
-                    <div key={item} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={item}
-                        checked={formData.equipment?.includes(item)}
-                        onCheckedChange={(checked) => {
-                          const current = formData.equipment || [];
-                          updateField(
-                            "equipment",
-                            checked ? [...current, item] : current.filter((e) => e !== item)
-                          );
-                        }}
-                      />
-                      <Label htmlFor={item} className="font-normal cursor-pointer">
-                        {item}
-                      </Label>
-                    </div>
-                  ))}
+              {/* Afficher l'équipement seulement si location = "home" */}
+              {formData.location === "home" && (
+                <div>
+                  <Label>Quel équipement as-tu à la maison ? (minimum 1) *</Label>
+                  <div className={`mt-3 space-y-3 ${errors.equipment ? 'p-3 border-2 border-destructive rounded-lg' : ''}`}>
+                    {[
+                      "Haltères",
+                      "Barre + poids",
+                      "Élastiques",
+                      "Kettlebell",
+                      "Banc de musculation",
+                      "Barre de traction",
+                      "Aucun (poids du corps)"
+                    ].map((item) => (
+                      <div key={item} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={item}
+                          checked={formData.equipment?.includes(item)}
+                          onCheckedChange={(checked) => {
+                            const current = formData.equipment || [];
+                            updateField(
+                              "equipment",
+                              checked ? [...current, item] : current.filter((e) => e !== item)
+                            );
+                          }}
+                        />
+                        <Label htmlFor={item} className="font-normal cursor-pointer">
+                          {item}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  {errors.equipment && <p className="text-xs text-destructive mt-1">{errors.equipment}</p>}
                 </div>
-                {errors.equipment && <p className="text-xs text-destructive mt-1">{errors.equipment}</p>}
-              </div>
+              )}
             </div>
           </Card>
         )}
@@ -498,7 +517,10 @@ const Start = () => {
             <h2 className="text-2xl font-bold mb-6">Tes préférences alimentaires</h2>
             <div className="space-y-6">
               <div>
-                <Label htmlFor="mealsPerDay">Combien de repas par jour ?</Label>
+                <Label htmlFor="mealsPerDay">Combien de repas souhaites-tu par jour ? *</Label>
+                <p className="text-sm text-muted-foreground mt-1 mb-2">
+                  Les collations comptent comme des repas, mais pas le grignotage occasionnel
+                </p>
                 <Select
                   value={formData.mealsPerDay?.toString()}
                   onValueChange={(value) => updateField("mealsPerDay", parseInt(value))}
@@ -529,38 +551,41 @@ const Start = () => {
 
               <div>
                 <Label htmlFor="allergies">Allergies ou intolérances (optionnel)</Label>
-                <Input
+                <Textarea
                   id="allergies"
-                  placeholder="ex: lactose, gluten, fruits à coque..."
+                  placeholder="Décris tes allergies ou intolérances librement..."
                   value={formData.allergies?.join(", ") || ""}
                   onChange={(e) => updateField("allergies", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
                   className="mt-2"
+                  rows={2}
                 />
-                <p className="text-sm text-muted-foreground mt-1">Sépare par des virgules</p>
+                <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
               </div>
 
               <div>
                 <Label htmlFor="restrictions">Aliments que tu ne veux pas (optionnel)</Label>
-                <Input
+                <Textarea
                   id="restrictions"
-                  placeholder="ex: poisson, viande rouge..."
+                  placeholder="Décris les aliments que tu souhaites éviter..."
                   value={formData.restrictions?.join(", ") || ""}
                   onChange={(e) => updateField("restrictions", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
                   className="mt-2"
+                  rows={2}
                 />
-                <p className="text-sm text-muted-foreground mt-1">Sépare par des virgules</p>
+                <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
               </div>
 
               <div>
                 <Label htmlFor="healthConditions">Conditions de santé (optionnel)</Label>
-                <Input
+                <Textarea
                   id="healthConditions"
-                  placeholder="ex: diabète, hypertension..."
+                  placeholder="Décris tes conditions de santé si pertinent..."
                   value={formData.healthConditions?.join(", ") || ""}
                   onChange={(e) => updateField("healthConditions", e.target.value.split(",").map(s => s.trim()).filter(Boolean))}
                   className="mt-2"
+                  rows={2}
                 />
-                <p className="text-sm text-muted-foreground mt-1">Sépare par des virgules</p>
+                <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
               </div>
 
               <div className="p-4 bg-muted rounded-lg">
