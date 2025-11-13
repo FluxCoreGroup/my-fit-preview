@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Target, Clock, Settings } from "lucide-react";
+import { Sparkles, Target, Clock, Settings, ArrowRight } from "lucide-react";
 
 const OnboardingIntro = () => {
   const navigate = useNavigate();
@@ -63,23 +63,15 @@ const OnboardingIntro = () => {
           </p>
         </div>
 
-        {/* CTAs */}
-        <div className="space-y-3">
+        {/* CTA avec flèche */}
+        <div className="flex justify-center">
           <Button 
             size="lg" 
-            className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+            className="bg-primary hover:bg-primary/90 gap-2"
             onClick={() => navigate('/training-setup')}
           >
-            Créer mon programme
-          </Button>
-          
-          <Button 
-            size="lg" 
-            variant="ghost"
-            className="w-full"
-            onClick={() => navigate('/hub')}
-          >
-            Je le ferai plus tard
+            Continuer
+            <ArrowRight className="w-5 h-5" />
           </Button>
         </div>
       </Card>
