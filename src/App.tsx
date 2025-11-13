@@ -16,6 +16,7 @@ import EmailConfirmation from "./pages/EmailConfirmation";
 import EmailVerified from "./pages/EmailVerified";
 import AuthCallback from "./components/AuthCallback";
 import TrainingSetup from "./pages/TrainingSetup";
+import OnboardingIntro from "./pages/OnboardingIntro";
 import Session from "./pages/Session";
 import Feedback from "./pages/Feedback";
 import Paywall from "./pages/Paywall";
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/auth-callback" element={<AuthCallback />} />
             <Route path="/email-verified" element={<EmailVerified />} />
             <Route path="/training-setup" element={<TrainingSetup />} />
+            <Route path="/onboarding-intro" element={<ProtectedRoute><OnboardingIntro /></ProtectedRoute>} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/support" element={<Support />} />

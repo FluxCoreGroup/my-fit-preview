@@ -138,15 +138,15 @@ const Signup = () => {
             localStorage.removeItem("onboardingData");
             localStorage.removeItem("hasSeenPreview");
 
-            // Redirect to training setup
-            navigate("/training-setup");
+            // Redirect to onboarding intro
+            navigate("/onboarding-intro");
           } catch (linkError: any) {
             console.error('Error linking subscription:', linkError);
             toast({
               title: "Compte créé ! 🎉",
               description: "Continue ton questionnaire, on vérifiera ton abonnement ensuite.",
             });
-            navigate("/training-setup");
+            navigate("/onboarding-intro");
           }
         } else {
           // Normal flow with email confirmation

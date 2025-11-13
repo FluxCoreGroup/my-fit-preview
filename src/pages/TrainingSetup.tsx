@@ -71,6 +71,30 @@ const TrainingSetup = () => {
     checkUserData();
   }, [user, authLoading, navigate]);
 
+  // Vérifier si training_preferences existe déjà
+  useEffect(() => {
+    const checkExistingPreferences = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('training_preferences')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (data && !error) {
+        // Préférences déjà configurées, rediriger
+        toast({
+          title: "Préférences déjà configurées",
+          description: "Tu peux les modifier dans Paramètres > Programme d'entraînement",
+        });
+        navigate('/hub');
+      }
+    };
+    
+    checkExistingPreferences();
+  }, [user, navigate, toast]);
+
   const [formData, setFormData] = useState({
     sessionType: trainingData.sessionType || undefined,
     experienceLevel: trainingData.experienceLevel || undefined,

@@ -13,28 +13,49 @@ interface WelcomeModalProps {
 const steps = [
   {
     icon: PartyPopper,
-    title: "Bienvenue {userName} !",
-    description: "Voici ton hub d'entraînement personnalisé.",
-    content: "Laisse-moi te faire un tour rapide (30 secondes)",
+    title: "Bienvenue sur ton tableau de bord !",
+    description: "Voici où tout commence. Chaque module est conçu pour te guider vers tes objectifs.",
+    content: "Laisse-moi te faire un tour rapide des différents modules (30 secondes)",
   },
   {
     icon: Grid3x3,
-    title: "Tes modules",
-    description: "Chaque carte te donne accès à une fonctionnalité :",
+    title: "Tes entraînements personnalisés",
+    description: "Accède à tes séances adaptées à ton niveau, génère de nouvelles sessions, et suis ta progression semaine après semaine.",
     content: (
-      <ul className="space-y-2 text-sm text-muted-foreground">
-        <li>• <strong>Entraînements</strong> : tes séances personnalisées</li>
-        <li>• <strong>Nutrition</strong> : ton plan alimentaire</li>
-        <li>• <strong>Suivi</strong> : check-in hebdo et progression</li>
-        <li>• <strong>Alex & Julie</strong> : tes coachs IA disponibles 24/7</li>
-      </ul>
+      <p className="text-sm text-muted-foreground">
+        Par exemple, tu peux lancer une séance maintenant ou programmer celles de la semaine. Chaque entraînement s'adapte à ton équipement et tes préférences.
+      </p>
     ),
   },
   {
     icon: Rocket,
-    title: "Prêt à commencer ?",
-    description: "Tu peux revenir au hub à tout moment en cliquant sur \"Accueil\" dans le menu.",
-    content: "Bonne chance pour ton aventure Pulse.ai ! 💪",
+    title: "Ta nutrition sur mesure",
+    description: "Consulte ton plan alimentaire, génère des repas adaptés à tes goûts, et suis ton hydratation quotidienne.",
+    content: (
+      <p className="text-sm text-muted-foreground">
+        Tu peux générer un repas healthy en 30 secondes. Julie, ta nutritionniste IA, est aussi disponible 24/7 pour répondre à toutes tes questions.
+      </p>
+    ),
+  },
+  {
+    icon: Grid3x3,
+    title: "Ton check-in hebdomadaire",
+    description: "Chaque semaine, fais le point sur ton poids, ton adhérence, et reçois des recommandations pour ajuster ton programme.",
+    content: (
+      <p className="text-sm text-muted-foreground">
+        Je te recommande de faire ton premier check-in maintenant ! Ça prend 2 minutes et ça permet d'optimiser ton programme en continu.
+      </p>
+    ),
+  },
+  {
+    icon: Rocket,
+    title: "C'est parti ! 🚀",
+    description: "Tu es prêt à commencer. N'hésite pas à explorer chaque module et à revenir ici quand tu veux.",
+    content: (
+      <p className="text-sm text-muted-foreground">
+        Alex (coach sport) et Julie (nutritionniste) sont là pour t'aider 24/7. Pose-leur toutes tes questions !
+      </p>
+    ),
   },
 ];
 

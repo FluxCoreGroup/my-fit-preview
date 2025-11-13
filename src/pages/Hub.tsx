@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ModuleCard } from "@/components/dashboard/ModuleCard";
 import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, Dumbbell, Utensils, Activity, Target, Apple, Settings, MessageCircleQuestion } from "lucide-react";
 
 const Hub = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { stats, loading } = useDashboardData();
   const { hasCheckInThisWeek, weightDelta, adherence } = useWeeklyCheckInStatus();
@@ -38,6 +40,26 @@ const Hub = () => {
     if (!hasSeenWelcome && user) {
       setShowWelcome(true);
     }
+  }, [user]);
+
+  // Vérifier que training-setup est complété
+  useEffect(() => {
+    const checkTrainingSetup = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('training_preferences')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (!data && !error) {
+        // Pas de préférences configurées, rediriger vers la page intro
+        navigate('/onboarding-intro');
+      }
+    };
+    
+    checkTrainingSetup();
   }, [user]);
 
   const handleWelcomeComplete = () => {
