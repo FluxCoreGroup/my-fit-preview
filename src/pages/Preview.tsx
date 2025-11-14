@@ -9,39 +9,55 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { toast } from "@/hooks/use-toast";
-
-const loadingSteps = [
-  { progress: 0, text: "Analyse de ton profil...", icon: BarChart3 },
-  { progress: 15, text: "Calcul du BMI et BMR...", icon: Calculator },
-  { progress: 35, text: "Estimation du TDEE selon ton activité...", icon: Flame },
-  { progress: 50, text: "Détermination de la cible calorique...", icon: Target },
-  { progress: 65, text: "Optimisation des macronutriments...", icon: Utensils },
-  { progress: 80, text: "Calcul de l'hydratation recommandée...", icon: Droplets },
-  { progress: 95, text: "Finalisation de ton plan...", icon: Dumbbell },
-  { progress: 100, text: "Ton plan est prêt !", icon: CheckCircle2 }
-];
-
+const loadingSteps = [{
+  progress: 0,
+  text: "Analyse de ton profil...",
+  icon: BarChart3
+}, {
+  progress: 15,
+  text: "Calcul du BMI et BMR...",
+  icon: Calculator
+}, {
+  progress: 35,
+  text: "Estimation du TDEE selon ton activité...",
+  icon: Flame
+}, {
+  progress: 50,
+  text: "Détermination de la cible calorique...",
+  icon: Target
+}, {
+  progress: 65,
+  text: "Optimisation des macronutriments...",
+  icon: Utensils
+}, {
+  progress: 80,
+  text: "Calcul de l'hydratation recommandée...",
+  icon: Droplets
+}, {
+  progress: 95,
+  text: "Finalisation de ton plan...",
+  icon: Dumbbell
+}, {
+  progress: 100,
+  text: "Ton plan est prêt !",
+  icon: CheckCircle2
+}];
 const LoadingAnalysis = () => {
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(loadingSteps[0]);
-
   useEffect(() => {
     const totalDuration = 5000; // 5 secondes
     const startTime = Date.now();
-
     const timer = setInterval(() => {
       const elapsed = Date.now() - startTime;
-      const calculatedProgress = Math.min((elapsed / totalDuration) * 100, 100);
-      
+      const calculatedProgress = Math.min(elapsed / totalDuration * 100, 100);
       setProgress(calculatedProgress);
-      
+
       // Update text based on progress
       const newStep = loadingSteps.reduce((acc, step) => {
         return calculatedProgress >= step.progress ? step : acc;
       }, loadingSteps[0]);
-      
       setCurrentStep(newStep);
-
       if (calculatedProgress >= 100) {
         clearInterval(timer);
       }
@@ -49,11 +65,8 @@ const LoadingAnalysis = () => {
 
     return () => clearInterval(timer);
   }, []);
-
   const CurrentIcon = currentStep.icon;
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background">
+  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background">
       <div className="text-center max-w-md px-4">
         {/* Animated spinner */}
         <div className="relative mb-8">
@@ -67,10 +80,9 @@ const LoadingAnalysis = () => {
         
         <div className="mb-6">
           <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300 ease-out"
-              style={{ width: `${progress}%` }}
-            />
+            <div className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300 ease-out" style={{
+            width: `${progress}%`
+          }} />
           </div>
           <p className="text-sm text-muted-foreground mt-2">{Math.round(progress)}%</p>
         </div>
@@ -80,13 +92,13 @@ const LoadingAnalysis = () => {
           {currentStep.text}
         </p>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 const Preview = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [input, setInput] = useState<OnboardingInput | null>(null);
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPreview | null>(null);
   const [loadingPhase, setLoadingPhase] = useState<'loading' | 'results'>('loading');
@@ -96,40 +108,36 @@ const Preview = () => {
     healthConditions: string;
   } | null>(null);
   const [isFormattingHealth, setIsFormattingHealth] = useState(false);
-
   useEffect(() => {
     const dataStr = localStorage.getItem("onboardingData");
     if (!dataStr) {
       navigate("/start");
       return;
     }
-
     try {
       const data: OnboardingInput = JSON.parse(dataStr);
       setInput(data);
-      
+
       // Start 5-second loading avec parallélisation
       setTimeout(async () => {
         try {
           // Lancer le calcul nutrition et le formatage en parallèle
-          const [nutrition] = await Promise.all([
-            nutritionPlanner.getPreview(data),
-            // Pré-charger le formatage si nécessaire
-            (data.allergies || data.restrictions || data.healthConditions) 
-              ? supabase.functions.invoke('format-health-data', {
-                  body: {
-                    allergies: data.allergies || "",
-                    restrictions: data.restrictions || "",
-                    healthConditions: data.healthConditions || ""
-                  }
-                }).then(({ data: healthData, error }) => {
-                  if (!error && healthData) {
-                    setFormattedHealthData(healthData);
-                  }
-                })
-              : Promise.resolve()
-          ]);
-          
+          const [nutrition] = await Promise.all([nutritionPlanner.getPreview(data),
+          // Pré-charger le formatage si nécessaire
+          data.allergies || data.restrictions || data.healthConditions ? supabase.functions.invoke('format-health-data', {
+            body: {
+              allergies: data.allergies || "",
+              restrictions: data.restrictions || "",
+              healthConditions: data.healthConditions || ""
+            }
+          }).then(({
+            data: healthData,
+            error
+          }) => {
+            if (!error && healthData) {
+              setFormattedHealthData(healthData);
+            }
+          }) : Promise.resolve()]);
           setNutritionPlan(nutrition);
           setLoadingPhase('results');
         } catch (error) {
@@ -148,10 +156,10 @@ const Preview = () => {
   useEffect(() => {
     const formatHealthDataFallback = async () => {
       if (!input || loadingPhase !== 'results' || formattedHealthData) return;
-      
+
       // Si déjà formaté pendant le chargement, ne rien faire
       if (formattedHealthData) return;
-      
+
       // Ne formater que si au moins un champ est rempli
       if (!input.allergies && !input.restrictions && !input.healthConditions) {
         setFormattedHealthData({
@@ -161,20 +169,19 @@ const Preview = () => {
         });
         return;
       }
-
       setIsFormattingHealth(true);
-      
       try {
-        const { data, error } = await supabase.functions.invoke('format-health-data', {
+        const {
+          data,
+          error
+        } = await supabase.functions.invoke('format-health-data', {
           body: {
             allergies: input.allergies || "",
             restrictions: input.restrictions || "",
             healthConditions: input.healthConditions || ""
           }
         });
-
         if (error) throw error;
-
         if (data) {
           setFormattedHealthData(data);
         }
@@ -190,10 +197,8 @@ const Preview = () => {
         setIsFormattingHealth(false);
       }
     };
-
     formatHealthDataFallback();
   }, [input, loadingPhase, formattedHealthData]);
-
   const handleCreateAccount = () => {
     if (user) {
       // Déjà connecté → aller directement à la séance
@@ -202,19 +207,16 @@ const Preview = () => {
       // Pas connecté → afficher le toast puis rediriger
       toast({
         title: "Plan nutrition calculé ! 🎉",
-        description: "Crée ton compte pour continuer",
+        description: "Crée ton compte pour continuer"
       });
       // Petite pause pour laisser voir le toast
       setTimeout(() => navigate("/signup"), 800);
     }
   };
-
   if (loadingPhase === 'loading' || !nutritionPlan || !input) {
     return <LoadingAnalysis />;
   }
-
-  return (
-    <TooltipProvider>
+  return <TooltipProvider>
       <Header variant="onboarding" showBack onBack={() => navigate("/start")} />
       <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
         <div className="max-w-4xl mx-auto space-y-8">
@@ -300,11 +302,9 @@ const Preview = () => {
             <div className="text-5xl font-bold text-center text-primary mb-2">
               {nutritionPlan.calories} kcal
             </div>
-            {nutritionPlan.deficit !== 0 && (
-              <div className="text-center text-muted-foreground text-sm mb-6">
+            {nutritionPlan.deficit !== 0 && <div className="text-center text-muted-foreground text-sm mb-6">
                 {nutritionPlan.deficit > 0 ? '−' : '+'}{Math.abs(nutritionPlan.deficit)} kcal par rapport à ton TDEE
-              </div>
-            )}
+              </div>}
 
             {/* Macros */}
             <div className="grid grid-cols-3 gap-4 mt-6">
@@ -330,13 +330,10 @@ const Preview = () => {
           <Card className="p-6 animate-in">
             <h3 className="text-xl font-bold mb-4">Ton profil santé et nutrition</h3>
             
-            {isFormattingHealth ? (
-              <div className="flex items-center justify-center py-4">
+            {isFormattingHealth ? <div className="flex items-center justify-center py-4">
                 <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
                 <span className="text-muted-foreground">Formatage des données...</span>
-              </div>
-            ) : formattedHealthData ? (
-              <div className="space-y-3">
+              </div> : formattedHealthData ? <div className="space-y-3">
                 <div>
                   <span className="font-semibold">Allergies/Intolérances :</span>{" "}
                   <span className="text-muted-foreground">
@@ -359,9 +356,7 @@ const Preview = () => {
                   <span className="font-semibold">Repas par jour :</span>{" "}
                   <span className="text-muted-foreground">{input.mealsPerDay} repas</span>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
+              </div> : <div className="space-y-3">
                 <div>
                   <span className="font-semibold">Allergies/Intolérances :</span>{" "}
                   <span className="text-muted-foreground">
@@ -384,8 +379,7 @@ const Preview = () => {
                   <span className="font-semibold">Repas par jour :</span>{" "}
                   <span className="text-muted-foreground">{input.mealsPerDay} repas</span>
                 </div>
-              </div>
-            )}
+              </div>}
           </Card>
 
           {/* Recommandations complémentaires */}
@@ -427,14 +421,10 @@ const Preview = () => {
               <p className="text-muted-foreground">
                 Continue la création de ton programme personnalisé complet
               </p>
-              <Button 
-                size="lg" 
-                onClick={() => {
-                  localStorage.setItem("hasSeenPreview", "true");
-                  navigate("/tarif");
-                }}
-                className="gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all"
-              >
+              <Button size="lg" onClick={() => {
+              localStorage.setItem("hasSeenPreview", "true");
+              navigate("/tarif");
+            }} className="gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all">
                 Continuer la création de mon programme personnalisé
               </Button>
               <p className="text-sm text-muted-foreground">
@@ -444,66 +434,15 @@ const Preview = () => {
           </Card>
 
           {/* Exemple de journée */}
-          <Card className="p-6 animate-in">
-            <h3 className="font-semibold text-lg mb-4">Exemple de journée type</h3>
-            <div className="space-y-3">
-              {nutritionPlan.sampleDay.map((meal, i) => (
-                <Card key={i} className="p-4 bg-background border-border">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="font-semibold">{meal.meal}</div>
-                    <div className="text-sm text-muted-foreground">~{meal.approxCalories} kcal</div>
-                  </div>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    {meal.foods.map((food, j) => (
-                      <li key={j}>• {food}</li>
-                    ))}
-                  </ul>
-                </Card>
-              ))}
-            </div>
-          </Card>
+          
 
           {/* Explication */}
-          <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/20 animate-in">
-            <div className="flex gap-2">
-              <Info className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" />
-              <p className="text-sm">{nutritionPlan.explanation}</p>
-            </div>
-          </div>
+          
 
           {/* CTA */}
-          <div className="mt-12 text-center space-y-4 animate-in pb-8">
-            <div className="flex items-center justify-center gap-3">
-              <Rocket className="w-10 h-10 text-primary" />
-              <h2 className="text-3xl font-bold">
-                Prêt à commencer ton aventure ?
-              </h2>
-            </div>
-            <p className="text-muted-foreground max-w-lg mx-auto text-lg">
-              Continue la création de ton programme sport + nutrition personnalisé
-            </p>
-            
-            <Button 
-              size="lg" 
-              className="text-lg px-8 py-6 gradient-hero text-primary-foreground hover:opacity-90 shadow-glow transition-all inline-flex items-center gap-2"
-              onClick={() => {
-                localStorage.setItem("hasSeenPreview", "true");
-                navigate("/tarif");
-              }}
-            >
-              <Rocket className="w-5 h-5" />
-              Continuer la création de mon programme
-            </Button>
-            
-            <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-              <Gift className="w-4 h-4" />
-              Essai gratuit 7 jours • Sans engagement
-            </p>
-          </div>
+          
         </div>
       </div>
-    </TooltipProvider>
-  );
+    </TooltipProvider>;
 };
-
 export default Preview;
