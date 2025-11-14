@@ -410,10 +410,7 @@ const Preview = () => {
           {/* CTA intermédiaire */}
           <Card className="p-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30 animate-in">
             <div className="text-center space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 border border-accent/30 rounded-full mb-2">
-                <Gift className="w-4 h-4 text-accent" />
-                <span className="text-sm font-semibold text-accent">Offre de lancement</span>
-              </div>
+              
               <div className="flex items-center justify-center gap-2">
                 <PartyPopper className="w-8 h-8 text-primary" />
                 <h3 className="text-2xl font-bold">Ton plan est prêt !</h3>
