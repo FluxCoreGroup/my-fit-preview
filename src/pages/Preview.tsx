@@ -26,7 +26,7 @@ const LoadingAnalysis = () => {
   const [currentStep, setCurrentStep] = useState(loadingSteps[0]);
 
   useEffect(() => {
-    const totalDuration = 15000; // 15 secondes
+    const totalDuration = 5000; // 5 secondes
     const startTime = Date.now();
 
     const timer = setInterval(() => {
@@ -108,10 +108,28 @@ const Preview = () => {
       const data: OnboardingInput = JSON.parse(dataStr);
       setInput(data);
       
-      // Start 15-second loading
+      // Start 5-second loading avec parallélisation
       setTimeout(async () => {
         try {
-          const nutrition = await nutritionPlanner.getPreview(data);
+          // Lancer le calcul nutrition et le formatage en parallèle
+          const [nutrition] = await Promise.all([
+            nutritionPlanner.getPreview(data),
+            // Pré-charger le formatage si nécessaire
+            (data.allergies || data.restrictions || data.healthConditions) 
+              ? supabase.functions.invoke('format-health-data', {
+                  body: {
+                    allergies: data.allergies || "",
+                    restrictions: data.restrictions || "",
+                    healthConditions: data.healthConditions || ""
+                  }
+                }).then(({ data: healthData, error }) => {
+                  if (!error && healthData) {
+                    setFormattedHealthData(healthData);
+                  }
+                })
+              : Promise.resolve()
+          ]);
+          
           setNutritionPlan(nutrition);
           setLoadingPhase('results');
         } catch (error) {
@@ -119,17 +137,20 @@ const Preview = () => {
           // Fallback to demo mode should handle this, but in case of critical error
           navigate("/start");
         }
-      }, 15000);
+      }, 5000);
     } catch (error) {
       console.error("Error parsing onboarding data:", error);
       navigate("/start");
     }
   }, [navigate]);
 
-  // Formater les données de santé avec l'IA
+  // Fallback si les données de santé n'ont pas été formatées pendant le chargement
   useEffect(() => {
-    const formatHealthData = async () => {
-      if (!input || loadingPhase !== 'results') return;
+    const formatHealthDataFallback = async () => {
+      if (!input || loadingPhase !== 'results' || formattedHealthData) return;
+      
+      // Si déjà formaté pendant le chargement, ne rien faire
+      if (formattedHealthData) return;
       
       // Ne formater que si au moins un champ est rempli
       if (!input.allergies && !input.restrictions && !input.healthConditions) {
@@ -170,8 +191,8 @@ const Preview = () => {
       }
     };
 
-    formatHealthData();
-  }, [input, loadingPhase]);
+    formatHealthDataFallback();
+  }, [input, loadingPhase, formattedHealthData]);
 
   const handleCreateAccount = () => {
     if (user) {
