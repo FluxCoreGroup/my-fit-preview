@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -28,72 +29,62 @@ const TrainingSetup = () => {
   const { data: onboardingData } = useOnboarding();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
-  const [checkingGoals, setCheckingGoals] = useState(true);
   const totalSteps = 6;
 
-  // Redirect if not logged in or no onboarding data
-  useEffect(() => {
-    const checkUserData = async () => {
-      if (authLoading) return;
+  // Requête combinée optimisée avec React Query
+  const { data: userData, isLoading: checkingGoals } = useQuery({
+    queryKey: ['training-setup-data', user?.id],
+    queryFn: async () => {
+      if (!user) throw new Error('No user');
       
-      console.log("📝 TrainingSetup : Vérification données onboarding...");
-      
-      // Si pas d'utilisateur, rediriger vers auth
-      if (!user) {
-        console.log("❌ Pas d'utilisateur, redirection vers /auth");
-        navigate("/auth");
-        return;
-      }
-      
-      console.log("✅ Utilisateur connecté:", user.email);
-      
-      // Vérifier dans Supabase (1 seule fois, sans retry)
-      const { data: goalsData, error } = await supabase
-        .from("goals")
-        .select("goal_type")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("❌ Erreur Supabase:", error);
-      }
-      
-      if (!goalsData?.goal_type) {
-        console.log("❌ Pas de goal_type trouvé, redirection vers /start");
-        navigate("/start");
-        return;
-      }
-      
-      console.log("✅ Goal trouvé:", goalsData.goal_type);
-      setCheckingGoals(false);
-    };
-    
-    checkUserData();
-  }, [user, authLoading, navigate]);
+      // Requête parallèle optimisée
+      const [goalsResult, preferencesResult] = await Promise.all([
+        supabase
+          .from("goals")
+          .select("goal_type")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from('training_preferences')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle()
+      ]);
 
-  // Vérifier si training_preferences existe déjà
+      return {
+        goals: goalsResult.data,
+        preferences: preferencesResult.data,
+        goalsError: goalsResult.error,
+        preferencesError: preferencesResult.error
+      };
+    },
+    enabled: !!user && !authLoading,
+    staleTime: 1000 * 60 * 5, // Cache 5 minutes
+  });
+
+  // Gestion de la redirection
   useEffect(() => {
-    const checkExistingPreferences = async () => {
-      if (!user) return;
-      
-      const { data, error } = await supabase
-        .from('training_preferences')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (data && !error) {
-        // Préférences déjà configurées, rediriger
-        toast({
-          title: "Préférences déjà configurées",
-          description: "Tu peux les modifier dans Paramètres > Programme d'entraînement",
-        });
-        navigate('/hub');
-      }
-    };
-    
-    checkExistingPreferences();
-  }, [user, navigate, toast]);
+    if (authLoading || checkingGoals) return;
+
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    if (userData?.preferences) {
+      toast({
+        title: "Préférences déjà configurées",
+        description: "Tu peux les modifier dans Paramètres > Programme d'entraînement",
+      });
+      navigate('/hub');
+      return;
+    }
+
+    if (!userData?.goals?.goal_type) {
+      navigate("/start");
+      return;
+    }
+  }, [user, authLoading, checkingGoals, userData, navigate, toast]);
 
   const [formData, setFormData] = useState({
     sessionType: trainingData.sessionType || undefined,

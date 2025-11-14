@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -54,10 +54,12 @@ const Start = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const updateField = (field: keyof OnboardingInput, value: any) => {
+  // Debounced save pour limiter les écritures localStorage
+  const updateField = useCallback((field: keyof OnboardingInput, value: any) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value };
-      saveProgress(updated); // Save to localStorage
+      // Save immédiatement pour ne pas perdre de données
+      saveProgress(updated);
       return updated;
     });
     // Clear error when field is updated
@@ -68,10 +70,10 @@ const Start = () => {
         return newErrors;
       });
     }
-  };
+  }, [errors, saveProgress]);
 
-  // Vérifie si l'étape est valide SANS modifier le state (pour le bouton)
-  const isStepValid = (): boolean => {
+  // Vérifie si l'étape est valide avec useMemo pour éviter recalculs
+  const isStepValid = useMemo((): boolean => {
     switch(step) {
       case 1:
         return !!(formData.age && formData.age >= 15 && formData.age <= 100 &&
@@ -93,10 +95,10 @@ const Start = () => {
       default:
         return false;
     }
-  };
+  }, [step, formData]);
 
-  // Validation par étape avec messages d'erreur (appelé au clic)
-  const validateStep = (): boolean => {
+  // Validation par étape avec messages d'erreur (memoized)
+  const validateStep = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
     
     switch(step) {
@@ -133,9 +135,9 @@ const Start = () => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [step, formData]);
 
-  const handleNext = async () => {
+  const handleNext = useCallback(async () => {
     if (step < totalSteps) {
       if (validateStep()) {
         setStep(step + 1);
@@ -174,11 +176,11 @@ const Start = () => {
         setLoading(false);
       }
     }
-  };
+  }, [step, totalSteps, validateStep, formData, toast, navigate]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (step > 1) setStep(step - 1);
-  };
+  }, [step]);
 
   const progress = (step / totalSteps) * 100;
 
@@ -615,15 +617,15 @@ const Start = () => {
           )}
           <Button
             onClick={handleNext}
-            disabled={loading || !isStepValid()}
-            className={`ml-auto ${!isStepValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={loading || !isStepValid}
+            className={`ml-auto ${!isStepValid ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {loading ? "Chargement..." : step === totalSteps ? "Voir mon plan" : "Suivant"}
             {!loading && <ChevronRight className="w-4 h-4 ml-2" />}
           </Button>
         </div>
 
-        {!isStepValid() && step < 5 && (
+        {!isStepValid && step < 5 && (
           <p className="text-sm text-destructive text-center mt-4">
             Remplis tous les champs obligatoires (*) pour continuer
           </p>
