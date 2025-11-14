@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { nutritionPlanner, type OnboardingInput, type NutritionPreview } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
-import { Utensils, Info, BarChart3, Calculator, Flame, Target, Droplets, Dumbbell, CheckCircle2, PartyPopper, Rocket, Gift, Loader2 } from "lucide-react";
+import { Utensils, Info, BarChart3, Calculator, Flame, Target, Droplets, Dumbbell, CheckCircle2, PartyPopper, Rocket, Gift, Loader2, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
@@ -218,29 +218,29 @@ const Preview = () => {
   }
   return <TooltipProvider>
       <Header variant="onboarding" showBack onBack={() => navigate("/start")} />
-      <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <div className="min-h-screen bg-muted/30 py-4 md:py-6 lg:py-8 px-4 pt-20 md:pt-24">
+        <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 lg:space-y-8">
           {/* Header */}
           <div className="text-center animate-in">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <BarChart3 className="w-10 h-10 text-primary" />
-              <h1 className="text-4xl font-bold">Ton analyse personnalisée</h1>
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <BarChart3 className="w-6 h-6 md:w-10 md:h-10 text-primary" />
+              <h1 className="text-2xl md:text-4xl font-bold">Ton analyse personnalisée</h1>
             </div>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-base md:text-lg text-muted-foreground">
               Voici ton plan nutrition détaillé basé sur tes réponses
             </p>
           </div>
 
           {/* Métriques de base */}
-          <Card className="p-6 border-2 border-primary/20 animate-in">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-              <Utensils className="w-7 h-7 text-primary" />
+          <Card className="p-4 md:p-6 border-2 border-primary/20 animate-in">
+            <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 flex items-center gap-2">
+              <Utensils className="w-5 h-5 md:w-7 md:h-7 text-primary" />
               Tes métriques de base
             </h2>
             
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-3 md:gap-4">
               {/* BMI */}
-              <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <Card className="p-4 md:p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                 <div className="flex items-start justify-between mb-2">
                   <div className="text-sm text-muted-foreground">
                     IMC (Indice de Masse Corporelle)
@@ -255,12 +255,12 @@ const Preview = () => {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <div className="text-4xl font-bold text-primary mb-1">{nutritionPlan.bmi}</div>
+                <div className="text-3xl md:text-4xl font-bold text-primary mb-1">{nutritionPlan.bmi}</div>
                 <div className="text-sm text-muted-foreground">{nutritionPlan.bmiCategory}</div>
               </Card>
 
               {/* TDEE */}
-              <Card className="p-6 bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
+              <Card className="p-4 md:p-6 bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
                 <div className="flex items-start justify-between mb-2">
                   <div className="text-sm text-muted-foreground">
                     TDEE (Dépense Énergétique Totale)
@@ -275,130 +275,128 @@ const Preview = () => {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <div className="text-4xl font-bold text-secondary mb-1">{nutritionPlan.tdee} kcal</div>
+                <div className="text-3xl md:text-4xl font-bold text-secondary mb-1">{nutritionPlan.tdee} kcal</div>
                 <div className="text-sm text-muted-foreground">Besoin énergétique journalier</div>
               </Card>
             </div>
           </Card>
 
-          {/* Cible personnalisée */}
-          <Card className="p-6 animate-in">
-            <div className="flex items-center gap-2 mb-6">
-              <Target className="w-6 h-6 text-primary" />
-              <h3 className="text-xl font-bold">Ta cible calorique journalière</h3>
-              <Tooltip delayDuration={0}>
-                <TooltipTrigger asChild>
-                  <Info className="w-5 h-5 text-muted-foreground/60 hover:text-muted-foreground cursor-help transition-colors" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-sm">
-                  Pour {input.goal === 'weight-loss' ? 'perdre du poids' : input.goal === 'muscle-gain' ? 'prendre du muscle' : 'te maintenir'}, 
-                  on applique {nutritionPlan.deficit !== 0 ? `un ${nutritionPlan.deficit > 0 ? 'déficit' : 'surplus'} de ${Math.abs(nutritionPlan.deficit)} kcal/jour` : 'ton TDEE exact'}
-                  {nutritionPlan.deficit !== 0 && ` (soit ~${Math.round(Math.abs(nutritionPlan.deficit) / nutritionPlan.tdee * 100)}% de ton TDEE)`}.
-                  C'est un rythme sain et durable.
-                </TooltipContent>
-              </Tooltip>
+          {/* Cible calorique journalière */}
+          <Card className="p-4 md:p-6 border-2 border-accent/20 animate-in">
+            <div className="text-center mb-4 md:mb-6">
+              <h2 className="text-lg md:text-xl font-bold mb-2 flex items-center justify-center gap-2">
+                <Target className="w-5 h-5 md:w-6 md:h-6 text-accent" />
+                Ton objectif calorique quotidien
+              </h2>
+              <div className="text-4xl md:text-5xl font-bold gradient-primary bg-clip-text text-transparent mb-2">
+                {nutritionPlan.calories} kcal
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Ajusté selon ton objectif : {input.goal === "weight-loss" ? "Perte de poids" : input.goal === "muscle-gain" ? "Prise de muscle" : "Maintien"}
+              </p>
             </div>
-            
-            <div className="text-5xl font-bold text-center text-primary mb-2">
-              {nutritionPlan.calories} kcal
-            </div>
-            {nutritionPlan.deficit !== 0 && <div className="text-center text-muted-foreground text-sm mb-6">
-                {nutritionPlan.deficit > 0 ? '−' : '+'}{Math.abs(nutritionPlan.deficit)} kcal par rapport à ton TDEE
-              </div>}
 
-            {/* Macros */}
-            <div className="grid grid-cols-3 gap-4 mt-6">
-              <Card className="p-4 text-center bg-muted/30">
-                <div className="text-3xl font-bold text-secondary mb-1">{nutritionPlan.macros.protein}g</div>
-                <div className="text-sm text-muted-foreground">Protéines</div>
-                <div className="text-xs text-muted-foreground mt-1">1.8g/kg</div>
-              </Card>
-              <Card className="p-4 text-center bg-muted/30">
-                <div className="text-3xl font-bold text-accent mb-1">{nutritionPlan.macros.carbs}g</div>
-                <div className="text-sm text-muted-foreground">Glucides</div>
-                <div className="text-xs text-muted-foreground mt-1">Énergie</div>
-              </Card>
-              <Card className="p-4 text-center bg-muted/30">
-                <div className="text-3xl font-bold text-accent mb-1">{nutritionPlan.macros.fat}g</div>
-                <div className="text-sm text-muted-foreground">Lipides</div>
-                <div className="text-xs text-muted-foreground mt-1">0.8g/kg</div>
-              </Card>
+            {/* Macronutriments */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-center">Répartition des macronutriments</h3>
+              <div className="grid grid-cols-3 gap-2 md:gap-4 mt-4 md:mt-6">
+                <Card className="p-3 md:p-4 bg-gradient-to-br from-blue-500/10 to-blue-600/10 border-blue-500/20">
+                  <div className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                    {nutritionPlan.macros.protein}g
+                  </div>
+                  <div className="text-xs text-muted-foreground">Protéines</div>
+                </Card>
+                
+                <Card className="p-3 md:p-4 bg-gradient-to-br from-green-500/10 to-green-600/10 border-green-500/20">
+                  <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+                    {nutritionPlan.macros.carbs}g
+                  </div>
+                  <div className="text-xs text-muted-foreground">Glucides</div>
+                </Card>
+                
+                <Card className="p-3 md:p-4 bg-gradient-to-br from-amber-500/10 to-amber-600/10 border-amber-500/20">
+                  <div className="text-2xl md:text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+                    {nutritionPlan.macros.fat}g
+                  </div>
+                  <div className="text-xs text-muted-foreground">Lipides</div>
+                </Card>
+              </div>
             </div>
           </Card>
 
           {/* Profil santé et nutrition */}
-          <Card className="p-6 animate-in">
-            <h3 className="text-xl font-bold mb-4">Ton profil santé et nutrition</h3>
+          <Card className="p-4 md:p-6 animate-in">
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Ton profil santé et nutrition</h3>
             
             {isFormattingHealth ? <div className="flex items-center justify-center py-4">
                 <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
-                <span className="text-muted-foreground">Formatage des données...</span>
-              </div> : formattedHealthData ? <div className="space-y-3">
-                <div>
-                  <span className="font-semibold">Allergies/Intolérances :</span>{" "}
-                  <span className="text-muted-foreground">
+                <span className="text-muted-foreground text-sm">Formatage des données...</span>
+              </div> : formattedHealthData ? <div className="space-y-2 md:space-y-3">
+                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
+                  <span className="font-semibold text-sm">Allergies/Intolérances :</span>{" "}
+                  <span className="text-muted-foreground text-sm">
                     {formattedHealthData.allergies}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">Aliments à éviter :</span>{" "}
-                  <span className="text-muted-foreground">
+                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
+                  <span className="font-semibold text-sm">Aliments à éviter :</span>{" "}
+                  <span className="text-muted-foreground text-sm">
                     {formattedHealthData.restrictions}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">Conditions de santé :</span>{" "}
-                  <span className="text-muted-foreground">
+                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
+                  <span className="font-semibold text-sm">Conditions de santé :</span>{" "}
+                  <span className="text-muted-foreground text-sm">
                     {formattedHealthData.healthConditions}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">Repas par jour :</span>{" "}
-                  <span className="text-muted-foreground">{input.mealsPerDay} repas</span>
+                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
+                  <span className="font-semibold text-sm">Repas par jour :</span>{" "}
+                  <span className="text-muted-foreground text-sm">{input.mealsPerDay} repas</span>
                 </div>
-              </div> : <div className="space-y-3">
-                <div>
-                  <span className="font-semibold">Allergies/Intolérances :</span>{" "}
-                  <span className="text-muted-foreground">
+              </div> : <div className="space-y-2 md:space-y-3">
+                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
+                  <span className="font-semibold text-sm">Allergies/Intolérances :</span>{" "}
+                  <span className="text-muted-foreground text-sm">
                     {input.allergies || "Aucune allergie signalée"}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">Aliments à éviter :</span>{" "}
-                  <span className="text-muted-foreground">
+                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
+                  <span className="font-semibold text-sm">Aliments à éviter :</span>{" "}
+                  <span className="text-muted-foreground text-sm">
                     {input.restrictions || "Aucune restriction alimentaire"}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">Conditions de santé :</span>{" "}
-                  <span className="text-muted-foreground">
+                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
+                  <span className="font-semibold text-sm">Conditions de santé :</span>{" "}
+                  <span className="text-muted-foreground text-sm">
                     {input.healthConditions || "Aucune condition particulière"}
                   </span>
                 </div>
-                <div>
-                  <span className="font-semibold">Repas par jour :</span>{" "}
-                  <span className="text-muted-foreground">{input.mealsPerDay} repas</span>
+                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
+                  <span className="font-semibold text-sm">Repas par jour :</span>{" "}
+                  <span className="text-muted-foreground text-sm">{input.mealsPerDay} repas</span>
                 </div>
               </div>}
           </Card>
 
           {/* Recommandations complémentaires */}
-          <div className="grid md:grid-cols-2 gap-4 animate-in">
-            <Card className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
+          <div className="grid md:grid-cols-2 gap-3 md:gap-4 animate-in">
+            <Card className="p-3 md:p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
               <div className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
                 Fibres recommandées
               </div>
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">{nutritionPlan.fiber}g/jour</div>
+              <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">{nutritionPlan.fiber}g/jour</div>
               <div className="text-xs text-muted-foreground mt-1">
                 Pour une digestion optimale
               </div>
             </Card>
             
-            <Card className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
+            <Card className="p-3 md:p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
               <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
                 Hydratation
               </div>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">
                 {(nutritionPlan.hydration / 1000).toFixed(1)}L/jour
               </div>
               <div className="text-xs text-muted-foreground mt-1">
@@ -408,23 +406,23 @@ const Preview = () => {
           </div>
 
           {/* CTA intermédiaire */}
-          <Card className="p-6 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30 animate-in">
-            <div className="text-center space-y-4">
+          <Card className="p-6 md:p-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30 animate-in">
+            <div className="text-center space-y-3 md:space-y-4">
               
               <div className="flex items-center justify-center gap-2">
-                <PartyPopper className="w-8 h-8 text-primary" />
-                <h3 className="text-2xl font-bold">Ton plan est prêt !</h3>
+                <PartyPopper className="w-6 h-6 md:w-8 md:h-8 text-primary" />
+                <h3 className="text-xl md:text-2xl font-bold">Ton plan est prêt !</h3>
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 Continue la création de ton programme personnalisé complet
               </p>
               <Button size="lg" onClick={() => {
               localStorage.setItem("hasSeenPreview", "true");
               navigate("/tarif");
-            }} className="gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all">
-                Continuer la création de mon programme personnalisé
+            }} className="gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all flex items-center gap-2 mx-auto">
+                Continuer <ArrowRight className="w-5 h-5" />
               </Button>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs md:text-sm text-muted-foreground">
                 Essai gratuit 7 jours • Sans engagement • Accès immédiat
               </p>
             </div>
