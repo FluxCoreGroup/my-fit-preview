@@ -14,15 +14,18 @@ import type { OnboardingInput } from "@/services/planner";
 import { useToast } from "@/hooks/use-toast";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { Header } from "@/components/Header";
-
 const Start = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { data, saveProgress } = useOnboarding();
+  const {
+    toast
+  } = useToast();
+  const {
+    data,
+    saveProgress
+  } = useOnboarding();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const totalSteps = 5;
-
   const [formData, setFormData] = useState<Partial<OnboardingInput>>({
     age: undefined,
     sex: undefined,
@@ -42,27 +45,35 @@ const Start = () => {
     restrictions: "",
     mealsPerDay: 3,
     hasBreakfast: true,
-    healthConditions: "",
+    healthConditions: ""
   });
 
   // Load saved progress on mount
   useEffect(() => {
     if (Object.keys(data).length > 0) {
-      setFormData(prev => ({ ...prev, ...data }));
+      setFormData(prev => ({
+        ...prev,
+        ...data
+      }));
     }
   }, []);
 
   // Scroll to top when step changes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   }, [step]);
-
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Debounced save pour limiter les écritures localStorage
   const updateField = useCallback((field: keyof OnboardingInput, value: any) => {
     setFormData(prev => {
-      const updated = { ...prev, [field]: value };
+      const updated = {
+        ...prev,
+        [field]: value
+      };
       // Save immédiatement pour ne pas perdre de données
       saveProgress(updated);
       return updated;
@@ -70,7 +81,9 @@ const Start = () => {
     // Clear error when field is updated
     if (errors[field]) {
       setErrors(prev => {
-        const newErrors = { ...prev };
+        const newErrors = {
+          ...prev
+        };
         delete newErrors[field];
         return newErrors;
       });
@@ -79,24 +92,18 @@ const Start = () => {
 
   // Vérifie si l'étape est valide avec useMemo pour éviter recalculs
   const isStepValid = useMemo((): boolean => {
-    switch(step) {
+    switch (step) {
       case 1:
-        return !!(formData.age && formData.age >= 15 && formData.age <= 100 &&
-                  formData.sex &&
-                  formData.height && formData.height >= 120 && formData.height <= 250 &&
-                  formData.weight && formData.weight >= 30 && formData.weight <= 300);
+        return !!(formData.age && formData.age >= 15 && formData.age <= 100 && formData.sex && formData.height && formData.height >= 120 && formData.height <= 250 && formData.weight && formData.weight >= 30 && formData.weight <= 300);
       case 2:
-        return !!(formData.goal && formData.goalHorizon &&
-                  (formData.goal !== 'weight-loss' || !formData.targetWeightLoss || 
-                   (formData.targetWeightLoss >= 1 && formData.targetWeightLoss <= 50)) &&
-                  (formData.hasCardio === false || (formData.hasCardio === true && formData.cardioFrequency)));
+        return !!(formData.goal && formData.goalHorizon && (formData.goal !== 'weight-loss' || !formData.targetWeightLoss || formData.targetWeightLoss >= 1 && formData.targetWeightLoss <= 50) && (formData.hasCardio === false || formData.hasCardio === true && formData.cardioFrequency));
       case 3:
         return !!formData.activityLevel;
       case 4:
-        return !!(formData.frequency && formData.sessionDuration && formData.location && 
-                  (formData.location === "gym" || (formData.equipment && formData.equipment.length > 0)));
+        return !!(formData.frequency && formData.sessionDuration && formData.location && (formData.location === "gym" || formData.equipment && formData.equipment.length > 0));
       case 5:
-        return true; // Toujours valide
+        return true;
+      // Toujours valide
       default:
         return false;
     }
@@ -105,8 +112,7 @@ const Start = () => {
   // Validation par étape avec messages d'erreur (memoized)
   const validateStep = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
-    
-    switch(step) {
+    switch (step) {
       case 1:
         if (!formData.age || formData.age < 15 || formData.age > 100) newErrors.age = "Âge requis (15-100)";
         if (!formData.sex) newErrors.sex = "Sexe requis";
@@ -137,21 +143,22 @@ const Start = () => {
         // Étape 5 est toujours valide (champs pré-remplis et optionnels)
         break;
     }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [step, formData]);
-
   const handleNext = useCallback(async () => {
     if (step < totalSteps) {
       if (validateStep()) {
         setStep(step + 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
       } else {
         toast({
           title: "Informations manquantes",
           description: "Remplis tous les champs obligatoires",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } else {
@@ -159,13 +166,11 @@ const Start = () => {
         toast({
           title: "Informations manquantes",
           description: "Remplis tous les champs obligatoires",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-      
       setLoading(true);
-      
       try {
         // Toujours sauvegarder dans localStorage pour l'aperçu
         localStorage.setItem("onboardingData", JSON.stringify(formData));
@@ -175,22 +180,18 @@ const Start = () => {
         toast({
           title: "Erreur",
           description: "Impossible de sauvegarder tes informations. Réessaye.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } finally {
         setLoading(false);
       }
     }
   }, [step, totalSteps, validateStep, formData, toast, navigate]);
-
   const handleBack = useCallback(() => {
     if (step > 1) setStep(step - 1);
   }, [step]);
-
-  const progress = (step / totalSteps) * 100;
-
-  return (
-    <>
+  const progress = step / totalSteps * 100;
+  return <>
       <Header variant="onboarding" showBack={step > 1} onBack={handleBack} />
       <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
         <div className="max-w-2xl mx-auto">
@@ -202,26 +203,18 @@ const Start = () => {
         </div>
 
         {/* Step 1: Profil de base */}
-        {step === 1 && (
-          <Card className="p-8 animate-in">
+        {step === 1 && <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Commençons par les bases</h2>
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="age">Âge *</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    placeholder="25"
-                    value={formData.age || ""}
-                    onChange={(e) => updateField("age", parseInt(e.target.value))}
-                    className={`mt-2 ${errors.age ? 'border-destructive' : ''}`}
-                  />
+                  <Input id="age" type="number" placeholder="25" value={formData.age || ""} onChange={e => updateField("age", parseInt(e.target.value))} className={`mt-2 ${errors.age ? 'border-destructive' : ''}`} />
                   {errors.age && <p className="text-xs text-destructive mt-1">{errors.age}</p>}
                 </div>
                 <div>
                   <Label htmlFor="sex">Sexe *</Label>
-                  <Select value={formData.sex} onValueChange={(value) => updateField("sex", value)}>
+                  <Select value={formData.sex} onValueChange={value => updateField("sex", value)}>
                     <SelectTrigger className={`mt-2 ${errors.sex ? 'border-destructive' : ''}`}>
                       <SelectValue placeholder="Choisir..." />
                     </SelectTrigger>
@@ -238,65 +231,46 @@ const Start = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="height">Taille (cm) *</Label>
-                  <Input
-                    id="height"
-                    type="number"
-                    placeholder="175"
-                    value={formData.height || ""}
-                    onChange={(e) => updateField("height", parseInt(e.target.value))}
-                    className={`mt-2 ${errors.height ? 'border-destructive' : ''}`}
-                  />
+                  <Input id="height" type="number" placeholder="175" value={formData.height || ""} onChange={e => updateField("height", parseInt(e.target.value))} className={`mt-2 ${errors.height ? 'border-destructive' : ''}`} />
                   {errors.height && <p className="text-xs text-destructive mt-1">{errors.height}</p>}
                 </div>
                 <div>
                   <Label htmlFor="weight">Poids (kg) *</Label>
-                  <Input
-                    id="weight"
-                    type="number"
-                    step="0.1"
-                    placeholder="70,5"
-                    value={formData.weight || ""}
-                    onChange={(e) => updateField("weight", parseFloat(e.target.value))}
-                    className={`mt-2 ${errors.weight ? 'border-destructive' : ''}`}
-                  />
+                  <Input id="weight" type="number" step="0.1" placeholder="70,5" value={formData.weight || ""} onChange={e => updateField("weight", parseFloat(e.target.value))} className={`mt-2 ${errors.weight ? 'border-destructive' : ''}`} />
                   {errors.weight && <p className="text-xs text-destructive mt-1">{errors.weight}</p>}
                 </div>
               </div>
             </div>
-          </Card>
-        )}
+          </Card>}
 
         {/* Step 2: Objectif */}
-        {step === 2 && (
-          <Card className="p-8 animate-in">
+        {step === 2 && <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Quel est ton objectif principal ?</h2>
             <div className="space-y-4">
-              {[
-                { value: "weight-loss", label: "Perte de poids" },
-                { value: "muscle-gain", label: "Prise de muscle" },
-                { value: "endurance", label: "Endurance" },
-                { value: "strength", label: "Force" },
-                { value: "wellness", label: "Bien-être général" }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => updateField("goal", option.value)}
-                  className={`w-full p-4 rounded-lg border-2 text-left transition-all hover:border-primary ${
-                    formData.goal === option.value ? "border-primary bg-primary/5" : "border-border"
-                  } ${errors.goal ? 'border-destructive' : ''}`}
-                >
+              {[{
+              value: "weight-loss",
+              label: "Perte de poids"
+            }, {
+              value: "muscle-gain",
+              label: "Prise de muscle"
+            }, {
+              value: "endurance",
+              label: "Endurance"
+            }, {
+              value: "strength",
+              label: "Force"
+            }, {
+              value: "wellness",
+              label: "Bien-être général"
+            }].map(option => <button key={option.value} onClick={() => updateField("goal", option.value)} className={`w-full p-4 rounded-lg border-2 text-left transition-all hover:border-primary ${formData.goal === option.value ? "border-primary bg-primary/5" : "border-border"} ${errors.goal ? 'border-destructive' : ''}`}>
                   <div className="font-semibold">{option.label}</div>
-                </button>
-              ))}
+                </button>)}
               {errors.goal && <p className="text-xs text-destructive">{errors.goal}</p>}
             </div>
 
             <div className="mt-6">
               <Label htmlFor="horizon">À quelle échéance souhaites-tu cet objectif ? *</Label>
-              <Select 
-                value={formData.goalHorizon} 
-                onValueChange={(value) => updateField("goalHorizon", value)}
-              >
+              <Select value={formData.goalHorizon} onValueChange={value => updateField("goalHorizon", value)}>
                 <SelectTrigger className={`mt-2 ${errors.goalHorizon ? 'border-destructive' : ''}`}>
                   <SelectValue placeholder="Choisir..." />
                 </SelectTrigger>
@@ -309,119 +283,92 @@ const Start = () => {
               {errors.goalHorizon && <p className="text-xs text-destructive mt-1">{errors.goalHorizon}</p>}
             </div>
 
-            {formData.goal === 'weight-loss' && (
-              <div className="mt-6">
+            {formData.goal === 'weight-loss' && <div className="mt-6">
                 <Label htmlFor="targetWeightLoss">Combien de kg veux-tu perdre ? (optionnel)</Label>
                 <div className="mt-4">
-                  <Slider
-                    value={[formData.targetWeightLoss || 5]}
-                    onValueChange={(value) => updateField("targetWeightLoss", value[0])}
-                    min={1}
-                    max={50}
-                    step={1}
-                    className="mb-2"
-                  />
+                  <Slider value={[formData.targetWeightLoss || 5]} onValueChange={value => updateField("targetWeightLoss", value[0])} min={1} max={50} step={1} className="mb-2" />
                   <div className="text-center text-2xl font-bold text-primary">
                     {formData.targetWeightLoss || 5} kg
                   </div>
                 </div>
                 {errors.targetWeightLoss && <p className="text-xs text-destructive mt-1">{errors.targetWeightLoss}</p>}
-              </div>
-            )}
+              </div>}
 
             <div className="mt-6">
               <Label>Souhaites-tu faire du cardio régulièrement ? *</Label>
               <div className="grid grid-cols-2 gap-4 mt-2">
-                {[
-                  { value: true, label: "Oui" },
-                  { value: false, label: "Non" }
-                ].map((option) => (
-                  <button
-                    key={option.label}
-                    onClick={() => updateField("hasCardio", option.value)}
-                    className={`p-4 rounded-lg border-2 transition-all hover:border-primary ${
-                      formData.hasCardio === option.value ? "border-primary bg-primary/5" : "border-border"
-                    } ${errors.hasCardio ? 'border-destructive' : ''}`}
-                  >
+                {[{
+                value: true,
+                label: "Oui"
+              }, {
+                value: false,
+                label: "Non"
+              }].map(option => <button key={option.label} onClick={() => updateField("hasCardio", option.value)} className={`p-4 rounded-lg border-2 transition-all hover:border-primary ${formData.hasCardio === option.value ? "border-primary bg-primary/5" : "border-border"} ${errors.hasCardio ? 'border-destructive' : ''}`}>
                     <div className="font-semibold">{option.label}</div>
-                  </button>
-                ))}
+                  </button>)}
               </div>
               {errors.hasCardio && <p className="text-xs text-destructive mt-1">{errors.hasCardio}</p>}
             </div>
 
-            {formData.hasCardio === true && (
-              <div className="mt-6">
+            {formData.hasCardio === true && <div className="mt-6">
                 <Label htmlFor="cardioFrequency">Combien de fois par semaine souhaiterais-tu en faire ? *</Label>
-                <Select
-                  value={formData.cardioFrequency?.toString()}
-                  onValueChange={(value) => updateField("cardioFrequency", parseInt(value))}
-                >
+                <Select value={formData.cardioFrequency?.toString()} onValueChange={value => updateField("cardioFrequency", parseInt(value))}>
                   <SelectTrigger className={`mt-2 ${errors.cardioFrequency ? 'border-destructive' : ''}`}>
                     <SelectValue placeholder="Choisir..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                      <SelectItem key={n} value={n.toString()}>
+                    {[1, 2, 3, 4, 5, 6, 7].map(n => <SelectItem key={n} value={n.toString()}>
                         {n} fois par semaine
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
                 {errors.cardioFrequency && <p className="text-xs text-destructive mt-1">{errors.cardioFrequency}</p>}
-              </div>
-            )}
-          </Card>
-        )}
+              </div>}
+          </Card>}
 
         {/* Step 3: Niveau d'activité */}
-        {step === 3 && (
-          <Card className="p-8 animate-in">
+        {step === 3 && <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Ton niveau d'activité quotidien</h2>
             <div className="space-y-4">
               <Label>Hors entraînement, tu seras plutôt... *</Label>
-              {[
-                { value: "sedentary", label: "Sédentaire", desc: "Bureau, peu de déplacements" },
-                { value: "light", label: "Légèrement actif", desc: "Marche quotidienne, quelques déplacements" },
-                { value: "moderate", label: "Modérément actif", desc: "Travail physique léger, beaucoup de marche" },
-                { value: "high", label: "Très actif", desc: "Travail physique intense, très mobile" }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => updateField("activityLevel", option.value)}
-                  className={`w-full p-4 rounded-lg border-2 text-left transition-all hover:border-primary ${
-                    formData.activityLevel === option.value ? "border-primary bg-primary/5" : "border-border"
-                  } ${errors.activityLevel ? 'border-destructive' : ''}`}
-                >
+              {[{
+              value: "sedentary",
+              label: "Sédentaire",
+              desc: "Bureau, peu de déplacements"
+            }, {
+              value: "light",
+              label: "Légèrement actif",
+              desc: "Marche quotidienne, quelques déplacements"
+            }, {
+              value: "moderate",
+              label: "Modérément actif",
+              desc: "Travail physique léger, beaucoup de marche"
+            }, {
+              value: "high",
+              label: "Très actif",
+              desc: "Travail physique intense, très mobile"
+            }].map(option => <button key={option.value} onClick={() => updateField("activityLevel", option.value)} className={`w-full p-4 rounded-lg border-2 text-left transition-all hover:border-primary ${formData.activityLevel === option.value ? "border-primary bg-primary/5" : "border-border"} ${errors.activityLevel ? 'border-destructive' : ''}`}>
                   <div className="font-semibold">{option.label}</div>
                   <div className="text-sm text-muted-foreground">{option.desc}</div>
-                </button>
-              ))}
+                </button>)}
               {errors.activityLevel && <p className="text-xs text-destructive">{errors.activityLevel}</p>}
             </div>
-          </Card>
-        )}
+          </Card>}
 
         {/* Step 4: Entraînement */}
-        {step === 4 && (
-          <Card className="p-8 animate-in">
+        {step === 4 && <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Ton entraînement</h2>
             <div className="space-y-6">
               <div>
                 <Label htmlFor="frequency">Séances par semaine souhaitées *</Label>
-                <Select
-                  value={formData.frequency?.toString()}
-                  onValueChange={(value) => updateField("frequency", parseInt(value))}
-                >
+                <Select value={formData.frequency?.toString()} onValueChange={value => updateField("frequency", parseInt(value))}>
                   <SelectTrigger className={`mt-2 ${errors.frequency ? 'border-destructive' : ''}`}>
                     <SelectValue placeholder="Choisir..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                      <SelectItem key={n} value={n.toString()}>
+                    {[1, 2, 3, 4, 5, 6, 7].map(n => <SelectItem key={n} value={n.toString()}>
                         {n} fois par semaine
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
                 {errors.frequency && <p className="text-xs text-destructive mt-1">{errors.frequency}</p>}
@@ -430,14 +377,7 @@ const Start = () => {
               <div>
                 <Label htmlFor="duration">Durée par séance souhaitée * (Min 30min - Max 120min)</Label>
                 <div className="mt-4">
-                  <Slider
-                    value={[formData.sessionDuration || 60]}
-                    onValueChange={(value) => updateField("sessionDuration", value[0])}
-                    min={30}
-                    max={120}
-                    step={15}
-                    className="mb-2"
-                  />
+                  <Slider value={[formData.sessionDuration || 60]} onValueChange={value => updateField("sessionDuration", value[0])} min={30} max={120} step={15} className="mb-2" />
                   <div className="text-center text-2xl font-bold text-primary">
                     {formData.sessionDuration || 60} minutes
                   </div>
@@ -448,86 +388,62 @@ const Start = () => {
               <div>
                 <Label>Auras-tu la possibilité d'aller en salle de sport ? *</Label>
                 <div className="grid grid-cols-2 gap-4 mt-2">
-                  {[
-                    { value: true, label: "Oui" },
-                    { value: false, label: "Non" }
-                  ].map((option) => (
-            <button
-              key={option.label}
-              type="button"
-              onClick={() => {
-                const nextLocation: "gym" | "home" = option.value ? "gym" : "home";
-                const nextEquipment = option.value
-                  ? ["Haltères", "Barre + poids", "Banc de musculation", "Barre de traction", "Machines guidées"]
-                  : [];
-                
-                setFormData(prev => {
-                  const updated = { ...prev, location: nextLocation, equipment: nextEquipment };
-                  saveProgress(updated);
-                  return updated;
-                });
-                
-                // Clear related errors
-                setErrors(prevErr => {
-                  const e = { ...prevErr };
-                  delete e.location;
-                  delete e.equipment;
-                  return e;
-                });
-              }}
-                      className={`p-4 rounded-lg border-2 transition-all hover:border-primary ${
-                        formData.location === (option.value ? "gym" : "home") ? "border-primary bg-primary/5" : "border-border"
-                      } ${errors.location ? 'border-destructive' : ''}`}
-                    >
+                  {[{
+                  value: true,
+                  label: "Oui"
+                }, {
+                  value: false,
+                  label: "Non"
+                }].map(option => <button key={option.label} type="button" onClick={() => {
+                  const nextLocation: "gym" | "home" = option.value ? "gym" : "home";
+                  const nextEquipment = option.value ? ["Haltères", "Barre + poids", "Banc de musculation", "Barre de traction", "Machines guidées"] : [];
+                  setFormData(prev => {
+                    const updated = {
+                      ...prev,
+                      location: nextLocation,
+                      equipment: nextEquipment
+                    };
+                    saveProgress(updated);
+                    return updated;
+                  });
+
+                  // Clear related errors
+                  setErrors(prevErr => {
+                    const e = {
+                      ...prevErr
+                    };
+                    delete e.location;
+                    delete e.equipment;
+                    return e;
+                  });
+                }} className={`p-4 rounded-lg border-2 transition-all hover:border-primary ${formData.location === (option.value ? "gym" : "home") ? "border-primary bg-primary/5" : "border-border"} ${errors.location ? 'border-destructive' : ''}`}>
                       <div className="font-semibold">{option.label}</div>
-                    </button>
-                  ))}
+                    </button>)}
                 </div>
                 {errors.location && <p className="text-xs text-destructive mt-1">{errors.location}</p>}
               </div>
 
               {/* Afficher l'équipement seulement si location = "home" */}
-              {formData.location === "home" && (
-                <div>
+              {formData.location === "home" && <div>
                   <Label>De quel équipement disposes-tu à la maison ? (minimum 1) *</Label>
                   <div className={`mt-3 space-y-3 ${errors.equipment ? 'p-3 border-2 border-destructive rounded-lg' : ''}`}>
-                    {[
-                      "Haltères",
-                      "Barre + poids",
-                      "Élastiques",
-                      "Kettlebell",
-                      "Banc de musculation",
-                      "Barre de traction",
-                      "Aucun (poids du corps)"
-                    ].map((item) => (
-                      <div key={item} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={item}
-                          checked={formData.equipment?.includes(item)}
-                          onCheckedChange={(checked) => {
-                            const current = formData.equipment || [];
-                            updateField(
-                              "equipment",
-                              checked ? [...current, item] : current.filter((e) => e !== item)
-                            );
-                          }}
-                        />
+                    {["Haltères", "Barre + poids", "Élastiques", "Kettlebell", "Banc de musculation", "Barre de traction", "Aucun (poids du corps)"].map(item => <div key={item} className="flex items-center space-x-2">
+                        <Checkbox id={item} checked={formData.equipment?.includes(item)} onCheckedChange={checked => {
+                    const current = formData.equipment || [];
+                    updateField("equipment", checked ? [...current, item] : current.filter(e => e !== item));
+                  }} />
                         <Label htmlFor={item} className="font-normal cursor-pointer">
                           {item}
                         </Label>
-                      </div>
-                    ))}
+                      </div>)}
                   </div>
                   {errors.equipment && <p className="text-xs text-destructive mt-1">{errors.equipment}</p>}
-                </div>
-              )}
+                </div>}
             </div>
-          </Card>
-        )}
+          </Card>}
 
         {/* Step 5: Alimentation (optionnel mais pré-rempli) */}
-        {step === 5 && (
-          <Card className="p-8 animate-in">
+        {step === 5 && <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Tes préférences alimentaires</h2>
             <div className="space-y-6">
               <div>
@@ -535,29 +451,20 @@ const Start = () => {
                 <p className="text-sm text-muted-foreground mt-1 mb-2">
                   Les collations comptent comme des repas, mais pas le grignotage occasionnel
                 </p>
-                <Select
-                  value={formData.mealsPerDay?.toString()}
-                  onValueChange={(value) => updateField("mealsPerDay", parseInt(value))}
-                >
+                <Select value={formData.mealsPerDay?.toString()} onValueChange={value => updateField("mealsPerDay", parseInt(value))}>
                   <SelectTrigger className="mt-2">
                     <SelectValue placeholder="Choisir..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                      <SelectItem key={n} value={n.toString()}>
+                    {[1, 2, 3, 4, 5, 6, 7].map(n => <SelectItem key={n} value={n.toString()}>
                         {n} repas par jour
-                      </SelectItem>
-                    ))}
+                      </SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="hasBreakfast"
-                  checked={formData.hasBreakfast}
-                  onCheckedChange={(checked) => updateField("hasBreakfast", checked)}
-                />
+                <Checkbox id="hasBreakfast" checked={formData.hasBreakfast} onCheckedChange={checked => updateField("hasBreakfast", checked)} />
                 <Label htmlFor="hasBreakfast" className="font-normal cursor-pointer">
                   Je souhaite prendre un petit-déjeuner
                 </Label>
@@ -565,41 +472,20 @@ const Start = () => {
 
             <div>
               <Label htmlFor="allergies">Allergies ou intolérances (optionnel)</Label>
-              <Textarea
-                id="allergies"
-                placeholder="Décris tes allergies ou intolérances librement..."
-                value={formData.allergies || ""}
-                onChange={(e) => updateField("allergies", e.target.value)}
-                className="mt-2"
-                rows={2}
-              />
-              <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
+              <Textarea id="allergies" placeholder="Décris tes allergies ou intolérances librement..." value={formData.allergies || ""} onChange={e => updateField("allergies", e.target.value)} className="mt-2" rows={2} />
+              
             </div>
 
             <div>
               <Label htmlFor="restrictions">Aliments que tu ne veux pas (optionnel)</Label>
-              <Textarea
-                id="restrictions"
-                placeholder="Décris les aliments que tu souhaites éviter..."
-                value={formData.restrictions || ""}
-                onChange={(e) => updateField("restrictions", e.target.value)}
-                className="mt-2"
-                rows={2}
-              />
-              <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
+              <Textarea id="restrictions" placeholder="Décris les aliments que tu souhaites éviter..." value={formData.restrictions || ""} onChange={e => updateField("restrictions", e.target.value)} className="mt-2" rows={2} />
+              
             </div>
 
             <div>
               <Label htmlFor="healthConditions">Conditions de santé (optionnel)</Label>
-              <Textarea
-                id="healthConditions"
-                placeholder="Décris tes conditions de santé si pertinent..."
-                value={formData.healthConditions || ""}
-                onChange={(e) => updateField("healthConditions", e.target.value)}
-                className="mt-2"
-                rows={2}
-              />
-              <p className="text-sm text-muted-foreground mt-1">Tu peux écrire librement, sépare par des virgules si plusieurs</p>
+              <Textarea id="healthConditions" placeholder="Décris tes conditions de santé si pertinent..." value={formData.healthConditions || ""} onChange={e => updateField("healthConditions", e.target.value)} className="mt-2" rows={2} />
+              
             </div>
 
               <div className="p-4 bg-muted rounded-lg">
@@ -609,36 +495,25 @@ const Start = () => {
                 </p>
               </div>
             </div>
-          </Card>
-        )}
+          </Card>}
 
         {/* Navigation */}
         <div className="mt-8 flex justify-between">
-          {step > 1 && (
-            <Button variant="outline" onClick={handleBack} disabled={loading}>
+          {step > 1 && <Button variant="outline" onClick={handleBack} disabled={loading}>
               <ChevronLeft className="w-4 h-4 mr-2" />
               Retour
-            </Button>
-          )}
-          <Button
-            onClick={handleNext}
-            disabled={loading || !isStepValid}
-            className={`ml-auto ${!isStepValid ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
+            </Button>}
+          <Button onClick={handleNext} disabled={loading || !isStepValid} className={`ml-auto ${!isStepValid ? 'opacity-50 cursor-not-allowed' : ''}`}>
             {loading ? "Chargement..." : step === totalSteps ? "Voir mon plan" : "Suivant"}
             {!loading && <ChevronRight className="w-4 h-4 ml-2" />}
           </Button>
         </div>
 
-        {!isStepValid && step < 5 && (
-          <p className="text-sm text-destructive text-center mt-4">
+        {!isStepValid && step < 5 && <p className="text-sm text-destructive text-center mt-4">
             Remplis tous les champs obligatoires (*) pour continuer
-          </p>
-        )}
+          </p>}
         </div>
       </div>
-    </>
-  );
+    </>;
 };
-
 export default Start;
