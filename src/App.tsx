@@ -40,6 +40,7 @@ import CoachJulie from "./pages/CoachJulie";
 import Hub from "./pages/Hub";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Progression from "./pages/Progression";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 // Component to sync onboarding data to Supabase as soon as user is authenticated
 const OnboardingSyncGate = () => {
@@ -50,6 +51,7 @@ const OnboardingSyncGate = () => {
 const App = () => (
   <TooltipProvider>
     <OnboardingSyncGate />
+    <ScrollToTop />
     <Toaster />
     <Sonner />
     <Routes>

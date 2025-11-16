@@ -86,6 +86,11 @@ const TrainingSetup = () => {
     }
   }, [user, authLoading, checkingGoals, userData, navigate, toast]);
 
+  // Scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
+
   const [formData, setFormData] = useState({
     sessionType: trainingData.sessionType || undefined,
     experienceLevel: trainingData.experienceLevel || undefined,

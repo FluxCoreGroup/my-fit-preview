@@ -52,6 +52,11 @@ const Start = () => {
     }
   }, []);
 
+  // Scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [step]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Debounced save pour limiter les écritures localStorage
