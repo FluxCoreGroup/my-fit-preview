@@ -330,7 +330,7 @@ const Start = () => {
             )}
 
             <div className="mt-6">
-              <Label>Fais-tu déjà du cardio régulièrement ? *</Label>
+              <Label>Souhaites-tu faire du cardio régulièrement ? *</Label>
               <div className="grid grid-cols-2 gap-4 mt-2">
                 {[
                   { value: true, label: "Oui" },
@@ -352,7 +352,7 @@ const Start = () => {
 
             {formData.hasCardio === true && (
               <div className="mt-6">
-                <Label htmlFor="cardioFrequency">Combien de fois par semaine ? *</Label>
+                <Label htmlFor="cardioFrequency">Combien de fois par semaine souhaiterais-tu en faire ? *</Label>
                 <Select
                   value={formData.cardioFrequency?.toString()}
                   onValueChange={(value) => updateField("cardioFrequency", parseInt(value))}
@@ -379,7 +379,7 @@ const Start = () => {
           <Card className="p-8 animate-in">
             <h2 className="text-2xl font-bold mb-6">Ton niveau d'activité quotidien</h2>
             <div className="space-y-4">
-              <Label>Hors entraînement, tu es plutôt... *</Label>
+              <Label>Hors entraînement, tu seras plutôt... *</Label>
               {[
                 { value: "sedentary", label: "Sédentaire", desc: "Bureau, peu de déplacements" },
                 { value: "light", label: "Légèrement actif", desc: "Marche quotidienne, quelques déplacements" },
@@ -408,7 +408,7 @@ const Start = () => {
             <h2 className="text-2xl font-bold mb-6">Ton entraînement</h2>
             <div className="space-y-6">
               <div>
-                <Label htmlFor="frequency">Séances par semaine *</Label>
+                <Label htmlFor="frequency">Séances par semaine souhaitées *</Label>
                 <Select
                   value={formData.frequency?.toString()}
                   onValueChange={(value) => updateField("frequency", parseInt(value))}
@@ -428,7 +428,7 @@ const Start = () => {
               </div>
 
               <div>
-                <Label htmlFor="duration">Durée par séance * (Min 30min - Max 120min)</Label>
+                <Label htmlFor="duration">Durée par séance souhaitée * (Min 30min - Max 120min)</Label>
                 <div className="mt-4">
                   <Slider
                     value={[formData.sessionDuration || 60]}
@@ -446,7 +446,7 @@ const Start = () => {
               </div>
 
               <div>
-                <Label>As-tu la possibilité d'aller en salle de sport ? *</Label>
+                <Label>Auras-tu la possibilité d'aller en salle de sport ? *</Label>
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   {[
                     { value: true, label: "Oui" },
@@ -489,7 +489,7 @@ const Start = () => {
               {/* Afficher l'équipement seulement si location = "home" */}
               {formData.location === "home" && (
                 <div>
-                  <Label>Quel équipement as-tu à la maison ? (minimum 1) *</Label>
+                  <Label>De quel équipement disposes-tu à la maison ? (minimum 1) *</Label>
                   <div className={`mt-3 space-y-3 ${errors.equipment ? 'p-3 border-2 border-destructive rounded-lg' : ''}`}>
                     {[
                       "Haltères",
@@ -559,7 +559,7 @@ const Start = () => {
                   onCheckedChange={(checked) => updateField("hasBreakfast", checked)}
                 />
                 <Label htmlFor="hasBreakfast" className="font-normal cursor-pointer">
-                  Je prends un petit-déjeuner
+                  Je souhaite prendre un petit-déjeuner
                 </Label>
               </div>
 
