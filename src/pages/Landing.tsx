@@ -516,7 +516,7 @@ const Landing = () => {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link to="/start">
-              <Button size="lg" variant="secondary" className="text-lg">
+              <Button size="lg" className="text-lg">
                 Commencer gratuitement <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
