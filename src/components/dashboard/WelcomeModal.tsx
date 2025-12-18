@@ -15,15 +15,15 @@ const steps = [
     icon: PartyPopper,
     title: "Bienvenue sur ton tableau de bord !",
     description: "Voici où tout commence. Chaque module est conçu pour te guider vers tes objectifs.",
-    content: "Laisse-moi te faire un tour rapide des différents modules (30 secondes)",
+    content: "Laisse-moi te faire un tour rapide des différentes fonctionnalités (30 secondes)",
   },
   {
     icon: Grid3x3,
     title: "Tes entraînements personnalisés",
-    description: "Accède à tes séances adaptées à ton niveau, génère de nouvelles sessions, et suis ta progression semaine après semaine.",
+    description: "Accède à tes séances adaptées à ton niveau et suis ta progression semaine après semaine.",
     content: (
       <p className="text-sm text-muted-foreground">
-        Par exemple, tu peux lancer une séance maintenant ou programmer celles de la semaine. Chaque entraînement s'adapte à ton équipement et tes préférences.
+        Chaque entraînement s'adapte à ton équipement et tes préférences. À la fin de chaque semaine, un feedback rapide te permettra d'ajuster ton programme automatiquement.
       </p>
     ),
   },
@@ -38,19 +38,9 @@ const steps = [
     ),
   },
   {
-    icon: Grid3x3,
-    title: "Ton check-in hebdomadaire",
-    description: "Chaque semaine, fais le point sur ton poids, ton adhérence, et reçois des recommandations pour ajuster ton programme.",
-    content: (
-      <p className="text-sm text-muted-foreground">
-        Je te recommande de faire ton premier check-in maintenant ! Ça prend 2 minutes et ça permet d'optimiser ton programme en continu.
-      </p>
-    ),
-  },
-  {
     icon: Rocket,
     title: "C'est parti ! 🚀",
-    description: "Tu es prêt à commencer. N'hésite pas à explorer chaque module et à revenir ici quand tu veux.",
+    description: "Tu es prêt à commencer. N'hésite pas à explorer chaque module.",
     content: (
       <p className="text-sm text-muted-foreground">
         Alex (coach sport) et Julie (nutritionniste) sont là pour t'aider 24/7. Pose-leur toutes tes questions !

@@ -35,13 +35,13 @@ export const Header = ({ variant = "marketing", showBack = false, onBack }: Head
             <Link to="/hub" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Dashboard
             </Link>
-            <Link to="/session" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Séances
+            <Link to="/training" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Entraînements
             </Link>
-            <Link to="/weekly" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Check-in
+            <Link to="/nutrition" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Nutrition
             </Link>
-            <Link to="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/settings/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Support
             </Link>
           </nav>
