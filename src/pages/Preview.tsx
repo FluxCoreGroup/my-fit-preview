@@ -422,9 +422,9 @@ const Preview = () => {
                   localStorage.setItem("hasSeenPreview", "true");
                   navigate("/tarif");
                 }} 
-                className="w-24 h-14 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all mx-auto"
+                className="w-48 h-28 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all mx-auto"
               >
-                <ArrowRight className="w-6 h-6" />
+                <ArrowRight className="w-12 h-12" />
               </Button>
               <p className="text-xs md:text-sm text-muted-foreground">
                 Essai gratuit 7 jours • Sans engagement • Accès immédiat
