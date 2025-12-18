@@ -67,6 +67,11 @@ const GeneratingSession = () => {
         setCurrentStep(steps.length - 1);
         setIsComplete(true);
 
+        // Clear onboarding flags for fresh welcome experience
+        localStorage.removeItem('hub_first_visit');
+        localStorage.removeItem('hub_onboarding_complete');
+        localStorage.removeItem('hub_onboarding_progress');
+
         // Naviguer après le délai minimum
         setTimeout(() => {
           navigate('/hub');
