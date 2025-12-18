@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ModuleCard } from "@/components/dashboard/ModuleCard";
 import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
+import { OnboardingComplete } from "@/components/onboarding/OnboardingComplete";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOnboarding, ONBOARDING_MODULES } from "@/contexts/OnboardingContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion } from "lucide-react";
@@ -10,7 +12,9 @@ import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion } fr
 const Hub = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { state, isOnboardingActive, startTour, skipTour, enterModule } = useOnboarding();
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
 
   const { data: goals } = useQuery({
     queryKey: ["goals", user?.id],
@@ -49,7 +53,6 @@ const Hub = () => {
     enabled: !!user,
   });
 
-  const frequency = goals?.frequency || 3;
   const userName = user?.user_metadata?.name?.split(" ")[0] || "Champion";
 
   useEffect(() => {
@@ -77,10 +80,46 @@ const Hub = () => {
     checkTrainingSetup();
   }, [user, navigate]);
 
+  // Show completion modal when tour finishes
+  useEffect(() => {
+    if (state.phase === 'complete') {
+      const justCompleted = localStorage.getItem('hub_onboarding_just_completed');
+      if (justCompleted) {
+        setShowComplete(true);
+        localStorage.removeItem('hub_onboarding_just_completed');
+      }
+    }
+  }, [state.phase]);
+
   const handleWelcomeComplete = () => {
     localStorage.setItem('hub_first_visit', 'done');
     setShowWelcome(false);
   };
+
+  const handleStartTour = () => {
+    startTour();
+  };
+
+  const handleModuleClick = (path: string) => {
+    enterModule();
+    navigate(path);
+  };
+
+  // Get module state based on onboarding progress
+  const getModuleState = (moduleIndex: number) => {
+    if (!isOnboardingActive || state.phase !== 'hub-spotlight') {
+      return { locked: false, spotlight: false };
+    }
+    if (moduleIndex < state.currentModuleIndex) {
+      return { locked: false, spotlight: false }; // Already visited
+    }
+    if (moduleIndex === state.currentModuleIndex) {
+      return { locked: false, spotlight: true }; // Current
+    }
+    return { locked: true, spotlight: false }; // Not yet
+  };
+
+  const currentModule = ONBOARDING_MODULES[state.currentModuleIndex];
 
   return (
     <>
@@ -88,7 +127,14 @@ const Hub = () => {
         open={showWelcome} 
         userName={userName}
         onComplete={handleWelcomeComplete}
+        onStartTour={handleStartTour}
       />
+      
+      <OnboardingComplete 
+        open={showComplete}
+        onClose={() => setShowComplete(false)}
+      />
+
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 pb-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-b border-blue-200/50 px-4 py-6">
@@ -114,6 +160,13 @@ const Hub = () => {
               }
               iconColor="217 91% 60%"
               to="/training"
+              {...getModuleState(0)}
+              spotlightData={state.currentModuleIndex === 0 ? {
+                title: currentModule?.name || "",
+                description: currentModule?.description || "",
+                onAction: () => handleModuleClick("/training"),
+                onSkip: skipTour,
+              } : undefined}
             />
 
             {/* Ma nutrition */}
@@ -122,6 +175,13 @@ const Hub = () => {
               title="Ma nutrition"
               iconColor="210 70% 50%"
               to="/nutrition"
+              {...getModuleState(1)}
+              spotlightData={state.currentModuleIndex === 1 ? {
+                title: currentModule?.name || "",
+                description: currentModule?.description || "",
+                onAction: () => handleModuleClick("/nutrition"),
+                onSkip: skipTour,
+              } : undefined}
             />
 
             {/* Alex (Coach IA) */}
@@ -131,6 +191,13 @@ const Hub = () => {
               subtitle="Coach Sport"
               iconColor="190 75% 55%"
               to="/coach/alex"
+              {...getModuleState(2)}
+              spotlightData={state.currentModuleIndex === 2 ? {
+                title: currentModule?.name || "",
+                description: currentModule?.description || "",
+                onAction: () => handleModuleClick("/coach/alex"),
+                onSkip: skipTour,
+              } : undefined}
             />
 
             {/* Julie (Nutritionniste IA) */}
@@ -140,9 +207,16 @@ const Hub = () => {
               subtitle="Nutritionniste"
               iconColor="300 60% 60%"
               to="/coach/julie"
+              {...getModuleState(3)}
+              spotlightData={state.currentModuleIndex === 3 ? {
+                title: currentModule?.name || "",
+                description: currentModule?.description || "",
+                onAction: () => handleModuleClick("/coach/julie"),
+                onSkip: skipTour,
+              } : undefined}
             />
 
-            {/* Paramètres */}
+            {/* Paramètres - always unlocked, no spotlight */}
             <ModuleCard
               icon={Settings}
               title="Paramètres"
@@ -150,7 +224,7 @@ const Hub = () => {
               to="/settings"
             />
 
-            {/* Aide */}
+            {/* Aide - always unlocked, no spotlight */}
             <ModuleCard
               icon={MessageCircleQuestion}
               title="Aide"

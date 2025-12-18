@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionGuard } from "./components/SubscriptionGuard";
 import { useSaveOnboardingData } from "./hooks/useSaveOnboardingData";
 import { AppLayout } from "./components/layouts/AppLayout";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
 import Landing from "./pages/Landing";
 import Start from "./pages/Start";
 import Preview from "./pages/Preview";
@@ -47,46 +48,48 @@ const OnboardingSyncGate = () => {
 
 const App = () => (
   <TooltipProvider>
-    <OnboardingSyncGate />
-    <ScrollToTop />
-    <Toaster />
-    <Sonner />
-    <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/start" element={<Start />} />
-            <Route path="/preview" element={<Preview />} />
-            <Route path="/tarif" element={<Tarif />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/email-confirmation" element={<EmailConfirmation />} />
-            <Route path="/auth-callback" element={<AuthCallback />} />
-            <Route path="/email-verified" element={<EmailVerified />} />
-            <Route path="/training-setup" element={<TrainingSetup />} />
-            <Route path="/onboarding-intro" element={<ProtectedRoute><OnboardingIntro /></ProtectedRoute>} />
-            <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route path="/legal" element={<Legal />} />
-            <Route path="/support" element={<Support />} />
-            
-            {/* Protected routes with AppLayout */}
-          <Route path="/generating-session" element={<ProtectedRoute><GeneratingSession /></ProtectedRoute>} />
-          <Route path="/session" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Session /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-          <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
-          <Route path="/hub" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Hub /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/training" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Training /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Nutrition /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/coach/alex" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachAlex /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/coach/julie" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachJulie /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Settings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings/profile" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Profile /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings/physical-info" element={<ProtectedRoute><SubscriptionGuard><AppLayout><PhysicalInfo /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings/training-program" element={<ProtectedRoute><SubscriptionGuard><AppLayout><TrainingProgram /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><NutritionSettings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings/subscription" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Subscription /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/settings/support" element={<ProtectedRoute><SubscriptionGuard><AppLayout><SettingsSupport /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-            
-            <Route path="*" element={<NotFound />} />
-    </Routes>
+    <OnboardingProvider>
+      <OnboardingSyncGate />
+      <ScrollToTop />
+      <Toaster />
+      <Sonner />
+      <Routes>
+              <Route path="/" element={<Landing />} />
+              <Route path="/start" element={<Start />} />
+              <Route path="/preview" element={<Preview />} />
+              <Route path="/tarif" element={<Tarif />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/email-confirmation" element={<EmailConfirmation />} />
+              <Route path="/auth-callback" element={<AuthCallback />} />
+              <Route path="/email-verified" element={<EmailVerified />} />
+              <Route path="/training-setup" element={<TrainingSetup />} />
+              <Route path="/onboarding-intro" element={<ProtectedRoute><OnboardingIntro /></ProtectedRoute>} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/legal" element={<Legal />} />
+              <Route path="/support" element={<Support />} />
+              
+              {/* Protected routes with AppLayout */}
+            <Route path="/generating-session" element={<ProtectedRoute><GeneratingSession /></ProtectedRoute>} />
+            <Route path="/session" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Session /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+            <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
+            <Route path="/hub" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Hub /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/training" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Training /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Nutrition /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/coach/alex" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachAlex /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/coach/julie" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachJulie /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Settings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/settings/profile" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Profile /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/settings/physical-info" element={<ProtectedRoute><SubscriptionGuard><AppLayout><PhysicalInfo /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/settings/training-program" element={<ProtectedRoute><SubscriptionGuard><AppLayout><TrainingProgram /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/settings/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><NutritionSettings /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/settings/subscription" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Subscription /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+            <Route path="/settings/support" element={<ProtectedRoute><SubscriptionGuard><AppLayout><SettingsSupport /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
+              
+              <Route path="*" element={<NotFound />} />
+      </Routes>
+    </OnboardingProvider>
   </TooltipProvider>
 );
 

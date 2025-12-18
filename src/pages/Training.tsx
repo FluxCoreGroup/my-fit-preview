@@ -3,6 +3,7 @@ import { Dumbbell, Settings as SettingsIcon, AlertCircle, TrendingUp, ChevronDow
 import { BackButton } from "@/components/BackButton";
 import { SessionPreviewCard } from "@/components/training/SessionPreviewCard";
 import { WeeklyFeedbackModal } from "@/components/training/WeeklyFeedbackModal";
+import { ModuleTour } from "@/components/onboarding/ModuleTour";
 import { useWeeklyTraining } from "@/hooks/useWeeklyTraining";
 import { TrainingSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -318,6 +319,9 @@ const Training = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Module Tour */}
+      <ModuleTour moduleKey="training" />
     </div>
   );
 };
