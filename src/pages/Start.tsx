@@ -220,7 +220,7 @@ const Start = () => {
   const progress = (step / totalSteps) * 100;
   return (
     <>
-      <Header variant="onboarding" showBack={step > 1} onBack={handleBack} />
+      <Header variant="onboarding" showBack={true} backLabel="Quitter" onBack={() => navigate("/")} />
       <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
@@ -689,16 +689,14 @@ const Start = () => {
 
           {/* Navigation */}
           <div className="mt-8 flex justify-between">
-            {step > 1 && (
-              <Button variant="outline" onClick={handleBack} disabled={loading}>
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                Retour
-              </Button>
-            )}
+            <Button variant="outline" onClick={handleBack} disabled={loading || step === 1}>
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Retour
+            </Button>
             <Button
               onClick={handleNext}
               disabled={loading || !isStepValid}
-              className={`ml-auto ${!isStepValid ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`${!isStepValid ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {loading ? "Chargement..." : step === totalSteps ? "Voir mon plan" : "Suivant"}
               {!loading && <ChevronRight className="w-4 h-4 ml-2" />}
