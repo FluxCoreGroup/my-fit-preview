@@ -155,7 +155,7 @@ const Hub = () => {
               icon={MessageCircleQuestion}
               title="Aide"
               iconColor="180 60% 50%"
-              to="/support"
+              to="/settings/support"
             />
           </div>
         </div>
