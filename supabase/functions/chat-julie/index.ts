@@ -1,15 +1,86 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Input validation schemas
+const messageSchema = z.object({
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.string().max(10000),
+});
+
+const contextSchema = z.object({
+  goal_type: z.string().max(100).optional(),
+  tdee: z.number().min(0).max(10000).optional(),
+  target_calories: z.number().min(0).max(10000).optional(),
+  protein: z.number().min(0).max(1000).optional(),
+  fat: z.number().min(0).max(1000).optional(),
+  carbs: z.number().min(0).max(2000).optional(),
+  meals_per_day: z.number().min(1).max(10).optional(),
+  restrictions: z.array(z.string().max(100)).max(20).optional(),
+  allergies: z.array(z.string().max(100)).max(20).optional(),
+}).passthrough();
+
+const requestSchema = z.object({
+  messages: z.array(messageSchema).min(1).max(50),
+  context: contextSchema.optional(),
+});
+
+// Sanitize context values for prompt injection prevention
+function sanitizeContext(context: any): any {
+  const sanitizeString = (str: string | undefined | null, fallback: string): string => {
+    if (!str) return fallback;
+    return str.replace(/[<>{}]/g, '').substring(0, 100);
+  };
+  
+  const sanitizeNumber = (num: number | undefined | null, fallback: string): string => {
+    if (num === undefined || num === null) return fallback;
+    return String(num);
+  };
+  
+  const sanitizeArray = (arr: string[] | undefined | null): string => {
+    if (!arr || arr.length === 0) return "aucune";
+    return arr.map(s => s.replace(/[<>{}]/g, '').substring(0, 100)).join(", ");
+  };
+
+  return {
+    goal_type: sanitizeString(context?.goal_type, "non défini"),
+    tdee: sanitizeNumber(context?.tdee, "non calculé"),
+    target_calories: sanitizeNumber(context?.target_calories, "non calculées"),
+    protein: sanitizeNumber(context?.protein, "0"),
+    fat: sanitizeNumber(context?.fat, "0"),
+    carbs: sanitizeNumber(context?.carbs, "0"),
+    meals_per_day: sanitizeString(context?.meals_per_day?.toString(), "non défini"),
+    restrictions: sanitizeArray(context?.restrictions),
+    allergies: sanitizeArray(context?.allergies),
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, context } = await req.json();
+    const rawBody = await req.json();
+    
+    // Validate input
+    const parseResult = requestSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      console.error("❌ Request validation error:", parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Données invalides", 
+          details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const { messages, context } = parseResult.data;
+    const sanitizedContext = sanitizeContext(context);
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -18,13 +89,13 @@ Tu aides les utilisateurs à optimiser leur alimentation pour atteindre leurs ob
 Tu es pédagogue, bienveillante et tu donnes des conseils pratiques et réalistes.
 
 Contexte utilisateur actuel :
-- Objectif : ${context.goal_type || "non défini"}
-- TDEE : ${context.tdee || "non calculé"} kcal
-- Calories cibles : ${context.target_calories || "non calculées"} kcal
-- Macros cibles : P=${context.protein || 0}g, F=${context.fat || 0}g, G=${context.carbs || 0}g
-- Repas par jour : ${context.meals_per_day || "non défini"}
-- Restrictions : ${context.restrictions?.join(", ") || "aucune"}
-- Allergies : ${context.allergies?.join(", ") || "aucune"}
+- Objectif : ${sanitizedContext.goal_type}
+- TDEE : ${sanitizedContext.tdee} kcal
+- Calories cibles : ${sanitizedContext.target_calories} kcal
+- Macros cibles : P=${sanitizedContext.protein}g, F=${sanitizedContext.fat}g, G=${sanitizedContext.carbs}g
+- Repas par jour : ${sanitizedContext.meals_per_day}
+- Restrictions : ${sanitizedContext.restrictions}
+- Allergies : ${sanitizedContext.allergies}
 
 Tu dois :
 - Répondre en français, de manière claire et actionnable
