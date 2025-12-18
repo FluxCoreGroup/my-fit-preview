@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -274,8 +275,16 @@ const Signup = () => {
               <Button type="submit" size="lg" variant="default" className="w-full" disabled={loading}>
                 {loading ? (isPostPayment ? "Finalisation..." : "Création...") : (isPostPayment ? "Activer mon programme" : "Créer mon compte")}
               </Button>
-
             </form>
+
+            {!isPostPayment && (
+              <p className="text-center text-sm text-muted-foreground mt-4">
+                Déjà un compte ?{" "}
+                <Link to="/auth" className="text-primary hover:underline font-medium">
+                  Se connecter
+                </Link>
+              </p>
+            )}
           </Card>
         </div>
       </div>

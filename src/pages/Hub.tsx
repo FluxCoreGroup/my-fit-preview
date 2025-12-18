@@ -55,29 +55,32 @@ const Hub = () => {
 
   const userName = user?.user_metadata?.name?.split(" ")[0] || "Champion";
 
+  // Single useEffect to handle both training check and welcome modal
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('hub_first_visit');
-    if (!hasSeenWelcome && user) {
-      setShowWelcome(true);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const checkTrainingSetup = async () => {
+    const initializeHub = async () => {
       if (!user) return;
       
-      const { data, error } = await supabase
+      // First check if training preferences exist
+      const { data: prefs, error } = await supabase
         .from('training_preferences')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
       
-      if (!data && !error) {
+      // If no preferences, redirect to onboarding (no modal needed)
+      if (!prefs && !error) {
         navigate('/onboarding-intro');
+        return;
+      }
+      
+      // Only after confirming prefs exist, check welcome modal
+      const hasSeenWelcome = localStorage.getItem('hub_first_visit');
+      if (!hasSeenWelcome) {
+        setShowWelcome(true);
       }
     };
     
-    checkTrainingSetup();
+    initializeHub();
   }, [user, navigate]);
 
   // Show completion modal when tour finishes
@@ -100,8 +103,10 @@ const Hub = () => {
     startTour();
   };
 
-  const handleModuleClick = (path: string) => {
+  const handleModuleClick = async (path: string) => {
     enterModule();
+    // Wait for state to propagate before navigating
+    await new Promise(resolve => setTimeout(resolve, 50));
     navigate(path);
   };
 
