@@ -72,7 +72,7 @@ serve(async (req) => {
                     ✅ Adhérence nutrition<br />
                     ✅ Difficulté des entraînements
                   </p>
-                  <a href="https://app.pulse.ai/weekly" style="display: inline-block; background: white; color: #667eea; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                  <a href="https://app.pulse.ai/training" style="display: inline-block; background: white; color: #667eea; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
                     Faire mon check-in →
                   </a>
                 </div>
