@@ -117,10 +117,10 @@ const Tarif = () => {
           
           {/* Hero Section */}
           <div className="text-center space-y-6 animate-in">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-accent/10 border border-accent/30 rounded-full">
-              <Gift className="w-5 h-5 text-accent" />
-              <span className="text-sm font-semibold text-accent">🎁 Offre de lancement</span>
-            </div>
+            <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Programme personnalisé
+            </Badge>
             
             <h1 className="text-4xl md:text-5xl font-bold">
               Ton programme personnalisé est prêt !
@@ -222,8 +222,20 @@ const Tarif = () => {
                   <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                   <span className="text-sm">{feature}</span>
                 </div>
-              ))}
-            </div>
+            ))}
+          </div>
+
+          {/* CTA final */}
+          <div className="text-center pt-8 pb-24 md:pb-8">
+            <h3 className="text-2xl font-bold mb-4">Prêt à transformer ton corps ?</h3>
+            <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
+              Rejoins des centaines de membres qui ont déjà commencé leur transformation avec Pulse.
+            </p>
+            <Button size="lg" className="text-lg px-8 py-6" onClick={handleStartTrial} disabled={loading}>
+              Démarrer mon essai gratuit
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
           </Card>
 
           {/* FAQ */}
