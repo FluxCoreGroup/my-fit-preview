@@ -8,9 +8,10 @@ interface HeaderProps {
   showBack?: boolean;
   backLabel?: string;
   onBack?: () => void;
+  hideAuthButton?: boolean;
 }
 
-export const Header = ({ variant = "marketing", showBack = false, backLabel = "Retour", onBack }: HeaderProps) => {
+export const Header = ({ variant = "marketing", showBack = false, backLabel = "Retour", onBack, hideAuthButton = false }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -79,19 +80,21 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
             </Link>
           )}
 
-          <div className="flex items-center gap-3">
-            {user ? (
-              <Link to="/hub">
-                <Button size="sm">Dashboard</Button>
-              </Link>
-            ) : (
-              <Link to="/auth">
-                <Button variant="ghost" size="sm">
-                  Connexion
-                </Button>
-              </Link>
-            )}
-          </div>
+          {!hideAuthButton && (
+            <div className="flex items-center gap-3">
+              {user ? (
+                <Link to="/hub">
+                  <Button size="sm">Dashboard</Button>
+                </Link>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="ghost" size="sm">
+                    Connexion
+                  </Button>
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </header>
     );
