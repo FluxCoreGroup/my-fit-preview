@@ -9,9 +9,10 @@ interface HeaderProps {
   backLabel?: string;
   onBack?: () => void;
   hideAuthButton?: boolean;
+  disableNavigation?: boolean;
 }
 
-export const Header = ({ variant = "marketing", showBack = false, backLabel = "Retour", onBack, hideAuthButton = false }: HeaderProps) => {
+export const Header = ({ variant = "marketing", showBack = false, backLabel = "Retour", onBack, hideAuthButton = false, disableNavigation = false }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -68,7 +69,12 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
     return (
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          {showBack ? (
+          {disableNavigation ? (
+            <div className="flex items-center gap-2 font-bold text-xl">
+              <Dumbbell className="w-6 h-6 text-primary" />
+              <span>Pulse.ai</span>
+            </div>
+          ) : showBack ? (
             <Button variant="ghost" size="sm" onClick={handleBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               {backLabel}
@@ -80,7 +86,7 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
             </Link>
           )}
 
-          {!hideAuthButton && (
+          {!hideAuthButton && !disableNavigation && (
             <div className="flex items-center gap-3">
               {user ? (
                 <Link to="/hub">
