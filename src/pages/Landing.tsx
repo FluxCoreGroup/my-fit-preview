@@ -81,7 +81,7 @@ const Landing = () => {
           
           {/* Phone Mockup - Centered */}
           <div className="flex justify-center z-10 my-4 flex-shrink">
-            <img src={heroPhone} alt="Interface du Hub Pulse.ai" className="w-[clamp(130px,30vw,240px)] max-h-[35vh] object-contain drop-shadow-2xl pointer-events-none select-none" />
+            <img src={heroPhone} alt="Interface du Hub Pulse.ai avec 6 modules : Entraînements, Nutrition, Coach Alex, Coach Julie, Paramètres et Aide" className="w-[clamp(130px,30vw,240px)] max-h-[35vh] object-contain drop-shadow-2xl pointer-events-none select-none" />
           </div>
           
           {/* CTA - Bottom */}
@@ -93,6 +93,7 @@ const Landing = () => {
                 </Link> : <Link to="/start">
                   <Button size="lg" className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold">
                     Faire le quiz
+                    <span className="ml-2 text-sm opacity-70">~2 min</span>
                   </Button>
                 </Link>}
             </div>
@@ -440,7 +441,9 @@ const Landing = () => {
           <div className="text-center mt-12">
             <Link to="/start">
               <Button size="lg">
-                Essayer Pulse.ai gratuitement <ArrowRight className="w-5 h-5 ml-2" />
+                Essayer Pulse.ai gratuitement
+                <span className="ml-2 text-sm opacity-70">~2 min</span>
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
           </div>
@@ -517,7 +520,9 @@ const Landing = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link to="/start">
               <Button size="lg" className="text-lg">
-                Commencer gratuitement <ArrowRight className="w-5 h-5 ml-2" />
+                Commencer gratuitement
+                <span className="ml-2 text-sm opacity-70">~2 min</span>
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link to="/preview">

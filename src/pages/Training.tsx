@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dumbbell, Settings as SettingsIcon, AlertCircle, TrendingUp } from "lucide-react";
+import { Dumbbell, Settings as SettingsIcon, AlertCircle, TrendingUp, ChevronDown, BarChart3 } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { SessionPreviewCard } from "@/components/training/SessionPreviewCard";
 import { WeeklyFeedbackModal } from "@/components/training/WeeklyFeedbackModal";
@@ -14,6 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { WeightChart } from "@/components/weekly/WeightChart";
+import { AdherenceChart } from "@/components/weekly/AdherenceChart";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +57,7 @@ const Training = () => {
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [needsCheckIn, setNeedsCheckIn] = useState(false);
+  const [showProgression, setShowProgression] = useState(false);
 
   // Auto-open feedback modal when week is complete
   useEffect(() => {
@@ -127,13 +132,15 @@ const Training = () => {
 
           {/* Week complete banner */}
           {isWeekComplete && !needsFeedback && (
-            <Card className="p-4 mb-4 bg-green-500/10 border-green-500/20">
+            <Card className="p-4 mb-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20">
               <div className="flex items-center gap-3">
-                <TrendingUp className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-5 h-5 text-green-500" />
+                </div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Semaine terminée ! 🎉</p>
+                  <p className="font-semibold text-sm">Bravo, semaine complétée ! 🎉</p>
                   <p className="text-xs text-muted-foreground">
-                    Toutes les séances complétées. Bravo !
+                    Tu as terminé toutes tes séances. Continue sur cette lancée !
                   </p>
                 </div>
               </div>
@@ -141,20 +148,22 @@ const Training = () => {
           )}
 
           {needsCheckIn && (
-            <Card className="p-4 mb-4 bg-yellow-500/10 border-yellow-500/20">
+            <Card className="p-4 mb-4 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-yellow-500/20">
               <div className="flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                  <AlertCircle className="w-5 h-5 text-yellow-500" />
+                </div>
                 <div className="flex-1">
-                  <p className="font-medium text-sm">Check-in requis</p>
+                  <p className="font-semibold text-sm">Check-in hebdomadaire requis</p>
                   <p className="text-xs text-muted-foreground">
-                    Complète ton check-in pour débloquer la génération.
+                    2 minutes pour faire le point et débloquer ta prochaine semaine d'entraînement.
                   </p>
                 </div>
               </div>
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="mt-3 w-full"
+                className="mt-3 w-full bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20"
                 onClick={() => setShowFeedbackModal(true)}
               >
                 Faire mon check-in →
@@ -209,8 +218,31 @@ const Training = () => {
             </>
           )}
 
+          {/* Section Progression */}
+          <Collapsible open={showProgression} onOpenChange={setShowProgression} className="mt-6">
+            <CollapsibleTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="w-full justify-between rounded-xl border-white/10"
+              >
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-primary" />
+                  <span>Voir ma progression</span>
+                </div>
+                <ChevronDown className={cn(
+                  "w-5 h-5 transition-transform duration-200",
+                  showProgression && "rotate-180"
+                )} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-4 space-y-4">
+              <WeightChart />
+              <AdherenceChart />
+            </CollapsibleContent>
+          </Collapsible>
+
           {historicalPrograms.length > 0 && (
-            <Card className="p-4 mt-8">
+            <Card className="p-4 mt-6">
               <h3 className="text-lg font-bold mb-4">Historique des programmes</h3>
               <div className="space-y-3">
                 {historicalPrograms.map((program) => (

@@ -163,10 +163,13 @@ export const WeeklyFeedbackModal = ({ open, onClose, onComplete }: WeeklyFeedbac
 
           {/* Poids */}
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">Poids cette semaine (kg) *</Label>
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-semibold">Poids cette semaine (kg)</Label>
+              <span className="text-xs text-muted-foreground">(1 mesure min.)</span>
+            </div>
             <div className="grid grid-cols-3 gap-2">
               <div>
-                <Label className="text-xs text-muted-foreground">Lun</Label>
+                <Label className="text-xs text-muted-foreground">Lun *</Label>
                 <Input 
                   type="number" 
                   step="0.1" 
@@ -182,7 +185,7 @@ export const WeeklyFeedbackModal = ({ open, onClose, onComplete }: WeeklyFeedbac
                   type="number" 
                   step="0.1" 
                   placeholder="74.8"
-                  className="h-10 rounded-xl"
+                  className="h-10 rounded-xl opacity-70"
                   value={weight2 || ""}
                   onChange={(e) => setWeight2(e.target.value ? parseFloat(e.target.value) : null)}
                 />
@@ -193,7 +196,7 @@ export const WeeklyFeedbackModal = ({ open, onClose, onComplete }: WeeklyFeedbac
                   type="number" 
                   step="0.1" 
                   placeholder="74.5"
-                  className="h-10 rounded-xl"
+                  className="h-10 rounded-xl opacity-70"
                   value={weight3 || ""}
                   onChange={(e) => setWeight3(e.target.value ? parseFloat(e.target.value) : null)}
                 />
@@ -279,16 +282,17 @@ export const WeeklyFeedbackModal = ({ open, onClose, onComplete }: WeeklyFeedbac
               <RadioGroup value={energy} onValueChange={setEnergy}>
                 <div className="flex gap-1">
                   {[
-                    { value: "low", label: "↓" },
-                    { value: "normal", label: "→" },
-                    { value: "high", label: "↑" }
-                  ].map(({ value, label }) => (
+                    { value: "low", label: "↓", text: "Faible" },
+                    { value: "normal", label: "→", text: "Normal" },
+                    { value: "high", label: "↑", text: "Élevée" }
+                  ].map(({ value, label, text }) => (
                     <label key={value} className={cn(
-                      "flex-1 flex items-center justify-center p-2.5 rounded-xl border-2 cursor-pointer transition-all text-lg",
+                      "flex-1 flex flex-col items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all",
                       energy === value ? "border-primary bg-primary/10" : "border-border"
                     )}>
                       <RadioGroupItem value={value} className="sr-only" />
-                      {label}
+                      <span className="text-lg">{label}</span>
+                      <span className="text-xs text-muted-foreground">{text}</span>
                     </label>
                   ))}
                 </div>
@@ -322,7 +326,7 @@ export const WeeklyFeedbackModal = ({ open, onClose, onComplete }: WeeklyFeedbac
           ) : (
             <>
               <CheckCircle2 className="w-5 h-5 mr-2" />
-              Valider et générer ma semaine
+              Valider et générer ma nouvelle semaine
             </>
           )}
         </Button>
