@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Mail, Lock, User, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, User, CheckCircle2, Check, Circle } from "lucide-react";
 import { z } from "zod";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +14,10 @@ import { toast } from "@/hooks/use-toast";
 const signupSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
   email: z.string().email("Email invalide").max(255),
-  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+  password: z.string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
+    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
 });
 
 const Signup = () => {
@@ -170,7 +173,7 @@ const Signup = () => {
 
   return (
     <>
-      <Header variant="onboarding" showBack onBack={() => navigate(isPostPayment ? "/tarif" : "/preview")} />
+      <Header variant="onboarding" showBack={false} hideAuthButton />
       <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-8 pt-24">
         <div className="max-w-md w-full">
           {isPostPayment && (
@@ -251,23 +254,27 @@ const Signup = () => {
                     required
                   />
                 </div>
+                {/* Password strength indicator */}
+                <div className="mt-2 space-y-1">
+                  <p className={`text-xs flex items-center gap-1 ${signupPassword.length >= 8 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {signupPassword.length >= 8 ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
+                    8 caractères minimum
+                  </p>
+                  <p className={`text-xs flex items-center gap-1 ${/[A-Z]/.test(signupPassword) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {/[A-Z]/.test(signupPassword) ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
+                    1 majuscule
+                  </p>
+                  <p className={`text-xs flex items-center gap-1 ${/[0-9]/.test(signupPassword) ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {/[0-9]/.test(signupPassword) ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
+                    1 chiffre
+                  </p>
+                </div>
               </div>
 
               <Button type="submit" size="lg" variant="default" className="w-full" disabled={loading}>
                 {loading ? (isPostPayment ? "Finalisation..." : "Création...") : (isPostPayment ? "Activer mon programme" : "Créer mon compte")}
               </Button>
 
-              <p className="text-sm text-center text-muted-foreground">
-                Tu as déjà un compte ?{" "}
-                <Button
-                  type="button"
-                  variant="link"
-                  className="p-0 h-auto font-semibold"
-                  onClick={() => navigate("/auth")}
-                >
-                  Connecte-toi
-                </Button>
-              </p>
             </form>
           </Card>
         </div>
