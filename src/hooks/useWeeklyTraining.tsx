@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { startOfWeek, addWeeks, format, endOfWeek } from "date-fns";
@@ -30,6 +30,7 @@ export const useWeeklyTraining = () => {
   const [currentWeek, setCurrentWeek] = useState(0);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [historicalPrograms, setHistoricalPrograms] = useState<WeeklyProgram[]>([]);
+  const [currentProgram, setCurrentProgram] = useState<WeeklyProgram | null>(null);
 
   const fetchWeeklySessions = async () => {
     if (!user) return;
@@ -71,6 +72,16 @@ export const useWeeklyTraining = () => {
 
       if (error) throw error;
       setHistoricalPrograms(data || []);
+      
+      // Set current program (most recent)
+      if (data && data.length > 0) {
+        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+        const current = data.find(p => 
+          new Date(p.week_start_date) <= new Date() && 
+          new Date(p.week_end_date) >= new Date()
+        );
+        setCurrentProgram(current || null);
+      }
     } catch (error) {
       console.error("Error fetching historical programs:", error);
     }
@@ -89,7 +100,7 @@ export const useWeeklyTraining = () => {
     setCurrentWeek(0);
   };
 
-  const canGenerateWeek = async (): Promise<{ allowed: boolean; reason?: string }> => {
+  const canGenerateWeek = useCallback(async (): Promise<{ allowed: boolean; reason?: string }> => {
     if (!user) return { allowed: false, reason: "Non authentifié" };
 
     // Check if this is the first program ever
@@ -124,7 +135,7 @@ export const useWeeklyTraining = () => {
     }
 
     return { allowed: true };
-  };
+  }, [user]);
 
   const generateWeeklyProgram = async (regenerate = false) => {
     if (!user) return;
@@ -208,6 +219,17 @@ export const useWeeklyTraining = () => {
     return Math.round((getCompletedCount() / sessions.length) * 100);
   };
 
+  // Check if all sessions are completed
+  const isWeekComplete = sessions.length > 0 && sessions.every(s => s.completed);
+
+  // Check if feedback is needed (week complete but no check-in done)
+  const needsFeedback = isWeekComplete && currentProgram && !currentProgram.check_in_completed;
+
+  const refreshData = async () => {
+    await fetchWeeklySessions();
+    await fetchHistoricalPrograms();
+  };
+
   return {
     loading,
     isGenerating,
@@ -221,5 +243,8 @@ export const useWeeklyTraining = () => {
     getProgressPercentage,
     canGenerateWeek,
     historicalPrograms,
+    isWeekComplete,
+    needsFeedback,
+    refreshData,
   };
 };

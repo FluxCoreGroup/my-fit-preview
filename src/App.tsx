@@ -20,8 +20,6 @@ import OnboardingIntro from "./pages/OnboardingIntro";
 import Session from "./pages/Session";
 import Feedback from "./pages/Feedback";
 import Paywall from "./pages/Paywall";
-import Weekly from "./pages/Weekly";
-import Home from "./pages/Home";
 import Legal from "./pages/Legal";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
@@ -39,7 +37,6 @@ import CoachAlex from "./pages/CoachAlex";
 import CoachJulie from "./pages/CoachJulie";
 import Hub from "./pages/Hub";
 import PaymentSuccess from "./pages/PaymentSuccess";
-import Progression from "./pages/Progression";
 import { ScrollToTop } from "./components/ScrollToTop";
 
 // Component to sync onboarding data to Supabase as soon as user is authenticated
@@ -75,10 +72,7 @@ const App = () => (
           <Route path="/session" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Session /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
           <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
-          <Route path="/weekly" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Weekly /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/progression" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Progression /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/hub" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Hub /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
-          <Route path="/home" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Home /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/training" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Training /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/nutrition" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Nutrition /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
           <Route path="/coach/alex" element={<ProtectedRoute><SubscriptionGuard><AppLayout><CoachAlex /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
