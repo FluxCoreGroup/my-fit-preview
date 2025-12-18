@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,28 +13,33 @@ const steps: { icon: LucideIcon; text: string }[] = [
   { icon: CheckCircle2, text: "Ta séance est prête !" }
 ];
 
+const MIN_DISPLAY_TIME = 3000; // Minimum 3 seconds for UX
+
 const GeneratingSession = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+  const startTimeRef = useRef(Date.now());
+  const dataReadyRef = useRef(false);
 
   useEffect(() => {
-    // Animation des étapes
+    // Animation des étapes - plus rapide (800ms au lieu de 3000ms)
     const stepInterval = setInterval(() => {
       setCurrentStep(prev => {
         if (prev < steps.length - 1) return prev + 1;
         return prev;
       });
-    }, 3000);
+    }, 800);
 
-    // Animation de la barre de progression
+    // Animation de la barre de progression - plus rapide
     const progressInterval = setInterval(() => {
       setProgress(prev => {
-        if (prev < 100) return prev + 2;
+        if (prev < 95) return prev + 5;
         return prev;
       });
-    }, 300);
+    }, 150);
 
     // Appel à l'edge function avec retry logic
     const generateSession = async (retryCount = 0) => {
@@ -54,11 +59,21 @@ const GeneratingSession = () => {
 
         // Sauvegarder dans localStorage
         localStorage.setItem('generatedSession', JSON.stringify(data));
+        dataReadyRef.current = true;
 
-        // Attendre que l'animation soit terminée
+        // Calculer le temps restant pour atteindre le minimum
+        const elapsed = Date.now() - startTimeRef.current;
+        const remainingTime = Math.max(0, MIN_DISPLAY_TIME - elapsed);
+
+        // Finaliser la progression
+        setProgress(100);
+        setCurrentStep(steps.length - 1);
+        setIsComplete(true);
+
+        // Naviguer après le délai minimum
         setTimeout(() => {
           navigate('/hub');
-        }, 15000);
+        }, remainingTime + 500); // +500ms pour voir le "100%"
 
       } catch (error) {
         console.error('Error generating session:', error);
@@ -69,10 +84,9 @@ const GeneratingSession = () => {
         
         if (isDataMissing && retryCount < 2) {
           console.log(`Retrying... Attempt ${retryCount + 1}/2`);
-          // Attendre 2 secondes avant de réessayer
           setTimeout(() => {
             generateSession(retryCount + 1);
-          }, 2000);
+          }, 1000);
           return;
         }
         
@@ -104,9 +118,9 @@ const GeneratingSession = () => {
           variant: "destructive"
         });
 
-        // Fallback vers une séance démo
+        // Fallback vers hub
         setTimeout(() => {
-          navigate('/session');
+          navigate('/hub');
         }, 2000);
       }
     };
@@ -124,28 +138,30 @@ const GeneratingSession = () => {
       <div className="max-w-md w-full space-y-8 text-center">
         {/* Logo animé */}
         <div className="relative">
-          <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center animate-pulse">
-            <Dumbbell className="w-12 h-12 text-primary" />
+          <div className={`w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center ${!isComplete ? 'animate-pulse' : ''}`}>
+            <Dumbbell className={`w-12 h-12 ${isComplete ? 'text-green-500' : 'text-primary'}`} />
           </div>
-          <div className="absolute inset-0 w-24 h-24 mx-auto border-4 border-primary/20 rounded-full animate-spin" 
-               style={{ borderTopColor: 'hsl(var(--primary))' }}></div>
+          {!isComplete && (
+            <div className="absolute inset-0 w-24 h-24 mx-auto border-4 border-primary/20 rounded-full animate-spin" 
+                 style={{ borderTopColor: 'hsl(var(--primary))' }}></div>
+          )}
         </div>
 
         {/* Titre */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-foreground">
-            Création de ta séance
+            {isComplete ? "C'est prêt !" : "Création de ta séance"}
           </h1>
           <p className="text-muted-foreground">
-            Nous analysons tes données pour créer un entraînement parfait pour toi
+            {isComplete ? "Redirection vers ton hub..." : "Nous analysons tes données pour créer un entraînement parfait"}
           </p>
         </div>
 
         {/* Barre de progression */}
         <div className="space-y-2">
-          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+          <div className="h-2 bg-primary/20 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-300 ease-out"
+              className={`h-full transition-all duration-300 ease-out ${isComplete ? 'bg-green-500' : 'bg-gradient-to-r from-primary to-primary/80'}`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -153,7 +169,7 @@ const GeneratingSession = () => {
         </div>
 
         {/* Étapes */}
-        <div className="space-y-4 pt-4">
+        <div className="space-y-3 pt-4">
           {steps.map((step, index) => {
             const IconComponent = step.icon;
             return (
@@ -167,7 +183,7 @@ const GeneratingSession = () => {
                     : 'opacity-30'
                 }`}
               >
-                <IconComponent className={`w-6 h-6 ${
+                <IconComponent className={`w-5 h-5 ${
                   index === currentStep ? 'text-primary' : 'text-muted-foreground'
                 }`} />
                 <span className={`text-sm font-medium ${
@@ -176,7 +192,7 @@ const GeneratingSession = () => {
                   {step.text}
                 </span>
                 {index < currentStep && (
-                  <CheckCircle2 className="ml-auto w-5 h-5 text-green-500" />
+                  <CheckCircle2 className="ml-auto w-4 h-4 text-green-500" />
                 )}
               </div>
             );
@@ -184,10 +200,12 @@ const GeneratingSession = () => {
         </div>
 
         {/* Message de patience */}
-        <p className="text-xs text-muted-foreground pt-4 flex items-center justify-center gap-2">
-          <Clock className="w-4 h-4" />
-          Cela prend environ 15 secondes...
-        </p>
+        {!isComplete && (
+          <p className="text-xs text-muted-foreground pt-4 flex items-center justify-center gap-2">
+            <Clock className="w-4 h-4" />
+            Quelques secondes...
+          </p>
+        )}
       </div>
     </div>
   );
