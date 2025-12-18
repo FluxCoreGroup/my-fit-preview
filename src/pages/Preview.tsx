@@ -79,10 +79,10 @@ const LoadingAnalysis = () => {
         <h2 className="text-2xl font-bold mb-4">Calcul de ton plan personnalisé</h2>
         
         <div className="mb-6">
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-300 ease-out" style={{
-            width: `${progress}%`
-          }} />
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-primary to-primary/50 transition-all duration-300 ease-out" style={{
+              width: `${progress}%`
+            }} />
           </div>
           <p className="text-sm text-muted-foreground mt-2">{Math.round(progress)}%</p>
         </div>
@@ -260,7 +260,7 @@ const Preview = () => {
               </Card>
 
               {/* TDEE */}
-              <Card className="p-4 md:p-6 bg-gradient-to-br from-secondary/5 to-secondary/10 border-secondary/20">
+              <Card className="p-4 md:p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
                 <div className="flex items-start justify-between mb-2">
                   <div className="text-sm text-muted-foreground">
                     TDEE (Dépense Énergétique Totale)
@@ -275,17 +275,17 @@ const Preview = () => {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <div className="text-3xl md:text-4xl font-bold text-secondary mb-1">{nutritionPlan.tdee} kcal</div>
+                <div className="text-3xl md:text-4xl font-bold text-primary mb-1">{nutritionPlan.tdee} kcal</div>
                 <div className="text-sm text-muted-foreground">Besoin énergétique journalier</div>
               </Card>
             </div>
           </Card>
 
           {/* Cible calorique journalière */}
-          <Card className="p-4 md:p-6 border-2 border-accent/20 animate-in">
+          <Card className="p-4 md:p-6 border-2 border-primary/20 animate-in">
             <div className="text-center mb-4 md:mb-6">
               <h2 className="text-lg md:text-xl font-bold mb-2 flex items-center justify-center gap-2">
-                <Target className="w-5 h-5 md:w-6 md:h-6 text-accent" />
+                <Target className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                 Ton objectif calorique quotidien
               </h2>
               <div className="text-4xl md:text-5xl font-bold gradient-primary bg-clip-text text-transparent mb-2">
@@ -382,11 +382,11 @@ const Preview = () => {
 
           {/* Recommandations complémentaires */}
           <div className="grid md:grid-cols-2 gap-3 md:gap-4 animate-in">
-            <Card className="p-3 md:p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
-              <div className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+            <Card className="p-3 md:p-4 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+              <div className="text-sm font-medium text-primary mb-1">
                 Fibres recommandées
               </div>
-              <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400">{nutritionPlan.fiber}g/jour</div>
+              <div className="text-2xl md:text-3xl font-bold text-primary">{nutritionPlan.fiber}g/jour</div>
               <div className="text-xs text-muted-foreground mt-1">
                 Pour une digestion optimale
               </div>
@@ -406,7 +406,7 @@ const Preview = () => {
           </div>
 
           {/* CTA intermédiaire */}
-          <Card className="p-6 md:p-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/30 animate-in">
+          <Card className="p-6 md:p-8 bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30 animate-in">
             <div className="text-center space-y-3 md:space-y-4">
               
               <div className="flex items-center justify-center gap-2">
@@ -416,11 +416,15 @@ const Preview = () => {
               <p className="text-sm md:text-base text-muted-foreground">
                 Continue la création de ton programme personnalisé complet
               </p>
-              <Button size="lg" onClick={() => {
-              localStorage.setItem("hasSeenPreview", "true");
-              navigate("/tarif");
-            }} className="gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all flex items-center gap-2 mx-auto">
-                Continuer <ArrowRight className="w-5 h-5" />
+              <Button 
+                size="icon" 
+                onClick={() => {
+                  localStorage.setItem("hasSeenPreview", "true");
+                  navigate("/tarif");
+                }} 
+                className="w-14 h-14 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all mx-auto"
+              >
+                <ArrowRight className="w-6 h-6" />
               </Button>
               <p className="text-xs md:text-sm text-muted-foreground">
                 Essai gratuit 7 jours • Sans engagement • Accès immédiat

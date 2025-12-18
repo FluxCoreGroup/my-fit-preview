@@ -18,19 +18,46 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const systemPrompt = `Tu es un assistant qui reformate des informations de santé et nutrition de manière claire et professionnelle.
+    const systemPrompt = `Tu es un assistant nutrition/santé expert. Reformate les informations suivantes de manière claire, professionnelle et DÉTAILLÉE.
 
-Reformate les textes suivants de manière concise et lisible :
+DONNÉES À REFORMATER :
 - Allergies : "${allergies || 'Aucune'}"
 - Restrictions : "${restrictions || 'Aucune'}"
 - Conditions de santé : "${healthConditions || 'Aucune'}"
 
-Réponds uniquement en JSON avec cette structure exacte :
+INSTRUCTIONS DE FORMATAGE :
+
+Pour les ALLERGIES :
+- Identifie le type (alimentaire, médicamenteuse, respiratoire, de contact)
+- Liste précisément les aliments/ingrédients à éviter absolument
+- Mentionne les formes cachées possibles (ex: lactose dans certains médicaments)
+- Suggère 2-3 alternatives nutritionnelles équivalentes
+
+Pour les RESTRICTIONS :
+- Clarifie le régime exact (végétarien, végan, halal, kasher, sans gluten, sans lactose, etc.)
+- Liste les catégories d'aliments concernées avec des exemples concrets
+- Indique les carences nutritionnelles potentielles à surveiller
+- Propose des sources alternatives de nutriments essentiels
+
+Pour les CONDITIONS DE SANTÉ :
+- Reformule de manière précise et compréhensible
+- Décris les implications nutritionnelles spécifiques
+- Liste les nutriments à privilégier et ceux à limiter
+- Mentionne les précautions alimentaires importantes
+
+IMPORTANT : Chaque réponse doit faire 2-4 phrases complètes et informatives.
+
+Réponds UNIQUEMENT en JSON avec cette structure exacte :
 {
-  "allergies": "texte formaté ou 'Aucune allergie signalée'",
-  "restrictions": "texte formaté ou 'Aucune restriction alimentaire'",
-  "healthConditions": "texte formaté ou 'Aucune condition particulière'"
-}`;
+  "allergies": "Description complète et détaillée des allergies avec précautions et alternatives",
+  "restrictions": "Description complète des restrictions avec impacts nutritionnels et alternatives",
+  "healthConditions": "Description complète des conditions avec recommandations nutritionnelles adaptées"
+}
+
+Si un champ est vide ou "Aucune", réponds avec une phrase rassurante :
+- allergies: "Aucune allergie alimentaire déclarée. Tu peux profiter d'une alimentation variée sans restriction particulière liée aux allergies."
+- restrictions: "Aucune restriction alimentaire spécifique. Ton plan nutritionnel inclura tous les groupes d'aliments pour une alimentation équilibrée et diversifiée."
+- healthConditions: "Aucune condition de santé particulière signalée. Ton programme sera basé sur les recommandations nutritionnelles standard pour une personne en bonne santé."`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -42,7 +69,7 @@ Réponds uniquement en JSON avec cette structure exacte :
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: 'Formate ces données.' }
+          { role: 'user', content: 'Formate ces données de santé de manière professionnelle et détaillée.' }
         ],
       }),
     });
@@ -77,9 +104,9 @@ Réponds uniquement en JSON avec cette structure exacte :
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Erreur de formatage',
-        allergies: 'Aucune allergie signalée',
-        restrictions: 'Aucune restriction alimentaire',
-        healthConditions: 'Aucune condition particulière'
+        allergies: "Aucune allergie alimentaire déclarée. Tu peux profiter d'une alimentation variée sans restriction particulière.",
+        restrictions: "Aucune restriction alimentaire spécifique. Ton plan inclura tous les groupes d'aliments.",
+        healthConditions: "Aucune condition particulière signalée. Programme basé sur les recommandations standard."
       }),
       { 
         status: 500, 
