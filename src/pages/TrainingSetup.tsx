@@ -317,7 +317,7 @@ const TrainingSetup = () => {
   return (
     <>
       <div className="min-h-screen bg-background">
-        <Header variant="onboarding" showBack={true} backLabel="Quitter" onBack={() => navigate("/hub")} />
+        <Header variant="onboarding" disableNavigation={true} />
       
       <div className="container mx-auto px-4 py-8 pt-24 max-w-2xl">
         <div className="mb-8">
