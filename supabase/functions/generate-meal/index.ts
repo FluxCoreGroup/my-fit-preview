@@ -1,9 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schema
+const mealRequestSchema = z.object({
+  protein: z.number().min(0).max(500),
+  carbs: z.number().min(0).max(1000),
+  fats: z.number().min(0).max(300),
+  type: z.enum(["sweet", "savory"]),
+  category: z.enum(["breakfast", "lunch", "dinner", "snack"]),
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -11,7 +21,22 @@ serve(async (req) => {
   }
 
   try {
-    const { protein, carbs, fats, type, category } = await req.json();
+    const rawBody = await req.json();
+    
+    // Validate input
+    const parseResult = mealRequestSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      console.error("❌ Validation error:", parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Données invalides", 
+          details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const { protein, carbs, fats, type, category } = parseResult.data;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {

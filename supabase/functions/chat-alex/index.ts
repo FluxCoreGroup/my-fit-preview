@@ -1,10 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schemas
+const messageSchema = z.object({
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.string().max(10000),
+});
+
+const contextSchema = z.object({
+  goal_type: z.string().max(100).optional(),
+  frequency: z.number().min(1).max(7).optional(),
+  experience_level: z.string().max(50).optional(),
+  equipment: z.array(z.string().max(100)).max(20).optional(),
+  session_type: z.string().max(50).optional(),
+  limitations: z.array(z.string().max(200)).max(20).optional(),
+}).passthrough();
+
+const requestSchema = z.object({
+  messages: z.array(messageSchema).min(1).max(50),
+  context: contextSchema.optional(),
+});
 
 // Tool definitions for AI to access user data
 const tools = [
@@ -86,14 +107,26 @@ const tools = [
   },
 ];
 
-// Execute tool calls
+// Execute tool calls with validated parameters
 async function executeToolCall(toolName: string, args: any, userId: string, supabase: any) {
   console.log(`Executing tool: ${toolName} for user ${userId}`, args);
+
+  // Validate tool arguments
+  const validateToolArgs = (schema: z.ZodSchema, data: any) => {
+    const result = schema.safeParse(data);
+    if (!result.success) {
+      console.error(`Tool ${toolName} args validation error:`, result.error.errors);
+      return null;
+    }
+    return result.data;
+  };
 
   try {
     switch (toolName) {
       case "get_weight_history": {
-        const weeks = args.weeks || 4;
+        const argsSchema = z.object({ weeks: z.number().min(1).max(52).optional() });
+        const validated = validateToolArgs(argsSchema, args);
+        const weeks = validated?.weeks || 4;
         const weeksAgo = new Date();
         weeksAgo.setDate(weeksAgo.getDate() - weeks * 7);
 
@@ -118,7 +151,9 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
       }
 
       case "get_recent_sessions": {
-        const limit = args.limit || 5;
+        const argsSchema = z.object({ limit: z.number().min(1).max(20).optional() });
+        const validated = validateToolArgs(argsSchema, args);
+        const limit = validated?.limit || 5;
 
         const { data, error } = await supabase
           .from("sessions")
@@ -141,7 +176,9 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
       }
 
       case "get_checkin_stats": {
-        const period = args.period || "week";
+        const argsSchema = z.object({ period: z.enum(["week", "month"]).optional() });
+        const validated = validateToolArgs(argsSchema, args);
+        const period = validated?.period || "week";
         const daysAgo = period === "week" ? 7 : 30;
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - daysAgo);
@@ -281,11 +318,50 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
   }
 }
 
+// Sanitize context values for prompt injection prevention
+function sanitizeContext(context: any): any {
+  const sanitizeString = (str: string | undefined): string => {
+    if (!str) return "non défini";
+    return str.replace(/[<>{}]/g, '').substring(0, 100);
+  };
+  
+  const sanitizeArray = (arr: string[] | undefined): string => {
+    if (!arr || arr.length === 0) return "aucune";
+    return arr.map(s => s.replace(/[<>{}]/g, '').substring(0, 100)).join(", ");
+  };
+
+  return {
+    goal_type: sanitizeString(context?.goal_type),
+    frequency: context?.frequency || "non définie",
+    experience_level: sanitizeString(context?.experience_level),
+    equipment: sanitizeArray(context?.equipment),
+    session_type: sanitizeString(context?.session_type),
+    limitations: sanitizeArray(context?.limitations),
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, context } = await req.json();
+    const rawBody = await req.json();
+    
+    // Validate input
+    const parseResult = requestSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      console.error("❌ Request validation error:", parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: "Données invalides", 
+          details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    const { messages, context } = parseResult.data;
+    const sanitizedContext = sanitizeContext(context);
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -344,12 +420,12 @@ QUAND UTILISER LES TOOLS (EXEMPLES CONCRETS) :
 - "Mon RPE ?" → get_checkin_stats
 
 Contexte utilisateur actuel (informations générales) :
-- Objectif : ${context.goal_type || "non défini"}
-- Fréquence d'entraînement : ${context.frequency || "non définie"} séances/semaine
-- Niveau d'expérience : ${context.experience_level || "non défini"}
-- Matériel disponible : ${context.equipment?.join(", ") || "non défini"}
-- Préférences : ${context.session_type || "non défini"}
-- Limitations : ${context.limitations?.join(", ") || "aucune"}
+- Objectif : ${sanitizedContext.goal_type}
+- Fréquence d'entraînement : ${sanitizedContext.frequency} séances/semaine
+- Niveau d'expérience : ${sanitizedContext.experience_level}
+- Matériel disponible : ${sanitizedContext.equipment}
+- Préférences : ${sanitizedContext.session_type}
+- Limitations : ${sanitizedContext.limitations}
 
 ⚠️ ATTENTION : Ce contexte ne contient PAS de données chiffrées (poids, calories, etc.). 
 Pour obtenir ces données, tu DOIS utiliser les tools.
@@ -372,7 +448,7 @@ COMPORTEMENT :
     let debugGoalsStatus = "not-checked";
 
     // Initial AI call with tools
-    let aiMessages = [{ role: "system", content: systemPrompt }, ...messages];
+    let aiMessages: any[] = [{ role: "system", content: systemPrompt }, ...messages];
     let needsToolExecution = true;
     let iterationCount = 0;
     const MAX_ITERATIONS = 5;

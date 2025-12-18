@@ -1,11 +1,32 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Validation schema for goals data from database
+const goalsSchema = z.object({
+  goal_type: z.string().max(100),
+  frequency: z.number().min(1).max(7).nullable(),
+  session_duration: z.number().min(15).max(180).nullable(),
+  location: z.string().max(100).nullable(),
+  equipment: z.array(z.string().max(100)).max(20).nullable(),
+  health_conditions: z.array(z.string().max(200)).max(20).nullable(),
+}).passthrough();
+
+// Validation schema for preferences data from database
+const preferencesSchema = z.object({
+  experience_level: z.string().max(50),
+  session_type: z.string().max(50),
+  split_preference: z.string().max(100).nullable(),
+  progression_focus: z.string().max(100),
+  priority_zones: z.array(z.string().max(100)).max(10).nullable(),
+  limitations: z.array(z.string().max(200)).max(20).nullable(),
+}).passthrough();
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -56,41 +77,77 @@ serve(async (req) => {
     }
 
     // Fetch user data
-    const { data: goals } = await supabase
+    const { data: goalsRaw } = await supabase
       .from('goals')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    const { data: preferences } = await supabase
+    const { data: preferencesRaw } = await supabase
       .from('training_preferences')
       .select('*')
       .eq('user_id', user.id)
       .single();
 
-    if (!goals) {
-      throw new Error('User goals not found');
+    if (!goalsRaw) {
+      return new Response(
+        JSON.stringify({ error: 'Objectifs non définis' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Build system prompt
+    // Validate and sanitize goals data
+    const goalsResult = goalsSchema.safeParse(goalsRaw);
+    if (!goalsResult.success) {
+      console.error('Goals validation error:', goalsResult.error.errors);
+      return new Response(
+        JSON.stringify({ error: 'Données objectifs invalides' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const goals = goalsResult.data;
+
+    // Validate and sanitize preferences data (optional)
+    let preferences = null;
+    if (preferencesRaw) {
+      const prefResult = preferencesSchema.safeParse(preferencesRaw);
+      if (prefResult.success) {
+        preferences = prefResult.data;
+      } else {
+        console.warn('Preferences validation warning:', prefResult.error.errors);
+      }
+    }
+
+    // Sanitize array values for prompt injection prevention
+    const sanitizeArray = (arr: string[] | null | undefined): string => {
+      if (!arr || arr.length === 0) return 'Aucun';
+      return arr.map(s => s.replace(/[<>{}]/g, '')).join(', ');
+    };
+
+    const sanitizeString = (str: string | null | undefined, defaultVal: string): string => {
+      if (!str) return defaultVal;
+      return str.replace(/[<>{}]/g, '').substring(0, 100);
+    };
+
+    // Build system prompt with sanitized data
     const systemPrompt = `Tu es un coach sportif expert. Génère un plan d'entraînement global personnalisé.
 
 INFORMATIONS UTILISATEUR:
-- Objectif: ${goals.goal_type}
-- Fréquence: ${goals.frequency} séances/semaine
-- Durée par séance: ${goals.session_duration} minutes
-- Lieu: ${goals.location}
-- Équipements: ${goals.equipment?.join(', ') || 'Poids du corps'}
-- Niveau: ${preferences?.experience_level || 'Débutant'}
-- Type de séances: ${preferences?.session_type || 'Mixte'}
-- Split préféré: ${preferences?.split_preference || 'Full Body'}
-- Focus progression: ${preferences?.progression_focus || 'Force'}
-- Zones prioritaires: ${preferences?.priority_zones?.join(', ') || 'Corps entier'}
-- Limitations: ${preferences?.limitations?.join(', ') || 'Aucune'}
-- Conditions de santé: ${goals.health_conditions?.join(', ') || 'Aucune'}
+- Objectif: ${sanitizeString(goals.goal_type, 'non défini')}
+- Fréquence: ${goals.frequency || 3} séances/semaine
+- Durée par séance: ${goals.session_duration || 60} minutes
+- Lieu: ${sanitizeString(goals.location, 'non défini')}
+- Équipements: ${sanitizeArray(goals.equipment)}
+- Niveau: ${sanitizeString(preferences?.experience_level, 'Débutant')}
+- Type de séances: ${sanitizeString(preferences?.session_type, 'Mixte')}
+- Split préféré: ${sanitizeString(preferences?.split_preference, 'Full Body')}
+- Focus progression: ${sanitizeString(preferences?.progression_focus, 'Force')}
+- Zones prioritaires: ${sanitizeArray(preferences?.priority_zones)}
+- Limitations: ${sanitizeArray(preferences?.limitations)}
+- Conditions de santé: ${sanitizeArray(goals.health_conditions)}
 
 INSTRUCTIONS:
-1. Génère un plan hebdomadaire complet avec ${goals.frequency} séances
+1. Génère un plan hebdomadaire complet avec ${goals.frequency || 3} séances
 2. Chaque séance doit inclure: nom, focus, durée estimée, exercices détaillés
 3. Respecte le split préféré et les limitations
 4. Fournis une explication de la stratégie globale
@@ -119,6 +176,8 @@ Réponds UNIQUEMENT avec un JSON structuré (pas de markdown, juste le JSON pur)
   "progressionTips": ["conseil 1", "conseil 2", "conseil 3"]
 }`;
 
+    console.log('🏋️ Generating training plan for user:', user.id);
+
     // Call Lovable AI
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -139,6 +198,21 @@ Réponds UNIQUEMENT avec un JSON structuré (pas de markdown, juste le JSON pur)
     if (!response.ok) {
       const errorText = await response.text();
       console.error('AI API error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Trop de requêtes, réessaye dans quelques instants' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Crédits insuffisants, contacte le support' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       throw new Error(`AI API error: ${response.status}`);
     }
 
@@ -152,6 +226,8 @@ Réponds UNIQUEMENT avec un JSON structuré (pas de markdown, juste le JSON pur)
     // Parse JSON response
     const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const trainingPlan = JSON.parse(cleanContent);
+
+    console.log('✅ Training plan generated successfully');
 
     return new Response(
       JSON.stringify(trainingPlan),
