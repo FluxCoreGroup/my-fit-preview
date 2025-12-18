@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { Dumbbell, ChevronLeft, ChevronRight, Home, Settings as SettingsIcon, Calendar, AlertCircle } from "lucide-react";
+import { Dumbbell, Settings as SettingsIcon, AlertCircle, TrendingUp } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { SessionPreviewCard } from "@/components/training/SessionPreviewCard";
+import { WeeklyFeedbackModal } from "@/components/training/WeeklyFeedbackModal";
 import { useWeeklyTraining } from "@/hooks/useWeeklyTraining";
 import { TrainingSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -38,18 +39,27 @@ const Training = () => {
     isGenerating,
     sessions,
     currentWeek,
-    changeWeek,
-    goToCurrentWeek,
     generateWeeklyProgram,
     getWeekLabel,
     getCompletedCount,
     getProgressPercentage,
     canGenerateWeek,
     historicalPrograms,
+    isWeekComplete,
+    needsFeedback,
+    refreshData,
   } = useWeeklyTraining();
 
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [needsCheckIn, setNeedsCheckIn] = useState(false);
+
+  // Auto-open feedback modal when week is complete
+  useEffect(() => {
+    if (isWeekComplete && needsFeedback && !loading) {
+      setShowFeedbackModal(true);
+    }
+  }, [isWeekComplete, needsFeedback, loading]);
 
   useEffect(() => {
     const checkGeneration = async () => {
@@ -57,7 +67,7 @@ const Training = () => {
       setNeedsCheckIn(!allowed && sessions.length === 0 && currentWeek === 0);
     };
     checkGeneration();
-  }, [currentWeek, sessions]);
+  }, [currentWeek, sessions, canGenerateWeek]);
 
   const handleStartSession = (session: any) => {
     localStorage.setItem("currentSessionId", session.id);
@@ -72,6 +82,12 @@ const Training = () => {
   const handleRegenerate = async () => {
     setShowRegenerateDialog(false);
     await generateWeeklyProgram(true);
+  };
+
+  const handleFeedbackComplete = async () => {
+    setShowFeedbackModal(false);
+    // Auto-generate next week after feedback
+    await generateWeeklyProgram(false);
   };
 
   return (
@@ -109,6 +125,21 @@ const Training = () => {
             </TooltipProvider>
           </div>
 
+          {/* Week complete banner */}
+          {isWeekComplete && !needsFeedback && (
+            <Card className="p-4 mb-4 bg-green-500/10 border-green-500/20">
+              <div className="flex items-center gap-3">
+                <TrendingUp className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Semaine terminée ! 🎉</p>
+                  <p className="text-xs text-muted-foreground">
+                    Toutes les séances complétées. Bravo !
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+
           {needsCheckIn && (
             <Card className="p-4 mb-4 bg-yellow-500/10 border-yellow-500/20">
               <div className="flex items-center gap-3">
@@ -116,7 +147,7 @@ const Training = () => {
                 <div className="flex-1">
                   <p className="font-medium text-sm">Check-in requis</p>
                   <p className="text-xs text-muted-foreground">
-                    Complète ton check-in hebdomadaire pour débloquer la génération.
+                    Complète ton check-in pour débloquer la génération.
                   </p>
                 </div>
               </div>
@@ -124,7 +155,7 @@ const Training = () => {
                 variant="outline" 
                 size="sm" 
                 className="mt-3 w-full"
-                onClick={() => navigate('/weekly')}
+                onClick={() => setShowFeedbackModal(true)}
               >
                 Faire mon check-in →
               </Button>
@@ -202,6 +233,13 @@ const Training = () => {
           )}
         </div>
       </div>
+
+      {/* Weekly Feedback Modal */}
+      <WeeklyFeedbackModal
+        open={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+        onComplete={handleFeedbackComplete}
+      />
 
       <AlertDialog open={showRegenerateDialog} onOpenChange={setShowRegenerateDialog}>
         <AlertDialogContent>
