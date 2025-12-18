@@ -9,14 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 const Tarif = () => {
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
-  const {
-    user
-  } = useAuth();
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | undefined>(undefined);
 
@@ -28,6 +25,7 @@ const Tarif = () => {
       navigate("/preview");
     }
   }, [navigate]);
+
   const handleStartTrial = async () => {
     setLoading(true);
     try {
@@ -37,13 +35,8 @@ const Tarif = () => {
         timestamp: new Date().toISOString(),
         from: 'tarif'
       }));
-      const {
-        data,
-        error
-      } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          mode: 'trial'
-        }
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { mode: 'trial' }
       });
       if (error) throw error;
       if (data?.url) {
@@ -51,13 +44,12 @@ const Tarif = () => {
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
+      setLoading(false);
       toast({
         title: "Erreur",
         description: "Impossible de créer la session de paiement",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -102,7 +94,22 @@ const Tarif = () => {
     question: "Et si je ne suis pas satisfait ?",
     answer: "Nous offrons une garantie satisfait ou remboursé de 14 jours. Si notre programme ne te convient pas, contacte-nous pour un remboursement intégral."
   }];
-  return <>
+
+  return (
+    <>
+      {/* Overlay de transition */}
+      {loading && (
+        <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-300">
+          <div className="relative">
+            {/* Cercle animé */}
+            <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+            <Sparkles className="w-8 h-8 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
+          <p className="mt-6 text-lg font-medium animate-pulse">Préparation du paiement...</p>
+          <p className="mt-2 text-sm text-muted-foreground">Redirection vers Stripe</p>
+        </div>
+      )}
+
       <Header variant="onboarding" showBack onBack={() => navigate("/preview")} />
       
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background py-12 px-4 pt-24">
@@ -124,59 +131,60 @@ const Tarif = () => {
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 pt-4">
-              {features.map((feature, i) => <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${feature.highlight ? 'bg-primary/10 border-primary/30' : 'bg-card border-border'}`}>
+              {features.map((feature, i) => (
+                <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${feature.highlight ? 'bg-primary/10 border-primary/30' : 'bg-card border-border'}`}>
                   <feature.icon className={`w-5 h-5 ${feature.highlight ? 'text-primary' : 'text-muted-foreground'}`} />
                   <span className="text-sm font-medium">{feature.text}</span>
-                </div>)}
+                </div>
+              ))}
             </div>
           </div>
 
-        {/* Pricing Card */}
-        <div className="max-w-lg mx-auto mb-12 animate-in">
-          <Card className="p-10 border-2 border-primary shadow-2xl bg-gradient-to-br from-background to-primary/5 relative overflow-hidden">
-            {/* Badge */}
-            <div className="text-center mb-8">
-              <Badge className="mb-4 text-base px-4 py-1.5">Plan Unique</Badge>
-              <h2 className="text-4xl font-bold mb-2">All In</h2>
-              <p className="text-muted-foreground">
-                Toutes les fonctionnalités incluses
-              </p>
-            </div>
-            
-            {/* Prix */}
-            <div className="text-center mb-8">
-              <div className="flex items-baseline justify-center gap-2 mb-2">
-                <span className="text-6xl font-bold text-primary">{price}€</span>
-                <span className="text-xl text-muted-foreground">/mois</span>
+          {/* Pricing Card */}
+          <div className="max-w-lg mx-auto mb-12 animate-in">
+            <Card className="p-10 border-2 border-primary shadow-2xl bg-gradient-to-br from-background to-primary/5 relative overflow-hidden">
+              {/* Badge */}
+              <div className="text-center mb-8">
+                <Badge className="mb-4 text-base px-4 py-1.5">Plan Unique</Badge>
+                <h2 className="text-4xl font-bold mb-2">All In</h2>
+                <p className="text-muted-foreground">
+                  Toutes les fonctionnalités incluses
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Sans engagement • Annulation en 1 clic
+              
+              {/* Prix */}
+              <div className="text-center mb-8">
+                <div className="flex items-baseline justify-center gap-2 mb-2">
+                  <span className="text-6xl font-bold text-primary">{price}€</span>
+                  <span className="text-xl text-muted-foreground">/mois</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Sans engagement • Annulation en 1 clic
+                </p>
+              </div>
+              
+              {/* Fonctionnalités */}
+              <ul className="space-y-4 mb-8">
+                {["Programme sport + nutrition personnalisé", "Nouvelles séances chaque semaine", "Ajustements automatiques selon tes feedbacks", "Alternatives d'exercices illimitées", "Vidéos et fiches techniques détaillées", "Support par email 7j/7", "Accès communauté Discord", "Toutes les futures fonctionnalités incluses"].map((feature, i) => (
+                  <li key={i} className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Check className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              {/* CTA */}
+              <Button size="lg" className="w-full text-lg py-6" onClick={handleStartTrial} disabled={loading}>
+                Démarrer mon essai gratuit 7 jours
+              </Button>
+              
+              <p className="text-xs text-muted-foreground text-center mt-4">
+                Essai gratuit de 7 jours • Aucune carte bancaire requise
               </p>
-            </div>
-            
-            {/* Fonctionnalités */}
-            <ul className="space-y-4 mb-8">
-              {["Programme sport + nutrition personnalisé", "Nouvelles séances chaque semaine", "Ajustements automatiques selon tes feedbacks", "Alternatives d'exercices illimitées", "Vidéos et fiches techniques détaillées", "Support par email 7j/7", "Accès communauté Discord", "Toutes les futures fonctionnalités incluses"].map((feature, i) => <li key={i} className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Check className="w-4 h-4 text-primary" />
-                  </div>
-                  <span className="text-sm">{feature}</span>
-                </li>)}
-            </ul>
-            
-            {/* CTA */}
-            <Button size="lg" className="w-full text-lg py-6" onClick={handleStartTrial} disabled={loading}>
-              {loading ? <>
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  Redirection...
-                </> : 'Démarrer mon essai gratuit 7 jours'}
-            </Button>
-            
-            <p className="text-xs text-muted-foreground text-center mt-4">
-              Essai gratuit de 7 jours • Aucune carte bancaire requise
-            </p>
-          </Card>
-        </div>
+            </Card>
+          </div>
 
           {/* Réassurance */}
           <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
@@ -209,10 +217,12 @@ const Tarif = () => {
           <Card className="p-8 max-w-3xl mx-auto bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
             <h3 className="text-2xl font-bold mb-6 text-center">Tout ce qui est inclus</h3>
             <div className="grid md:grid-cols-2 gap-4">
-              {allFeatures.map((feature, i) => <div key={i} className="flex items-start gap-3">
+              {allFeatures.map((feature, i) => (
+                <div key={i} className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                   <span className="text-sm">{feature}</span>
-                </div>)}
+                </div>
+              ))}
             </div>
           </Card>
 
@@ -220,7 +230,8 @@ const Tarif = () => {
           <div className="max-w-3xl mx-auto space-y-4">
             <h3 className="text-2xl font-bold text-center mb-6">Questions fréquentes</h3>
             
-            {faqs.map(faq => <Collapsible key={faq.id} open={openAccordion === faq.id} onOpenChange={isOpen => setOpenAccordion(isOpen ? faq.id : undefined)}>
+            {faqs.map(faq => (
+              <Collapsible key={faq.id} open={openAccordion === faq.id} onOpenChange={isOpen => setOpenAccordion(isOpen ? faq.id : undefined)}>
                 <Card className="overflow-hidden">
                   <CollapsibleTrigger className="w-full p-6 text-left flex items-center justify-between hover:bg-muted/50 transition-colors">
                     <span className="font-semibold">{faq.question}</span>
@@ -232,23 +243,21 @@ const Tarif = () => {
                     </div>
                   </CollapsibleContent>
                 </Card>
-              </Collapsible>)}
+              </Collapsible>
+            ))}
           </div>
 
-        {/* CTA fixe mobile */}
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t md:hidden z-50">
-          <Button size="lg" className="w-full shadow-glow" onClick={handleStartTrial} disabled={loading}>
-            {loading ? <>
-                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                Redirection...
-              </> : <>
-                8,99€/mois • Essai gratuit 7 jours
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </>}
-          </Button>
-        </div>
+          {/* CTA fixe mobile */}
+          <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t md:hidden z-50">
+            <Button size="lg" className="w-full shadow-glow" onClick={handleStartTrial} disabled={loading}>
+              8,99€/mois • Essai gratuit 7 jours
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
         </div>
       </div>
-    </>;
+    </>
+  );
 };
+
 export default Tarif;
