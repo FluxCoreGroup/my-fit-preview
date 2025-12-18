@@ -502,7 +502,7 @@ const Landing = () => {
         <div className="absolute inset-0 bg-grid-white/5" />
         
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10 text-primary-foreground">
-          <Badge variant="secondary" className="mb-4">
+          <Badge variant="default" className="mb-4">
             <ShieldCheck className="w-3 h-3 mr-1" />
             Satisfait ou remboursé sous 30 jours
           </Badge>
