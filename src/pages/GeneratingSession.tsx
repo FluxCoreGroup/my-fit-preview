@@ -2,15 +2,15 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ClipboardList, Dumbbell, Target, Flame, CheckCircle2, Clock } from "lucide-react";
+import { ClipboardList, Dumbbell, Target, Calendar, CheckCircle2, Clock } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const steps: { icon: LucideIcon; text: string }[] = [
   { icon: ClipboardList, text: "Analyse de tes objectifs..." },
-  { icon: Dumbbell, text: "Sélection des exercices adaptés..." },
-  { icon: Target, text: "Optimisation des séries et répétitions..." },
-  { icon: Flame, text: "Ajustement de l'intensité..." },
-  { icon: CheckCircle2, text: "Ta séance est prête !" }
+  { icon: Calendar, text: "Planification de ta semaine..." },
+  { icon: Dumbbell, text: "Création des séances personnalisées..." },
+  { icon: Target, text: "Optimisation du programme..." },
+  { icon: CheckCircle2, text: "Ton programme est prêt !" }
 ];
 
 const MIN_DISPLAY_TIME = 3000; // Minimum 3 seconds for UX
@@ -22,7 +22,6 @@ const GeneratingSession = () => {
   const [progress, setProgress] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const startTimeRef = useRef(Date.now());
-  const dataReadyRef = useRef(false);
 
   useEffect(() => {
     // Animation des étapes - plus rapide (800ms au lieu de 3000ms)
@@ -41,15 +40,15 @@ const GeneratingSession = () => {
       });
     }, 150);
 
-    // Appel à l'edge function avec retry logic
-    const generateSession = async (retryCount = 0) => {
+    // Appel à l'edge function pour générer le programme hebdomadaire
+    const generateWeeklyProgram = async (retryCount = 0) => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           throw new Error("User not authenticated");
         }
 
-        const { data, error } = await supabase.functions.invoke('generate-training-session', {
+        const { data, error } = await supabase.functions.invoke('generate-weekly-program', {
           headers: {
             Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
           }
@@ -57,9 +56,7 @@ const GeneratingSession = () => {
 
         if (error) throw error;
 
-        // Sauvegarder dans localStorage
-        localStorage.setItem('generatedSession', JSON.stringify(data));
-        dataReadyRef.current = true;
+        console.log('✅ Programme hebdomadaire généré:', data);
 
         // Calculer le temps restant pour atteindre le minimum
         const elapsed = Date.now() - startTimeRef.current;
@@ -76,7 +73,7 @@ const GeneratingSession = () => {
         }, remainingTime + 500); // +500ms pour voir le "100%"
 
       } catch (error) {
-        console.error('Error generating session:', error);
+        console.error('Error generating weekly program:', error);
         
         // Retry logic pour les erreurs de données manquantes
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -85,7 +82,7 @@ const GeneratingSession = () => {
         if (isDataMissing && retryCount < 2) {
           console.log(`Retrying... Attempt ${retryCount + 1}/2`);
           setTimeout(() => {
-            generateSession(retryCount + 1);
+            generateWeeklyProgram(retryCount + 1);
           }, 1000);
           return;
         }
@@ -94,7 +91,7 @@ const GeneratingSession = () => {
         clearInterval(progressInterval);
         
         // Message d'erreur personnalisé selon le type d'erreur
-        let displayMessage = "Impossible de générer ta séance. Réessaie dans quelques instants.";
+        let displayMessage = "Impossible de générer ton programme. Réessaie dans quelques instants.";
         
         if (error instanceof Error) {
           if (error.message.includes('DATA_MISSING:goals')) {
@@ -125,7 +122,7 @@ const GeneratingSession = () => {
       }
     };
 
-    generateSession();
+    generateWeeklyProgram();
 
     return () => {
       clearInterval(stepInterval);
@@ -150,10 +147,10 @@ const GeneratingSession = () => {
         {/* Titre */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold text-foreground">
-            {isComplete ? "C'est prêt !" : "Création de ta séance"}
+            {isComplete ? "C'est prêt !" : "Création de ton programme"}
           </h1>
           <p className="text-muted-foreground">
-            {isComplete ? "Redirection vers ton hub..." : "Nous analysons tes données pour créer un entraînement parfait"}
+            {isComplete ? "Redirection vers ton hub..." : "Nous analysons tes données pour créer ton programme personnalisé"}
           </p>
         </div>
 
