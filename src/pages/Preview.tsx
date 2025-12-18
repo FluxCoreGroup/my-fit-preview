@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { nutritionPlanner, type OnboardingInput, type NutritionPreview } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
-import { Utensils, Info, BarChart3, Calculator, Flame, Target, Droplets, Dumbbell, CheckCircle2, PartyPopper, Rocket, Gift, Loader2, ArrowRight } from "lucide-react";
+import { Utensils, Info, BarChart3, Calculator, Flame, Target, Droplets, Dumbbell, CheckCircle2, PartyPopper, Rocket, Gift, Loader2, ArrowRight, AlertCircle, Apple, HeartPulse, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
@@ -325,59 +326,76 @@ const Preview = () => {
           </Card>
 
           {/* Profil santé et nutrition */}
-          <Card className="p-4 md:p-6 animate-in">
-            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Ton profil santé et nutrition</h3>
+          <Card className="p-4 md:p-6 animate-in overflow-hidden">
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center gap-2">
+              <HeartPulse className="w-5 h-5 text-primary" />
+              Ton profil santé
+            </h3>
             
-            {isFormattingHealth ? <div className="flex items-center justify-center py-4">
+            {isFormattingHealth ? (
+              <div className="flex items-center justify-center py-4">
                 <Loader2 className="w-6 h-6 animate-spin text-primary mr-2" />
                 <span className="text-muted-foreground text-sm">Formatage des données...</span>
-              </div> : formattedHealthData ? <div className="space-y-2 md:space-y-3">
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <span className="font-semibold text-sm">Allergies/Intolérances :</span>{" "}
-                  <span className="text-muted-foreground text-sm">
-                    {formattedHealthData.allergies}
-                  </span>
-                </div>
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <span className="font-semibold text-sm">Aliments à éviter :</span>{" "}
-                  <span className="text-muted-foreground text-sm">
-                    {formattedHealthData.restrictions}
-                  </span>
-                </div>
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <span className="font-semibold text-sm">Conditions de santé :</span>{" "}
-                  <span className="text-muted-foreground text-sm">
-                    {formattedHealthData.healthConditions}
-                  </span>
-                </div>
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <span className="font-semibold text-sm">Repas par jour :</span>{" "}
-                  <span className="text-muted-foreground text-sm">{input.mealsPerDay} repas</span>
-                </div>
-              </div> : <div className="space-y-2 md:space-y-3">
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <span className="font-semibold text-sm">Allergies/Intolérances :</span>{" "}
-                  <span className="text-muted-foreground text-sm">
-                    {input.allergies || "Aucune allergie signalée"}
-                  </span>
-                </div>
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <span className="font-semibold text-sm">Aliments à éviter :</span>{" "}
-                  <span className="text-muted-foreground text-sm">
-                    {input.restrictions || "Aucune restriction alimentaire"}
-                  </span>
-                </div>
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <span className="font-semibold text-sm">Conditions de santé :</span>{" "}
-                  <span className="text-muted-foreground text-sm">
-                    {input.healthConditions || "Aucune condition particulière"}
-                  </span>
-                </div>
-                <div className="p-3 md:p-4 bg-muted/50 rounded-lg">
-                  <span className="font-semibold text-sm">Repas par jour :</span>{" "}
-                  <span className="text-muted-foreground text-sm">{input.mealsPerDay} repas</span>
-                </div>
-              </div>}
+              </div>
+            ) : (
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="allergies" className="border-b border-border/50">
+                  <AccordionTrigger className="py-3 hover:no-underline">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <AlertCircle className="w-4 h-4 text-amber-500" />
+                      Allergies / Intolérances
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-3">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {formattedHealthData?.allergies || input.allergies || "Aucune allergie signalée"}
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="restrictions" className="border-b border-border/50">
+                  <AccordionTrigger className="py-3 hover:no-underline">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Apple className="w-4 h-4 text-red-500" />
+                      Aliments à éviter
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-3">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {formattedHealthData?.restrictions || input.restrictions || "Aucune restriction alimentaire"}
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="health" className="border-b border-border/50">
+                  <AccordionTrigger className="py-3 hover:no-underline">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <HeartPulse className="w-4 h-4 text-primary" />
+                      Conditions de santé
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-3">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {formattedHealthData?.healthConditions || input.healthConditions || "Aucune condition particulière"}
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="meals" className="border-none">
+                  <AccordionTrigger className="py-3 hover:no-underline">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <UtensilsCrossed className="w-4 h-4 text-green-500" />
+                      Repas par jour
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-3">
+                    <p className="text-sm text-muted-foreground">
+                      <span className="text-lg font-semibold text-foreground">{input.mealsPerDay}</span> repas quotidiens
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
           </Card>
 
           {/* Recommandations complémentaires */}
