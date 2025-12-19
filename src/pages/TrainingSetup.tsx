@@ -314,18 +314,84 @@ const TrainingSetup = () => {
     );
   }
 
+  const stepLabels = [
+    "Type",
+    "Niveau", 
+    "Split",
+    "Zones",
+    "Limites",
+    "Objectifs"
+  ];
+
   return (
     <>
       <div className="min-h-screen bg-background">
         <Header variant="onboarding" disableNavigation={true} />
       
       <div className="container mx-auto px-4 py-8 pt-24 max-w-2xl">
+        {/* Stepper visuel */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Configure ton entraînement</h1>
-          <p className="text-muted-foreground">
-            Étape {step} sur {totalSteps}
-          </p>
-          <Progress value={(step / totalSteps) * 100} className="mt-4" />
+          <div className="flex items-center justify-between mb-4">
+            {stepLabels.map((label, index) => {
+              const stepNumber = index + 1;
+              const isActive = step === stepNumber;
+              const isCompleted = step > stepNumber;
+              
+              return (
+                <div key={stepNumber} className="flex flex-col items-center flex-1">
+                  <div className="flex items-center w-full">
+                    {/* Ligne gauche */}
+                    {index > 0 && (
+                      <div 
+                        className={`flex-1 h-0.5 ${
+                          isCompleted || isActive ? 'bg-primary' : 'bg-muted'
+                        }`}
+                      />
+                    )}
+                    
+                    {/* Cercle */}
+                    <div 
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                        isCompleted 
+                          ? 'bg-primary text-primary-foreground' 
+                          : isActive 
+                            ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' 
+                            : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {isCompleted ? '✓' : stepNumber}
+                    </div>
+                    
+                    {/* Ligne droite */}
+                    {index < stepLabels.length - 1 && (
+                      <div 
+                        className={`flex-1 h-0.5 ${
+                          isCompleted ? 'bg-primary' : 'bg-muted'
+                        }`}
+                      />
+                    )}
+                  </div>
+                  
+                  {/* Label (visible seulement sur desktop ou pour l'étape active) */}
+                  <span 
+                    className={`mt-2 text-xs text-center hidden sm:block ${
+                      isActive ? 'text-primary font-medium' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          
+          {/* Titre et description */}
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Configure ton entraînement</h1>
+            <p className="text-muted-foreground mt-1">
+              Étape {step} sur {totalSteps} — {stepLabels[step - 1]}
+            </p>
+          </div>
         </div>
 
         <Card className="p-6">
