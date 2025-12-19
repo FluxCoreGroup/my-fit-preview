@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ModuleCard } from "@/components/dashboard/ModuleCard";
 import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
+import { HubTour } from "@/components/dashboard/HubTour";
 import { OnboardingComplete } from "@/components/onboarding/OnboardingComplete";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOnboarding, ONBOARDING_MODULES } from "@/contexts/OnboardingContext";
+import { useOnboarding, TOUR_STEPS } from "@/contexts/OnboardingContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion } from "lucide-react";
@@ -14,7 +15,7 @@ const Hub = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { state, isOnboardingActive, isLoading: onboardingLoading, startTour, skipTour, enterModule, checkOnboardingStatus } = useOnboarding();
+  const { state, isOnboardingActive, isLoading: onboardingLoading, startTour, checkOnboardingStatus, getCurrentStep } = useOnboarding();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [initDone, setInitDone] = useState(false);
@@ -26,7 +27,6 @@ const Hub = () => {
         description: "Ton abonnement est maintenant actif. Profite de toutes les fonctionnalités !",
         duration: 5000,
       });
-      // Clean the URL parameter
       searchParams.delete("subscription");
       setSearchParams(searchParams, { replace: true });
     }
@@ -71,29 +71,25 @@ const Hub = () => {
 
   const userName = user?.user_metadata?.name?.split(" ")[0] || "Champion";
 
-  // Single useEffect to handle initialization: training check + welcome modal based on DB
+  // Initialize Hub: check training prefs + onboarding status
   useEffect(() => {
     const initializeHub = async () => {
       if (!user || onboardingLoading || initDone) return;
       
-      // First check if training preferences exist
       const { data: prefs, error } = await supabase
         .from('training_preferences')
         .select('id')
         .eq('user_id', user.id)
         .maybeSingle();
       
-      // If no preferences, redirect to onboarding (no modal needed)
       if (!prefs && !error) {
         navigate('/onboarding-intro');
         return;
       }
       
-      // Check DB for onboarding completion status
       const needsOnboarding = await checkOnboardingStatus();
       
       if (needsOnboarding) {
-        // New account or never completed tour - show welcome modal
         setShowWelcome(true);
       }
       
@@ -122,28 +118,12 @@ const Hub = () => {
     startTour();
   };
 
-  const handleModuleClick = async (path: string) => {
-    enterModule();
-    // Wait for state to propagate before navigating
-    await new Promise(resolve => setTimeout(resolve, 50));
-    navigate(path);
+  // Get spotlight state for each module based on current tour step
+  const getModuleSpotlight = (moduleKey: string) => {
+    if (!isOnboardingActive) return false;
+    const currentStep = getCurrentStep();
+    return currentStep?.moduleKey === moduleKey;
   };
-
-  // Get module state based on onboarding progress
-  const getModuleState = (moduleIndex: number) => {
-    if (!isOnboardingActive || state.phase !== 'hub-spotlight') {
-      return { locked: false, spotlight: false };
-    }
-    if (moduleIndex < state.currentModuleIndex) {
-      return { locked: false, spotlight: false }; // Already visited
-    }
-    if (moduleIndex === state.currentModuleIndex) {
-      return { locked: false, spotlight: true }; // Current
-    }
-    return { locked: true, spotlight: false }; // Not yet
-  };
-
-  const currentModule = ONBOARDING_MODULES[state.currentModuleIndex];
 
   return (
     <>
@@ -159,6 +139,9 @@ const Hub = () => {
         onClose={() => setShowComplete(false)}
       />
 
+      {/* Hub Tour Overlay */}
+      <HubTour />
+
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 pb-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-b border-blue-200/50 px-4 py-6">
@@ -170,7 +153,7 @@ const Hub = () => {
           </p>
         </div>
 
-        {/* Grid de modules - 6 modules */}
+        {/* Grid de modules */}
         <div className="p-4 max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {/* Mes entraînements */}
@@ -184,13 +167,7 @@ const Hub = () => {
               }
               iconColor="217 91% 60%"
               to="/training"
-              {...getModuleState(0)}
-              spotlightData={state.currentModuleIndex === 0 ? {
-                title: currentModule?.name || "",
-                description: currentModule?.description || "",
-                onAction: () => handleModuleClick("/training"),
-                onSkip: skipTour,
-              } : undefined}
+              spotlight={getModuleSpotlight("training")}
             />
 
             {/* Ma nutrition */}
@@ -199,13 +176,7 @@ const Hub = () => {
               title="Ma nutrition"
               iconColor="210 70% 50%"
               to="/nutrition"
-              {...getModuleState(1)}
-              spotlightData={state.currentModuleIndex === 1 ? {
-                title: currentModule?.name || "",
-                description: currentModule?.description || "",
-                onAction: () => handleModuleClick("/nutrition"),
-                onSkip: skipTour,
-              } : undefined}
+              spotlight={getModuleSpotlight("nutrition")}
             />
 
             {/* Alex (Coach IA) */}
@@ -215,13 +186,7 @@ const Hub = () => {
               subtitle="Coach Sport"
               iconColor="190 75% 55%"
               to="/coach/alex"
-              {...getModuleState(2)}
-              spotlightData={state.currentModuleIndex === 2 ? {
-                title: currentModule?.name || "",
-                description: currentModule?.description || "",
-                onAction: () => handleModuleClick("/coach/alex"),
-                onSkip: skipTour,
-              } : undefined}
+              spotlight={getModuleSpotlight("alex")}
             />
 
             {/* Julie (Nutritionniste IA) */}
@@ -231,24 +196,19 @@ const Hub = () => {
               subtitle="Nutritionniste"
               iconColor="300 60% 60%"
               to="/coach/julie"
-              {...getModuleState(3)}
-              spotlightData={state.currentModuleIndex === 3 ? {
-                title: currentModule?.name || "",
-                description: currentModule?.description || "",
-                onAction: () => handleModuleClick("/coach/julie"),
-                onSkip: skipTour,
-              } : undefined}
+              spotlight={getModuleSpotlight("julie")}
             />
 
-            {/* Paramètres - always unlocked, no spotlight */}
+            {/* Paramètres */}
             <ModuleCard
               icon={Settings}
               title="Paramètres"
               iconColor="245 58% 55%"
               to="/settings"
+              spotlight={getModuleSpotlight("settings")}
             />
 
-            {/* Aide - always unlocked, no spotlight */}
+            {/* Aide */}
             <ModuleCard
               icon={MessageCircleQuestion}
               title="Aide"

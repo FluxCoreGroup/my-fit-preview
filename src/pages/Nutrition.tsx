@@ -13,7 +13,6 @@ import { ShareNutritionButton } from "@/components/nutrition/ShareNutritionButto
 import { IntegrationBadges } from "@/components/nutrition/IntegrationBadges";
 import { MealGenerator } from "@/components/nutrition/MealGenerator";
 import { BodyMetricsTracker } from "@/components/nutrition/BodyMetricsTracker";
-import { ModuleTour } from "@/components/onboarding/ModuleTour";
 import { useState } from "react";
 
 const Nutrition = () => {
@@ -307,9 +306,6 @@ const Nutrition = () => {
           </TooltipProvider>
         </div>
       </div>
-
-      {/* Module Tour */}
-      <ModuleTour moduleKey="nutrition" />
     </div>
   );
 };

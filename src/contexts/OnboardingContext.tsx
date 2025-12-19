@@ -1,10 +1,10 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion, LucideIcon } from "lucide-react";
 
 interface OnboardingState {
-  phase: 'intro' | 'hub-spotlight' | 'in-module' | 'complete';
-  currentModuleIndex: number;
-  currentModuleStep: number;
+  phase: 'intro' | 'touring' | 'complete';
+  currentStepIndex: number;
 }
 
 interface OnboardingContextType {
@@ -13,87 +13,85 @@ interface OnboardingContextType {
   isLoading: boolean;
   startTour: () => void;
   skipTour: () => void;
-  nextModule: () => void;
-  enterModule: () => void;
-  exitModule: () => void;
-  nextModuleStep: () => void;
+  nextStep: () => void;
+  prevStep: () => void;
   completeTour: () => Promise<void>;
-  getModuleSteps: (moduleKey: string) => ModuleStep[];
   checkOnboardingStatus: () => Promise<boolean>;
+  getCurrentStep: () => TourStep | null;
+  getTotalSteps: () => number;
 }
 
-export interface ModuleStep {
+export interface TourStep {
   title: string;
   description: string;
-  targetId?: string;
+  moduleKey: string; // Which module to spotlight on Hub
+  icon: LucideIcon;
 }
 
 const STORAGE_KEY = "hub_onboarding_progress";
 
-// Module definitions with their in-page tour steps
-export const ONBOARDING_MODULES = [
+// Flat linear tour steps - all shown on Hub
+export const TOUR_STEPS: TourStep[] = [
   {
-    key: "training",
-    name: "Mes entraînements",
-    description: "Accède à tes séances personnalisées et suis ta progression semaine après semaine.",
-    path: "/training",
-    steps: [
-      { title: "Ta semaine d'entraînement", description: "Ici tu vois tes séances de la semaine avec ta progression." },
-      { title: "Démarre une séance", description: "Clique sur une séance pour la commencer. Chaque exercice est adapté à ton niveau." },
-      { title: "Suivi de progression", description: "Tu peux voir tes graphiques de progression en bas de page." },
-    ],
+    title: "Bienvenue sur ton Hub",
+    description: "C'est ton tableau de bord central. Tous tes outils de coaching sont ici, organisés en modules.",
+    moduleKey: "none", // No spotlight, just welcome
+    icon: Target,
   },
   {
-    key: "nutrition",
-    name: "Ma nutrition",
-    description: "Consulte ton plan alimentaire, génère des repas et suis ton hydratation.",
-    path: "/nutrition",
-    steps: [
-      { title: "Tes calculs nutritionnels", description: "Ton IMC, BMR, TDEE et objectif calorique calculés automatiquement." },
-      { title: "Générateur de repas", description: "Génère un repas healthy en 30 secondes, adapté à tes goûts." },
-      { title: "Hydratation & suivi", description: "Suis ton hydratation quotidienne et tes métriques corporelles." },
-    ],
+    title: "Mes Entraînements",
+    description: "Accède à tes séances personnalisées, générées chaque semaine selon ta progression et tes objectifs.",
+    moduleKey: "training",
+    icon: Dumbbell,
   },
   {
-    key: "alex",
-    name: "Alex",
-    description: "Ton coach sportif IA disponible 24/7 pour répondre à toutes tes questions.",
-    path: "/coach/alex",
-    steps: [
-      { title: "Ton coach sportif", description: "Alex est ton coach personnel. Pose-lui toutes tes questions sur l'entraînement." },
-      { title: "Raccourcis rapides", description: "Utilise les raccourcis pour des demandes fréquentes comme simplifier une séance." },
-    ],
+    title: "Ma Nutrition",
+    description: "Consulte ton plan alimentaire, génère des repas healthy en 30 secondes et suis ton hydratation.",
+    moduleKey: "nutrition",
+    icon: Utensils,
   },
   {
-    key: "julie",
-    name: "Julie",
+    title: "Alex - Coach Sport",
+    description: "Ton coach sportif IA disponible 24/7. Pose-lui toutes tes questions sur l'entraînement.",
+    moduleKey: "alex",
+    icon: Target,
+  },
+  {
+    title: "Julie - Nutritionniste",
     description: "Ta nutritionniste IA pour t'aider dans ton alimentation au quotidien.",
-    path: "/coach/julie",
-    steps: [
-      { title: "Ta nutritionniste", description: "Julie répond à toutes tes questions sur la nutrition et l'alimentation." },
-      { title: "Conseils personnalisés", description: "Elle connaît ton profil et peut générer des plans repas adaptés." },
-    ],
+    moduleKey: "julie",
+    icon: Apple,
+  },
+  {
+    title: "Paramètres",
+    description: "Personnalise ton expérience : modifie ton profil, tes préférences d'entraînement et de nutrition.",
+    moduleKey: "settings",
+    icon: Settings,
+  },
+  {
+    title: "C'est parti !",
+    description: "Tu es prêt à atteindre tes objectifs. Commence par explorer tes entraînements de la semaine !",
+    moduleKey: "none",
+    icon: MessageCircleQuestion,
   },
 ];
 
 const initialState: OnboardingState = {
   phase: 'intro',
-  currentModuleIndex: 0,
-  currentModuleStep: 0,
+  currentStepIndex: 0,
 };
 
 const OnboardingContext = createContext<OnboardingContextType | null>(null);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<OnboardingState>(() => {
-    // Try to restore in-progress tour from localStorage
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : initialState;
   });
   const [isLoading, setIsLoading] = useState(true);
   const [dbCompleted, setDbCompleted] = useState<boolean | null>(null);
 
-  const isOnboardingActive = state.phase !== 'complete' && state.phase !== 'intro';
+  const isOnboardingActive = state.phase === 'touring';
 
   // Check DB status on mount
   useEffect(() => {
@@ -131,7 +129,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   // Persist in-progress state to localStorage
   useEffect(() => {
-    if (state.phase !== 'complete' && state.phase !== 'intro') {
+    if (state.phase === 'touring') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
   }, [state]);
@@ -156,42 +154,32 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startTour = () => {
-    setState({ phase: 'hub-spotlight', currentModuleIndex: 0, currentModuleStep: 0 });
+    setState({ phase: 'touring', currentStepIndex: 0 });
   };
 
   const skipTour = async () => {
     await markOnboardingComplete();
   };
 
-  const enterModule = () => {
-    setState(prev => ({ ...prev, phase: 'in-module', currentModuleStep: 0 }));
-  };
-
-  const exitModule = () => {
-    setState(prev => ({ ...prev, phase: 'hub-spotlight' }));
-  };
-
-  const nextModule = () => {
+  const nextStep = () => {
     setState(prev => {
-      const nextIndex = prev.currentModuleIndex + 1;
-      if (nextIndex >= ONBOARDING_MODULES.length) {
-        // Tour complete - will be handled by completeTour
+      const nextIndex = prev.currentStepIndex + 1;
+      if (nextIndex >= TOUR_STEPS.length) {
+        // Tour complete
         localStorage.setItem('hub_onboarding_just_completed', 'true');
         localStorage.removeItem(STORAGE_KEY);
         return { ...prev, phase: 'complete' };
       }
-      return { ...prev, currentModuleIndex: nextIndex, currentModuleStep: 0, phase: 'hub-spotlight' };
+      return { ...prev, currentStepIndex: nextIndex };
     });
   };
 
-  const nextModuleStep = () => {
+  const prevStep = () => {
     setState(prev => {
-      const currentModule = ONBOARDING_MODULES[prev.currentModuleIndex];
-      const nextStep = prev.currentModuleStep + 1;
-      if (nextStep >= currentModule.steps.length) {
-        return prev;
+      if (prev.currentStepIndex > 0) {
+        return { ...prev, currentStepIndex: prev.currentStepIndex - 1 };
       }
-      return { ...prev, currentModuleStep: nextStep };
+      return prev;
     });
   };
 
@@ -221,10 +209,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     await markOnboardingComplete();
   };
 
-  const getModuleSteps = (moduleKey: string): ModuleStep[] => {
-    const module = ONBOARDING_MODULES.find(m => m.key === moduleKey);
-    return module?.steps || [];
+  const getCurrentStep = (): TourStep | null => {
+    if (state.phase !== 'touring') return null;
+    return TOUR_STEPS[state.currentStepIndex] || null;
   };
+
+  const getTotalSteps = (): number => TOUR_STEPS.length;
 
   return (
     <OnboardingContext.Provider value={{
@@ -233,13 +223,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       isLoading,
       startTour,
       skipTour,
-      nextModule,
-      enterModule,
-      exitModule,
-      nextModuleStep,
+      nextStep,
+      prevStep,
       completeTour,
-      getModuleSteps,
       checkOnboardingStatus,
+      getCurrentStep,
+      getTotalSteps,
     }}>
       {children}
     </OnboardingContext.Provider>
