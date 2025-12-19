@@ -30,8 +30,8 @@ export default function EmailVerified() {
   }, [navigate]);
 
   const handleStartProgram = () => {
-    console.log("🚀 Redirection vers /training-setup");
-    navigate('/training-setup');
+    console.log("🚀 Redirection vers /onboarding-intro");
+    navigate('/onboarding-intro');
   };
 
   if (checking) {

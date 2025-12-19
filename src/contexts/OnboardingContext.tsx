@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OnboardingState {
   phase: 'intro' | 'hub-spotlight' | 'in-module' | 'complete';
@@ -9,14 +10,16 @@ interface OnboardingState {
 interface OnboardingContextType {
   state: OnboardingState;
   isOnboardingActive: boolean;
+  isLoading: boolean;
   startTour: () => void;
   skipTour: () => void;
   nextModule: () => void;
   enterModule: () => void;
   exitModule: () => void;
   nextModuleStep: () => void;
-  completeTour: () => void;
+  completeTour: () => Promise<void>;
   getModuleSteps: (moduleKey: string) => ModuleStep[];
+  checkOnboardingStatus: () => Promise<boolean>;
 }
 
 export interface ModuleStep {
@@ -26,7 +29,6 @@ export interface ModuleStep {
 }
 
 const STORAGE_KEY = "hub_onboarding_progress";
-const COMPLETE_KEY = "hub_onboarding_complete";
 
 // Module definitions with their in-page tour steps
 export const ONBOARDING_MODULES = [
@@ -84,33 +86,81 @@ const OnboardingContext = createContext<OnboardingContextType | null>(null);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<OnboardingState>(() => {
-    // Check if onboarding is complete
-    const isComplete = localStorage.getItem(COMPLETE_KEY);
-    if (isComplete) {
-      return { ...initialState, phase: 'complete' };
-    }
-    // Try to restore progress
+    // Try to restore in-progress tour from localStorage
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : initialState;
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [dbCompleted, setDbCompleted] = useState<boolean | null>(null);
 
   const isOnboardingActive = state.phase !== 'complete' && state.phase !== 'intro';
 
-  // Persist state changes
+  // Check DB status on mount
   useEffect(() => {
-    if (state.phase !== 'complete') {
+    const checkDbStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setIsLoading(false);
+          return;
+        }
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        const completed = profile?.onboarding_completed ?? false;
+        setDbCompleted(completed);
+
+        // If DB says completed, force state to complete
+        if (completed) {
+          setState({ ...initialState, phase: 'complete' });
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkDbStatus();
+  }, []);
+
+  // Persist in-progress state to localStorage
+  useEffect(() => {
+    if (state.phase !== 'complete' && state.phase !== 'intro') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
   }, [state]);
+
+  // Check if user needs onboarding (returns true if needs tour)
+  const checkOnboardingStatus = useCallback(async (): Promise<boolean> => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return false;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      return !(profile?.onboarding_completed ?? false);
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      return false;
+    }
+  }, []);
 
   const startTour = () => {
     setState({ phase: 'hub-spotlight', currentModuleIndex: 0, currentModuleStep: 0 });
   };
 
-  const skipTour = () => {
-    localStorage.setItem(COMPLETE_KEY, 'true');
-    localStorage.removeItem(STORAGE_KEY);
-    setState({ ...initialState, phase: 'complete' });
+  const skipTour = async () => {
+    await markOnboardingComplete();
   };
 
   const enterModule = () => {
@@ -125,8 +175,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setState(prev => {
       const nextIndex = prev.currentModuleIndex + 1;
       if (nextIndex >= ONBOARDING_MODULES.length) {
-        // Tour complete
-        localStorage.setItem(COMPLETE_KEY, 'true');
+        // Tour complete - will be handled by completeTour
         localStorage.setItem('hub_onboarding_just_completed', 'true');
         localStorage.removeItem(STORAGE_KEY);
         return { ...prev, phase: 'complete' };
@@ -140,17 +189,36 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       const currentModule = ONBOARDING_MODULES[prev.currentModuleIndex];
       const nextStep = prev.currentModuleStep + 1;
       if (nextStep >= currentModule.steps.length) {
-        // Module tour complete, return to hub
-        return prev; // Will be handled by exitModule call
+        return prev;
       }
       return { ...prev, currentModuleStep: nextStep };
     });
   };
 
-  const completeTour = () => {
-    localStorage.setItem(COMPLETE_KEY, 'true');
+  // Mark onboarding as complete in DB
+  const markOnboardingComplete = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ 
+            onboarding_completed: true,
+            onboarding_completed_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+      }
+    } catch (error) {
+      console.error('Error marking onboarding complete:', error);
+    }
+    
     localStorage.removeItem(STORAGE_KEY);
+    setDbCompleted(true);
     setState({ ...initialState, phase: 'complete' });
+  };
+
+  const completeTour = async () => {
+    await markOnboardingComplete();
   };
 
   const getModuleSteps = (moduleKey: string): ModuleStep[] => {
@@ -162,6 +230,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     <OnboardingContext.Provider value={{
       state,
       isOnboardingActive,
+      isLoading,
       startTour,
       skipTour,
       nextModule,
@@ -170,6 +239,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       nextModuleStep,
       completeTour,
       getModuleSteps,
+      checkOnboardingStatus,
     }}>
       {children}
     </OnboardingContext.Provider>
