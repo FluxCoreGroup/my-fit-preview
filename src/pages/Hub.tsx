@@ -14,9 +14,10 @@ const Hub = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { state, isOnboardingActive, startTour, skipTour, enterModule } = useOnboarding();
+  const { state, isOnboardingActive, isLoading: onboardingLoading, startTour, skipTour, enterModule, checkOnboardingStatus } = useOnboarding();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
+  const [initDone, setInitDone] = useState(false);
 
   // Handle subscription success from payment redirect
   useEffect(() => {
@@ -70,10 +71,10 @@ const Hub = () => {
 
   const userName = user?.user_metadata?.name?.split(" ")[0] || "Champion";
 
-  // Single useEffect to handle both training check and welcome modal
+  // Single useEffect to handle initialization: training check + welcome modal based on DB
   useEffect(() => {
     const initializeHub = async () => {
-      if (!user) return;
+      if (!user || onboardingLoading || initDone) return;
       
       // First check if training preferences exist
       const { data: prefs, error } = await supabase
@@ -88,15 +89,19 @@ const Hub = () => {
         return;
       }
       
-      // Only after confirming prefs exist, check welcome modal
-      const hasSeenWelcome = localStorage.getItem('hub_first_visit');
-      if (!hasSeenWelcome) {
+      // Check DB for onboarding completion status
+      const needsOnboarding = await checkOnboardingStatus();
+      
+      if (needsOnboarding) {
+        // New account or never completed tour - show welcome modal
         setShowWelcome(true);
       }
+      
+      setInitDone(true);
     };
     
     initializeHub();
-  }, [user, navigate]);
+  }, [user, onboardingLoading, initDone, navigate, checkOnboardingStatus]);
 
   // Show completion modal when tour finishes
   useEffect(() => {
@@ -110,7 +115,6 @@ const Hub = () => {
   }, [state.phase]);
 
   const handleWelcomeComplete = () => {
-    localStorage.setItem('hub_first_visit', 'done');
     setShowWelcome(false);
   };
 
