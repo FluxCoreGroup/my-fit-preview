@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ModuleCard } from "@/components/dashboard/ModuleCard";
 import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { OnboardingComplete } from "@/components/onboarding/OnboardingComplete";
@@ -8,13 +8,28 @@ import { useOnboarding, ONBOARDING_MODULES } from "@/contexts/OnboardingContext"
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion } from "lucide-react";
+import { toast } from "sonner";
 
 const Hub = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { state, isOnboardingActive, startTour, skipTour, enterModule } = useOnboarding();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
+
+  // Handle subscription success from payment redirect
+  useEffect(() => {
+    if (searchParams.get("subscription") === "success") {
+      toast.success("Bienvenue dans Pulse.ai Premium !", {
+        description: "Ton abonnement est maintenant actif. Profite de toutes les fonctionnalités !",
+        duration: 5000,
+      });
+      // Clean the URL parameter
+      searchParams.delete("subscription");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const { data: goals } = useQuery({
     queryKey: ["goals", user?.id],
