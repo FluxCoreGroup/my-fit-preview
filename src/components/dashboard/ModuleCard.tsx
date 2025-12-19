@@ -2,7 +2,6 @@ import { LucideIcon, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { SpotlightTooltip } from "@/components/onboarding/SpotlightTooltip";
 
 interface ModuleCardProps {
   icon: LucideIcon;
@@ -13,12 +12,6 @@ interface ModuleCardProps {
   iconColor: string; // HSL format: "180 62% 45%"
   locked?: boolean;
   spotlight?: boolean;
-  spotlightData?: {
-    title: string;
-    description: string;
-    onAction: () => void;
-    onSkip?: () => void;
-  };
 }
 
 export const ModuleCard = ({
@@ -30,7 +23,6 @@ export const ModuleCard = ({
   iconColor,
   locked = false,
   spotlight = false,
-  spotlightData,
 }: ModuleCardProps) => {
   const CardContent = (
     <div className="relative group">
@@ -40,11 +32,10 @@ export const ModuleCard = ({
           locked 
             ? "border-muted/50 bg-muted/20 cursor-not-allowed" 
             : spotlight
-              ? "border-primary/50 bg-primary/5 ring-2 ring-primary/30 ring-offset-2 ring-offset-background"
+              ? "border-primary/50 bg-primary/5 ring-2 ring-primary/30 ring-offset-2 ring-offset-background shadow-lg shadow-primary/20"
               : "border-blue-100 bg-white/80 hover:shadow-xl hover:shadow-blue-200/50 hover:border-blue-300 hover:scale-105 active:scale-95",
           "backdrop-blur-sm shadow-sm transition-all duration-300",
-          "flex flex-col items-center justify-center p-4",
-          spotlight && "animate-pulse"
+          "flex flex-col items-center justify-center p-4"
         )}
       >
         {/* Locked overlay */}
@@ -97,32 +88,12 @@ export const ModuleCard = ({
           </p>
         )}
       </div>
-
-      {/* Spotlight tooltip */}
-      {spotlight && spotlightData && (
-        <SpotlightTooltip
-          title={spotlightData.title}
-          description={spotlightData.description}
-          onAction={spotlightData.onAction}
-          actionLabel="Découvrir →"
-          onSkip={spotlightData.onSkip}
-        />
-      )}
     </div>
   );
 
   // If locked, don't wrap in Link
   if (locked) {
     return CardContent;
-  }
-
-  // If spotlight, clicking goes through onAction instead
-  if (spotlight && spotlightData) {
-    return (
-      <div onClick={spotlightData.onAction} className="cursor-pointer">
-        {CardContent}
-      </div>
-    );
   }
 
   return <Link to={to}>{CardContent}</Link>;
