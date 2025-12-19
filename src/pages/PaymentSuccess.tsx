@@ -1,15 +1,31 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PartyPopper, CheckCircle, Sparkles, Dumbbell, Apple, TrendingUp } from "lucide-react";
+import { PartyPopper, CheckCircle, Sparkles, Dumbbell, Apple, TrendingUp, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PaymentSuccess = () => {
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState(3);
+  const [searchParams] = useSearchParams();
+  const { user, loading: authLoading } = useAuth();
+  const [countdown, setCountdown] = useState(5);
+
+  const sessionId = searchParams.get("session_id");
+  const isNewUser = searchParams.get("is_new") === "true";
 
   useEffect(() => {
-    // Countdown timer
+    // Wait for auth to load before deciding
+    if (authLoading) return;
+
+    // If user is not authenticated, redirect to signup with payment info
+    if (!user) {
+      const signupUrl = `/signup?payment_success=true${sessionId ? `&session_id=${sessionId}` : ""}`;
+      navigate(signupUrl);
+      return;
+    }
+
+    // User is authenticated - start countdown and redirect to hub
     const countdownInterval = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -20,20 +36,36 @@ const PaymentSuccess = () => {
       });
     }, 1000);
 
-    // Auto redirect after 3 seconds
+    // Auto redirect after 5 seconds
     const redirectTimer = setTimeout(() => {
-      navigate("/hub");
-    }, 3000);
+      navigate("/hub?subscription=success");
+    }, 5000);
 
     return () => {
       clearInterval(countdownInterval);
       clearTimeout(redirectTimer);
     };
-  }, [navigate]);
+  }, [navigate, user, authLoading, sessionId]);
 
   const handleStartNow = () => {
-    navigate("/hub");
+    if (!user) {
+      navigate(`/signup?payment_success=true${sessionId ? `&session_id=${sessionId}` : ""}`);
+    } else {
+      navigate("/hub?subscription=success");
+    }
   };
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center px-4">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Vérification du paiement...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center px-4">
@@ -77,7 +109,7 @@ const PaymentSuccess = () => {
         </div>
 
         {/* Timer */}
-        {countdown > 0 && (
+        {user && countdown > 0 && (
           <p className="text-center text-sm text-muted-foreground mb-4">
             Redirection dans {countdown} seconde{countdown > 1 ? "s" : ""}...
           </p>
@@ -89,7 +121,7 @@ const PaymentSuccess = () => {
           className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90"
           onClick={handleStartNow}
         >
-          Commencer maintenant
+          {user ? "Accéder à mon espace" : "Créer mon compte"}
         </Button>
       </Card>
     </div>
