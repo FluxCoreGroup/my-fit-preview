@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles, ShieldCheck, ArrowRight, X, Smartphone, Apple, Heart } from "lucide-react";
+import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles, ShieldCheck, ArrowRight, X, Smartphone, Apple, Heart, MessageSquare, Salad, Bot } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
@@ -317,7 +317,7 @@ const Landing = () => {
             <div>
               <h2 className="mb-6">Ce que tu obtiens</h2>
               <ul className="space-y-4">
-                {["Plans nutrition personnalisés (calories + macros)", "Séances d'entraînement détaillées avec alternatives", "Timer intégré et suivi RPE/RIR", "Check-in hebdomadaire pour ajustements", "Exercices en vidéo avec consignes claires", "Support par email 7j/7"].map((feature, i) => <li key={i} className="flex items-start gap-3">
+                {["Plans nutrition personnalisés (calories + macros)", "Séances d'entraînement détaillées avec alternatives", "Coach sport IA Alex disponible 24/7", "Nutritionniste IA Julie pour tes repas", "Timer intégré et suivi RPE/RIR", "Check-in hebdomadaire pour ajustements", "Exercices en vidéo avec consignes claires", "Support par email 7j/7"].map((feature, i) => <li key={i} className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
                     <span>{feature}</span>
                   </li>)}
@@ -335,6 +335,125 @@ const Landing = () => {
                 </Button>
               </Link>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Section Coachs IA */}
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4 px-4 py-2">
+              <Bot className="w-4 h-4 mr-2" />
+              Intelligence Artificielle
+            </Badge>
+            <h2 className="mb-4">Tes Coachs IA 24/7</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Des experts virtuels qui connaissent ton profil et répondent à toutes tes questions, jour et nuit
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Alex - Coach Sport */}
+            <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-primary/20 bg-gradient-to-br from-card to-primary/5 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all" />
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center ring-4 ring-primary/20">
+                    <Dumbbell className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">Alex</h3>
+                    <p className="text-muted-foreground">Coach Sport IA</p>
+                  </div>
+                </div>
+                
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Adapte tes séances en temps réel selon ta forme</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Propose des alternatives si douleur ou fatigue</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span>Répond à toutes tes questions entraînement</span>
+                  </li>
+                </ul>
+                
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    "Simplifie ma séance"
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    "Alternative sans douleur"
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    "Séance de 30 min"
+                  </Badge>
+                </div>
+              </div>
+            </Card>
+            
+            {/* Julie - Nutritionniste IA */}
+            <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-secondary/20 bg-gradient-to-br from-card to-secondary/5 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl group-hover:bg-secondary/20 transition-all" />
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center ring-4 ring-secondary/20">
+                    <Salad className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold">Julie</h3>
+                    <p className="text-muted-foreground">Nutritionniste IA</p>
+                  </div>
+                </div>
+                
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
+                    <span>Génère des recettes personnalisées à tes goûts</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
+                    <span>Ajuste tes macros selon tes objectifs</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
+                    <span>Crée ta liste de courses en 1 clic</span>
+                  </li>
+                </ul>
+                
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    "Génère une journée-type"
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    "Remplace ce plat"
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    "Liste de courses"
+                  </Badge>
+                </div>
+              </div>
+            </Card>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Link to="/start">
+              <Button size="lg" variant="default">
+                Découvrir mes coachs IA
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -417,6 +536,18 @@ const Landing = () => {
                   </td>
                   <td className="text-center py-4 px-6">
                     <Check className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
+                  </td>
+                </tr>
+                <tr className="border-b">
+                  <td className="py-4 px-6 font-medium">Coach IA 24/7</td>
+                  <td className="text-center py-4 px-6 bg-primary/5">
+                    <Check className="w-5 h-5 text-primary mx-auto" />
+                  </td>
+                  <td className="text-center py-4 px-6">
+                    <X className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
                   <td className="text-center py-4 px-6">
                     <X className="w-5 h-5 text-muted-foreground mx-auto" />
