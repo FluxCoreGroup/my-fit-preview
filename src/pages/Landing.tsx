@@ -789,9 +789,9 @@ const Landing = () => {
       {/* Footer Amélioré */}
       <footer className="border-t py-16 px-4 bg-card">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 mb-12">
             {/* Logo + Tagline */}
-            <div className="space-y-4">
+            <div className="space-y-4 col-span-2 md:col-span-1">
               <Link to="/" className="flex items-center gap-2 font-bold text-xl">
                 <Dumbbell className="w-6 h-6 text-primary" />
                 <span>Pulse.ai</span>

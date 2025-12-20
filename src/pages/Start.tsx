@@ -237,7 +237,7 @@ const Start = () => {
             <Card className="p-8 animate-in">
               <h2 className="text-2xl font-bold mb-6">Commençons par les bases</h2>
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="age">Âge *</Label>
                     <Input
@@ -266,7 +266,7 @@ const Start = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="height">Taille (cm) *</Label>
                     <Input
@@ -374,7 +374,7 @@ const Start = () => {
 
               <div className="mt-6">
                 <Label>Souhaites-tu faire du cardio régulièrement ? *</Label>
-                <div className="grid grid-cols-2 gap-4 mt-2">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
                   {[
                     {
                       value: true,
@@ -508,7 +508,7 @@ const Start = () => {
 
                 <div>
                   <Label>Auras-tu la possibilité d'aller en salle de sport ? *</Label>
-                  <div className="grid grid-cols-2 gap-4 mt-2">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
                     {[
                       {
                         value: true,

@@ -114,7 +114,7 @@ const Feedback = () => {
               Comment tu te sens ? (Effort ressenti de 1 à 10)
             </Label>
             <RadioGroup value={rpe} onValueChange={setRpe}>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 sm:gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
                   <div key={value} className="relative">
                     <RadioGroupItem
@@ -124,7 +124,7 @@ const Feedback = () => {
                     />
                     <Label
                       htmlFor={`rpe-${value}`}
-                      className="flex h-12 items-center justify-center rounded-lg border-2 border-muted bg-background hover:bg-muted/50 hover:border-primary cursor-pointer peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground transition-all font-semibold"
+                      className="flex h-10 sm:h-12 items-center justify-center rounded-lg border-2 border-muted bg-background hover:bg-muted/50 hover:border-primary cursor-pointer peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground transition-all font-semibold text-sm sm:text-base"
                     >
                       {value}
                     </Label>
