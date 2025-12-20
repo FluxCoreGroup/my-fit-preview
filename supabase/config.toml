@@ -54,3 +54,6 @@ verify_jwt = true
 [functions.format-health-data]
 verify_jwt = false
 
+[functions.get-exercise-image]
+verify_jwt = true
+

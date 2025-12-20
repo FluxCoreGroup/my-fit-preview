@@ -172,6 +172,42 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_image_cache: {
+        Row: {
+          created_at: string | null
+          exercise_name: string
+          exercise_name_normalized: string
+          gif_url: string | null
+          id: string
+          image_url: string | null
+          muscle_group: string | null
+          source: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          exercise_name: string
+          exercise_name_normalized: string
+          gif_url?: string | null
+          id?: string
+          image_url?: string | null
+          muscle_group?: string | null
+          source?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          exercise_name?: string
+          exercise_name_normalized?: string
+          gif_url?: string | null
+          id?: string
+          image_url?: string | null
+          muscle_group?: string | null
+          source?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       exercise_logs: {
         Row: {
           comment: string | null
