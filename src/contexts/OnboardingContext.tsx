@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion, LucideIcon } from "lucide-react";
+import { Dumbbell, Utensils, Target, Apple, Settings, LucideIcon } from "lucide-react";
 
 interface OnboardingState {
   phase: 'intro' | 'touring' | 'complete';
@@ -89,7 +89,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : initialState;
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [dbCompleted, setDbCompleted] = useState<boolean | null>(null);
 
   const isOnboardingActive = state.phase === 'touring';
 
@@ -110,7 +109,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           .maybeSingle();
 
         const completed = profile?.onboarding_completed ?? false;
-        setDbCompleted(completed);
 
         // If DB says completed, force state to complete
         if (completed) {
@@ -201,7 +199,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
     
     localStorage.removeItem(STORAGE_KEY);
-    setDbCompleted(true);
     setState({ ...initialState, phase: 'complete' });
   };
 

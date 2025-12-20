@@ -121,7 +121,6 @@ const Training = () => {
 
   const handleStartSession = (session: any) => {
     localStorage.setItem("currentSessionId", session.id);
-    localStorage.setItem("generatedSession", JSON.stringify(session.exercises));
     navigate("/session");
   };
 

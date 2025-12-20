@@ -75,7 +75,6 @@ export const useWeeklyTraining = () => {
       
       // Set current program (most recent)
       if (data && data.length > 0) {
-        const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
         const current = data.find(p => 
           new Date(p.week_start_date) <= new Date() && 
           new Date(p.week_end_date) >= new Date()

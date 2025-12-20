@@ -24,7 +24,7 @@ import Paywall from "./pages/Paywall";
 import Legal from "./pages/Legal";
 import Support from "./pages/Support";
 import NotFound from "./pages/NotFound";
-import GeneratingSession from "./pages/GeneratingSession";
+
 import Settings from "./pages/Settings";
 import Profile from "./pages/settings/Profile";
 import PhysicalInfo from "./pages/settings/PhysicalInfo";
@@ -70,7 +70,7 @@ const App = () => (
               <Route path="/support" element={<Support />} />
               
               {/* Protected routes with AppLayout */}
-            <Route path="/generating-session" element={<ProtectedRoute><GeneratingSession /></ProtectedRoute>} />
+            
             <Route path="/session" element={<ProtectedRoute><SubscriptionGuard><AppLayout><Session /></AppLayout></SubscriptionGuard></ProtectedRoute>} />
             <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
             <Route path="/paywall" element={<ProtectedRoute><Paywall /></ProtectedRoute>} />
