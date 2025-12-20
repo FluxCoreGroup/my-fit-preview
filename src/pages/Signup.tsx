@@ -56,10 +56,6 @@ const Signup = () => {
       if (data?.customer_email) {
         setSignupEmail(data.customer_email);
         setEmailReadonly(true);
-        toast({
-          title: "Paiement validé ! 🎉",
-          description: "Créé ton compte pour accéder à ton programme",
-        });
       }
     } catch (error: any) {
       console.error('Error fetching session:', error);
@@ -109,10 +105,6 @@ const Signup = () => {
       if (!error) {
         if (isPostPayment && sessionId) {
           // Link Stripe subscription to user
-          toast({
-            title: "Compte créé ! 🎉",
-            description: "Liaison de ton abonnement...",
-          });
 
           try {
             // Wait for user session to be fully established
@@ -133,10 +125,6 @@ const Signup = () => {
 
             if (linkError) throw linkError;
 
-            toast({
-              title: "Abonnement activé !",
-              description: "Accès à ton programme personnalisé",
-            });
 
             // Clear onboarding data
             localStorage.removeItem("onboardingData");
@@ -146,10 +134,6 @@ const Signup = () => {
             navigate("/onboarding-intro");
           } catch (linkError: any) {
             console.error('Error linking subscription:', linkError);
-            toast({
-              title: "Compte créé ! 🎉",
-              description: "Continue ton questionnaire, on vérifiera ton abonnement ensuite.",
-            });
             navigate("/onboarding-intro");
           }
         } else {

@@ -174,10 +174,6 @@ export const useWeeklyTraining = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Programme généré ! 🎉",
-        description: `${data.totalGenerated} séances créées pour cette semaine.`,
-      });
 
       await fetchWeeklySessions();
       await fetchHistoricalPrograms();
