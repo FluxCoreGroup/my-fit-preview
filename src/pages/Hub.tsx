@@ -15,7 +15,7 @@ const Hub = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { state, isOnboardingActive, isLoading: onboardingLoading, startTour, checkOnboardingStatus, getCurrentStep } = useOnboarding();
+  const { state, isOnboardingActive, isLoading: onboardingLoading, startTour, skipTour, checkOnboardingStatus, getCurrentStep } = useOnboarding();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [initDone, setInitDone] = useState(false);
@@ -132,6 +132,7 @@ const Hub = () => {
         userName={userName}
         onComplete={handleWelcomeComplete}
         onStartTour={handleStartTour}
+        onSkipTour={skipTour}
       />
       
       <OnboardingComplete 

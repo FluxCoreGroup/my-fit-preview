@@ -7,10 +7,12 @@ interface WelcomeModalProps {
   userName: string;
   onComplete: () => void;
   onStartTour: () => void;
+  onSkipTour: () => void;
 }
 
-export function WelcomeModal({ open, userName, onComplete, onStartTour }: WelcomeModalProps) {
+export function WelcomeModal({ open, userName, onComplete, onStartTour, onSkipTour }: WelcomeModalProps) {
   const handleSkip = () => {
+    onSkipTour();
     onComplete();
   };
 
