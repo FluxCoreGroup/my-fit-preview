@@ -226,10 +226,20 @@ const Session = () => {
 
   if (!currentExercise) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-muted-foreground">Chargement de ta séance...</p>
+          <p className="text-sm text-muted-foreground/60">
+            Si le chargement persiste, retourne à l'entraînement.
+          </p>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/training")}
+            className="mt-2"
+          >
+            Retour à l'entraînement
+          </Button>
         </div>
       </div>
     );
@@ -262,58 +272,59 @@ const Session = () => {
             </div>
           </Card>
 
-          {/* Rest Timer - Full Focus Mode */}
+          {/* Rest Timer - Full Focus Mode with prominent Skip */}
           {isResting && (
-            <Card className="p-8 bg-gradient-to-br from-secondary/20 to-secondary/5 backdrop-blur-xl border-secondary/20 rounded-2xl">
+            <Card className="p-8 bg-gradient-to-br from-secondary/20 to-secondary/5 backdrop-blur-xl border-secondary/20 rounded-2xl animate-fade-in">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-4">Repos</p>
-                <div className="relative w-40 h-40 mx-auto mb-6">
+                <p className="text-sm text-muted-foreground mb-2">Temps de repos</p>
+                <p className="text-xs text-muted-foreground/60 mb-4">Tu peux passer dès que tu es prêt(e)</p>
+                <div className="relative w-48 h-48 mx-auto mb-6">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle
-                      cx="80"
-                      cy="80"
-                      r="72"
+                      cx="96"
+                      cy="96"
+                      r="88"
                       stroke="currentColor"
                       strokeWidth="8"
                       fill="none"
                       className="text-muted/30"
                     />
                     <circle
-                      cx="80"
-                      cy="80"
-                      r="72"
+                      cx="96"
+                      cy="96"
+                      r="88"
                       stroke="currentColor"
                       strokeWidth="8"
                       fill="none"
-                      strokeDasharray={`${2 * Math.PI * 72}`}
-                      strokeDashoffset={`${2 * Math.PI * 72 * (1 - timeLeft / currentExercise.rest)}`}
+                      strokeDasharray={`${2 * Math.PI * 88}`}
+                      strokeDashoffset={`${2 * Math.PI * 88 * (1 - timeLeft / currentExercise.rest)}`}
                       className="text-secondary transition-all duration-1000"
                       strokeLinecap="round"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-5xl font-bold text-secondary">{formatTime(timeLeft)}</span>
+                    <span className="text-6xl font-bold text-secondary">{formatTime(timeLeft)}</span>
                   </div>
                 </div>
-                <div className="flex gap-3 justify-center">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsPaused(!isPaused)}
-                    size="lg"
-                    className="rounded-xl"
-                  >
-                    {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={skipRest}
-                    size="lg"
-                    className="rounded-xl"
-                  >
-                    <SkipForward className="w-5 h-5 mr-2" />
-                    Passer
-                  </Button>
-                </div>
+                {/* Skip button - Most prominent */}
+                <Button
+                  onClick={skipRest}
+                  size="lg"
+                  className="w-full mb-3 bg-gradient-to-r from-primary to-secondary rounded-xl text-lg py-6"
+                >
+                  <SkipForward className="w-6 h-6 mr-2" />
+                  Passer le repos
+                </Button>
+                {/* Play/Pause - Secondary */}
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsPaused(!isPaused)}
+                  size="sm"
+                  className="text-muted-foreground"
+                >
+                  {isPaused ? <Play className="w-4 h-4 mr-1" /> : <Pause className="w-4 h-4 mr-1" />}
+                  {isPaused ? "Reprendre" : "Pause"}
+                </Button>
               </div>
             </Card>
           )}
@@ -429,15 +440,24 @@ const Session = () => {
         commonMistakes={currentExercise?.commonMistakes || []}
       />
 
-      {/* Tutorial Dialog */}
+      {/* Tutorial Dialog - Updated with skip rest info */}
       <AlertDialog open={showTutorial} onOpenChange={setShowTutorial}>
-        <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-white/10">
+        <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-border/20">
           <AlertDialogHeader>
             <AlertDialogTitle>Bienvenue ! 🎯</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2 text-left pt-2">
-              <p>• Clique sur <strong>"Série terminée"</strong> après chaque série</p>
-              <p>• Utilise <Lightbulb className="w-4 h-4 inline" /> pour voir les conseils</p>
-              <p>• Active le <strong>tracking avancé</strong> pour noter tes poids</p>
+            <AlertDialogDescription className="space-y-3 text-left pt-2">
+              <p className="flex items-start gap-2">
+                <span className="text-primary font-bold">1.</span>
+                <span>Clique sur <strong>"Série terminée"</strong> après chaque série</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="text-primary font-bold">2.</span>
+                <span>Tu peux <strong>passer le repos</strong> à tout moment</span>
+              </p>
+              <p className="flex items-start gap-2">
+                <span className="text-primary font-bold">3.</span>
+                <span>Utilise <Lightbulb className="w-4 h-4 inline text-primary" /> pour voir les conseils</span>
+              </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -446,9 +466,9 @@ const Session = () => {
                 localStorage.setItem('firstSessionTutorial', 'seen');
                 setShowTutorial(false);
               }}
-              className="bg-gradient-to-r from-primary to-secondary"
+              className="bg-gradient-to-r from-primary to-secondary w-full"
             >
-              C'est parti ! 🚀
+              C'est parti !
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

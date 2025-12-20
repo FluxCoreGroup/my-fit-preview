@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useExerciseImage } from "@/hooks/useExerciseImage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Play, Image as ImageIcon } from "lucide-react";
@@ -26,12 +26,23 @@ export const ExerciseImage = ({
   onClick
 }: ExerciseImageProps) => {
   const { imageUrl, gifUrl, isLoading, source } = useExerciseImage(exerciseName);
-  const [isHovered, setIsHovered] = useState(false);
   const [hasError, setHasError] = useState(false);
-
-  // Determine which URL to show
-  const displayUrl = showGif && isHovered && gifUrl ? gifUrl : imageUrl;
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // For lg size, autoplay GIF without needing hover
+  const autoPlayGif = size === "lg" && showGif && gifUrl;
+  
+  // Determine which URL to show - autoplay for lg, hover for others
+  const displayUrl = autoPlayGif 
+    ? gifUrl 
+    : (showGif && isHovered && gifUrl ? gifUrl : imageUrl);
+  
   const isVideo = displayUrl?.includes(".mp4");
+
+  // Reset error state when exercise changes
+  useEffect(() => {
+    setHasError(false);
+  }, [exerciseName]);
 
   if (isLoading) {
     return (
@@ -58,7 +69,7 @@ export const ExerciseImage = ({
       className={cn(
         sizeClasses[size],
         "rounded-lg overflow-hidden relative cursor-pointer group",
-        "bg-muted/30 border border-white/10",
+        "bg-muted/30 border border-border/20",
         className
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -69,7 +80,7 @@ export const ExerciseImage = ({
         <video
           src={displayUrl}
           className="w-full h-full object-cover"
-          autoPlay={isHovered}
+          autoPlay={!!autoPlayGif || isHovered}
           loop
           muted
           playsInline
@@ -85,8 +96,8 @@ export const ExerciseImage = ({
         />
       )}
       
-      {/* Play indicator for GIF/video on hover */}
-      {gifUrl && !isHovered && (
+      {/* Play indicator for GIF/video - only show for non-lg sizes */}
+      {gifUrl && !autoPlayGif && !isHovered && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity">
           <Play className="w-6 h-6 text-white fill-white" />
         </div>
