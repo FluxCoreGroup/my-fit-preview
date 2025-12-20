@@ -4,7 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
-import { Check, Sparkles, ArrowRight, Shield, RefreshCw, CreditCard, Users, Gift, Dumbbell, Utensils, TrendingUp, MessageCircle, ChevronDown, Loader2 } from "lucide-react";
+import {
+  Check,
+  Sparkles,
+  ArrowRight,
+  Shield,
+  RefreshCw,
+  CreditCard,
+  Users,
+  Gift,
+  Dumbbell,
+  Utensils,
+  TrendingUp,
+  MessageCircle,
+  ChevronDown,
+  Loader2,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,70 +45,99 @@ const Tarif = () => {
     setLoading(true);
     try {
       // Sauvegarder le contexte du checkout
-      sessionStorage.setItem('checkout_context', JSON.stringify({
-        plan: 'all_in',
-        timestamp: new Date().toISOString(),
-        from: 'tarif'
-      }));
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { mode: 'trial' }
+      sessionStorage.setItem(
+        "checkout_context",
+        JSON.stringify({
+          plan: "all_in",
+          timestamp: new Date().toISOString(),
+          from: "tarif",
+        }),
+      );
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { mode: "trial" },
       });
       if (error) throw error;
       if (data?.url) {
         window.location.href = data.url;
       }
     } catch (error: any) {
-      console.error('Checkout error:', error);
+      console.error("Checkout error:", error);
       setLoading(false);
       toast({
         title: "Erreur",
         description: "Impossible de créer la session de paiement",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
 
   // Prix unique
   const price = 8.99;
-  const features = [{
-    icon: Dumbbell,
-    text: "Programme d'entraînement personnalisé",
-    highlight: true
-  }, {
-    icon: Utensils,
-    text: "Plan nutrition complet avec macros",
-    highlight: true
-  }, {
-    icon: TrendingUp,
-    text: "Nouvelles séances chaque semaine",
-    highlight: false
-  }, {
-    icon: RefreshCw,
-    text: "Ajustements automatiques selon tes progrès",
-    highlight: false
-  }, {
-    icon: MessageCircle,
-    text: "Support 7j/7 par nos coachs",
-    highlight: false
-  }];
-  const allFeatures = ["Programme sport personnalisé adapté à ton niveau", "Plan nutrition détaillé avec calcul des macros", "Nouvelles séances d'entraînement chaque semaine", "Ajustements automatiques basés sur tes progrès", "Suivi de tes performances et statistiques", "Bibliothèque de recettes saines et équilibrées", "Générateur de repas intelligent", "Support illimité par email", "Accès mobile et desktop", "Mises à jour et nouvelles fonctionnalités incluses"];
-  const faqs = [{
-    id: "billing",
-    question: "Quand serai-je débité ?",
-    answer: "Tu ne seras débité qu'après 7 jours d'essai gratuit. Si tu annules pendant cette période, aucun montant ne sera prélevé."
-  }, {
-    id: "cancel",
-    question: "Puis-je annuler pendant l'essai ?",
-    answer: "Oui, absolument ! Tu peux annuler à tout moment pendant les 7 jours d'essai sans aucun frais. La résiliation se fait en un clic depuis tes paramètres."
-  }, {
-    id: "access",
-    question: "Que se passe-t-il après le paiement ?",
-    answer: "Tu auras un accès immédiat et complet à ton programme personnalisé. Tu pourras commencer ta première séance d'entraînement dès maintenant et suivre ton plan nutrition."
-  }, {
-    id: "refund",
-    question: "Et si je ne suis pas satisfait ?",
-    answer: "Nous offrons une garantie satisfait ou remboursé de 14 jours. Si notre programme ne te convient pas, contacte-nous pour un remboursement intégral."
-  }];
+  const features = [
+    {
+      icon: Dumbbell,
+      text: "Programme d'entraînement personnalisé",
+      highlight: true,
+    },
+    {
+      icon: Utensils,
+      text: "Plan nutrition complet avec macros",
+      highlight: true,
+    },
+    {
+      icon: TrendingUp,
+      text: "Nouvelles séances chaque semaine",
+      highlight: false,
+    },
+    {
+      icon: RefreshCw,
+      text: "Ajustements automatiques selon tes progrès",
+      highlight: false,
+    },
+    {
+      icon: MessageCircle,
+      text: "Support 7j/7 par nos coachs",
+      highlight: false,
+    },
+  ];
+  const allFeatures = [
+    "Programme sport personnalisé adapté à ton niveau",
+    "Plan nutrition détaillé avec calcul des macros",
+    "Nouvelles séances d'entraînement chaque semaine",
+    "Ajustements automatiques basés sur tes progrès",
+    "Suivi de tes performances et statistiques",
+    "Bibliothèque de recettes saines et équilibrées",
+    "Générateur de repas intelligent",
+    "Support illimité par email",
+    "Accès mobile et desktop",
+    "Mises à jour et nouvelles fonctionnalités incluses",
+  ];
+  const faqs = [
+    {
+      id: "billing",
+      question: "Quand serai-je débité ?",
+      answer:
+        "Tu ne seras débité qu'après 7 jours d'essai gratuit. Si tu annules pendant cette période, aucun montant ne sera prélevé.",
+    },
+    {
+      id: "cancel",
+      question: "Puis-je annuler pendant l'essai ?",
+      answer:
+        "Oui, absolument ! Tu peux annuler à tout moment pendant les 7 jours d'essai sans aucun frais. La résiliation se fait en un clic depuis tes paramètres.",
+    },
+    {
+      id: "access",
+      question: "Que se passe-t-il après le paiement ?",
+      answer:
+        "Tu auras un accès immédiat et complet à ton programme personnalisé. Tu pourras commencer ta première séance d'entraînement dès maintenant et suivre ton plan nutrition.",
+    },
+    {
+      id: "refund",
+      question: "Et si je ne suis pas satisfait ?",
+      answer:
+        "Nous offrons une garantie satisfait ou remboursé de 14 jours. Si notre programme ne te convient pas, contacte-nous pour un remboursement intégral.",
+    },
+  ];
 
   return (
     <>
@@ -111,29 +155,30 @@ const Tarif = () => {
       )}
 
       <Header variant="onboarding" showBack onBack={() => navigate("/preview")} />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background py-12 px-4 pt-24">
         <div className="max-w-6xl mx-auto space-y-12">
-          
           {/* Hero Section */}
           <div className="text-center space-y-6 animate-in">
             <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
               <Sparkles className="w-4 h-4 mr-2" />
               Programme personnalisé
             </Badge>
-            
-            <h1 className="text-4xl md:text-5xl font-bold">
-              Ton programme personnalisé est prêt !
-            </h1>
-            
+
+            <h1 className="text-4xl md:text-5xl font-bold">Ton programme personnalisé est prêt !</h1>
+
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Commence ton essai gratuit de <span className="font-bold text-primary">7 jours</span> et accède à ton programme complet sport + nutrition
+              Commence ton essai gratuit de <span className="font-bold text-primary">7 jours</span> et accède à ton
+              programme complet sport + nutrition
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               {features.map((feature, i) => (
-                <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${feature.highlight ? 'bg-primary/10 border-primary/30' : 'bg-card border-border'}`}>
-                  <feature.icon className={`w-5 h-5 ${feature.highlight ? 'text-primary' : 'text-muted-foreground'}`} />
+                <div
+                  key={i}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${feature.highlight ? "bg-primary/10 border-primary/30" : "bg-card border-border"}`}
+                >
+                  <feature.icon className={`w-5 h-5 ${feature.highlight ? "text-primary" : "text-muted-foreground"}`} />
                   <span className="text-sm font-medium">{feature.text}</span>
                 </div>
               ))}
@@ -147,25 +192,30 @@ const Tarif = () => {
               <div className="text-center mb-8">
                 <Badge className="mb-4 text-base px-4 py-1.5">Plan Unique</Badge>
                 <h2 className="text-4xl font-bold mb-2">All In</h2>
-                <p className="text-muted-foreground">
-                  Toutes les fonctionnalités incluses
-                </p>
+                <p className="text-muted-foreground">Toutes les fonctionnalités incluses</p>
               </div>
-              
+
               {/* Prix */}
               <div className="text-center mb-8">
                 <div className="flex items-baseline justify-center gap-2 mb-2">
                   <span className="text-6xl font-bold text-primary">{price}€</span>
                   <span className="text-xl text-muted-foreground">/mois</span>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Sans engagement • Annulation en 1 clic
-                </p>
+                <p className="text-sm text-muted-foreground">Sans engagement • Annulation en 1 clic</p>
               </div>
-              
+
               {/* Fonctionnalités */}
               <ul className="space-y-4 mb-8">
-                {["Programme sport + nutrition personnalisé", "Nouvelles séances chaque semaine", "Ajustements automatiques selon tes feedbacks", "Alternatives d'exercices illimitées", "Vidéos et fiches techniques détaillées", "Support par email 7j/7", "Accès communauté Discord", "Toutes les futures fonctionnalités incluses"].map((feature, i) => (
+                {[
+                  "Programme sport + nutrition personnalisé",
+                  "Nouvelles séances chaque semaine",
+                  "Ajustements automatiques selon tes feedbacks",
+                  "Alternatives d'exercices illimitées",
+                  "Vidéos et fiches techniques détaillées",
+                  "Support par email 7j/7",
+                  "Accès communauté Discord",
+                  "Toutes les futures fonctionnalités incluses",
+                ].map((feature, i) => (
                   <li key={i} className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <Check className="w-4 h-4 text-primary" />
@@ -174,14 +224,14 @@ const Tarif = () => {
                   </li>
                 ))}
               </ul>
-              
+
               {/* CTA */}
               <Button size="lg" className="w-full text-lg py-6" onClick={handleStartTrial} disabled={loading}>
                 Démarrer mon essai gratuit 7 jours
               </Button>
-              
+
               <p className="text-xs text-muted-foreground text-center mt-4">
-                Essai gratuit de 7 jours • Aucune carte bancaire requise
+                N'attends plus, essaie gratuitement maintenant.
               </p>
             </Card>
           </div>
@@ -193,19 +243,19 @@ const Tarif = () => {
               <h4 className="font-semibold mb-2">Paiement sécurisé</h4>
               <p className="text-sm text-muted-foreground">Via Stripe, leader mondial</p>
             </Card>
-            
+
             <Card className="p-6 text-center bg-card/50 border-border">
               <RefreshCw className="w-8 h-8 text-primary mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Résiliation en 1 clic</h4>
               <p className="text-sm text-muted-foreground">Annule quand tu veux</p>
             </Card>
-            
+
             <Card className="p-6 text-center bg-card/50 border-border">
               <CreditCard className="w-8 h-8 text-primary mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Remboursement 14 jours</h4>
               <p className="text-sm text-muted-foreground">Garantie satisfait ou remboursé</p>
             </Card>
-            
+
             <Card className="p-6 text-center bg-card/50 border-border">
               <Users className="w-8 h-8 text-primary mx-auto mb-3" />
               <h4 className="font-semibold mb-2">+500 membres actifs</h4>
@@ -222,37 +272,41 @@ const Tarif = () => {
                   <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                   <span className="text-sm">{feature}</span>
                 </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* CTA final */}
-          <div className="text-center pt-8 pb-24 md:pb-8">
-            <h3 className="text-2xl font-bold mb-4">Prêt à transformer ton corps ?</h3>
-            <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-              Rejoins des centaines de membres qui ont déjà commencé leur transformation avec Pulse.
-            </p>
-            <Button size="lg" className="text-lg px-8 py-6" onClick={handleStartTrial} disabled={loading}>
-              Démarrer mon essai gratuit
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
+            {/* CTA final */}
+            <div className="text-center pt-8 pb-24 md:pb-8">
+              <h3 className="text-2xl font-bold mb-4">Prêt à transformer ton corps ?</h3>
+              <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
+                Rejoins des centaines de membres qui ont déjà commencé leur transformation avec Pulse.
+              </p>
+              <Button size="lg" className="text-lg px-8 py-6" onClick={handleStartTrial} disabled={loading}>
+                Démarrer mon essai gratuit
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
           </Card>
 
           {/* FAQ */}
           <div className="max-w-3xl mx-auto space-y-4">
             <h3 className="text-2xl font-bold text-center mb-6">Questions fréquentes</h3>
-            
-            {faqs.map(faq => (
-              <Collapsible key={faq.id} open={openAccordion === faq.id} onOpenChange={isOpen => setOpenAccordion(isOpen ? faq.id : undefined)}>
+
+            {faqs.map((faq) => (
+              <Collapsible
+                key={faq.id}
+                open={openAccordion === faq.id}
+                onOpenChange={(isOpen) => setOpenAccordion(isOpen ? faq.id : undefined)}
+              >
                 <Card className="overflow-hidden">
                   <CollapsibleTrigger className="w-full p-6 text-left flex items-center justify-between hover:bg-muted/50 transition-colors">
                     <span className="font-semibold">{faq.question}</span>
-                    <ChevronDown className={`w-5 h-5 transition-transform ${openAccordion === faq.id ? 'rotate-180' : ''}`} />
+                    <ChevronDown
+                      className={`w-5 h-5 transition-transform ${openAccordion === faq.id ? "rotate-180" : ""}`}
+                    />
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="px-6 pb-6 text-sm text-muted-foreground">
-                      {faq.answer}
-                    </div>
+                    <div className="px-6 pb-6 text-sm text-muted-foreground">{faq.answer}</div>
                   </CollapsibleContent>
                 </Card>
               </Collapsible>
