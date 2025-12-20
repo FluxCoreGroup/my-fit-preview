@@ -8,6 +8,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import heroPhone from "@/assets/hero-phone.png";
+import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
+import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
 const testimonials = [{
   name: "Sophie M.",
   role: "Perdu 12kg en 3 mois",
@@ -359,9 +361,10 @@ const Landing = () => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center ring-4 ring-primary/20">
-                    <Dumbbell className="w-8 h-8 text-primary" />
-                  </div>
+                  <Avatar className="w-16 h-16 border-4 border-primary/20 shadow-lg">
+                    <AvatarImage src={coachAlexAvatar} alt="Alex - Coach Sport IA" />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xl">A</AvatarFallback>
+                  </Avatar>
                   <div>
                     <h3 className="text-2xl font-bold">Alex</h3>
                     <p className="text-muted-foreground">Coach Sport IA</p>
@@ -405,9 +408,10 @@ const Landing = () => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl group-hover:bg-secondary/20 transition-all" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center ring-4 ring-secondary/20">
-                    <Salad className="w-8 h-8 text-secondary" />
-                  </div>
+                  <Avatar className="w-16 h-16 border-4 border-secondary/20 shadow-lg">
+                    <AvatarImage src={coachJulieAvatar} alt="Julie - Nutritionniste IA" />
+                    <AvatarFallback className="bg-secondary/10 text-secondary text-xl">J</AvatarFallback>
+                  </Avatar>
                   <div>
                     <h3 className="text-2xl font-bold">Julie</h3>
                     <p className="text-muted-foreground">Nutritionniste IA</p>
@@ -448,6 +452,11 @@ const Landing = () => {
           </div>
           
           <div className="text-center mt-12">
+            <Link to="/coachs-ia">
+              <Button size="lg" variant="outline" className="mr-4">
+                En savoir plus
+              </Button>
+            </Link>
             <Link to="/start">
               <Button size="lg" variant="default">
                 Découvrir mes coachs IA

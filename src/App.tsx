@@ -34,6 +34,7 @@ import Training from "./pages/Training";
 import Nutrition from "./pages/Nutrition";
 import CoachAlex from "./pages/CoachAlex";
 import CoachJulie from "./pages/CoachJulie";
+import CoachsIA from "./pages/CoachsIA";
 import Hub from "./pages/Hub";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/legal" element={<Legal />} />
               <Route path="/support" element={<Support />} />
+              <Route path="/coachs-ia" element={<CoachsIA />} />
               
               {/* Protected routes with AppLayout */}
             
