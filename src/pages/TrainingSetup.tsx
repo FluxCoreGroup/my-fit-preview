@@ -202,15 +202,9 @@ const TrainingSetup = () => {
 
       clearTrainingSetup();
       localStorage.removeItem("onboardingData");
-      toast({
-        title: "Analyse terminée ! 🎯",
-        description: "Génération de ta séance personnalisée...",
-      });
       
-      // Petite pause pour s'assurer que les données sont bien propagées
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      navigate("/generating-session");
+      // Redirect directly to training page - user will manually generate
+      navigate("/training");
     } catch (error: any) {
       toast({
         title: "Erreur",

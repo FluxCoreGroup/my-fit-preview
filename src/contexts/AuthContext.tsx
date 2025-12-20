@@ -77,12 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       } else {
         console.log("✅ Compte créé", skipEmailConfirm ? "(accès direct)" : `, email envoyé à ${email}`);
-        if (!skipEmailConfirm) {
-          toast({
-            title: "Compte créé !",
-            description: "Vérifie ton email pour confirmer ton inscription.",
-          });
-        }
       }
 
       return { error };
