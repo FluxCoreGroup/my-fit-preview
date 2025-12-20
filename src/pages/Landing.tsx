@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Salad,
   Bot,
+  HelpCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -677,18 +678,52 @@ const Landing = () => {
       {/* FAQ Section - Améliorée avec Accordion */}
       <section className="py-20 px-4 bg-muted/30" id="faq">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-center mb-4">Questions fréquentes</h2>
-          <p className="text-center text-muted-foreground mb-12">Tout ce que tu dois savoir sur Pulse.ai</p>
-          <Accordion type="single" collapsible className="space-y-4">
+          <div className="text-center mb-12">
+            <Badge variant="secondary" className="mb-4">
+              <HelpCircle className="w-3 h-3 mr-1" />
+              FAQ
+            </Badge>
+            <h2 className="mb-4">Questions fréquentes</h2>
+            <p className="text-muted-foreground text-lg">Tout ce que tu dois savoir sur Pulse.ai</p>
+          </div>
+          
+          <Accordion type="single" collapsible className="space-y-3">
             {faqItems.map((faq, i) => (
-              <AccordionItem key={i} value={`item-${i}`} className="bg-card border rounded-lg px-6">
-                <AccordionTrigger className="text-left hover:no-underline">
-                  <span className="font-semibold">{faq.q}</span>
+              <AccordionItem 
+                key={i} 
+                value={`item-${i}`} 
+                className="bg-card border rounded-xl px-6 transition-all duration-300 hover:shadow-md data-[state=open]:border-l-4 data-[state=open]:border-l-primary data-[state=open]:shadow-lg"
+              >
+                <AccordionTrigger className="text-left hover:no-underline py-5 group">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <HelpCircle className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="font-semibold text-base group-hover:text-primary transition-colors">
+                      {faq.q}
+                    </span>
+                  </div>
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
+                <AccordionContent className="text-muted-foreground pb-5 pl-11 text-[15px] leading-relaxed">
+                  {faq.a}
+                </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
+
+          {/* CTA Contact */}
+          <div className="mt-12 text-center p-8 bg-card rounded-2xl border shadow-sm">
+            <p className="text-muted-foreground mb-4 text-lg">
+              Tu n'as pas trouvé ta réponse ?
+            </p>
+            <Link to="/support">
+              <Button variant="outline" size="lg" className="group">
+                <MessageSquare className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
+                Contacte notre équipe
+                <ArrowRight className="w-4 h-4 ml-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
