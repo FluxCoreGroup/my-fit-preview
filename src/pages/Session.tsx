@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { type Exercise } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
-import { Play, Pause, ChevronRight, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Play, Pause, ChevronRight, RefreshCw, Lightbulb, SkipForward } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +15,7 @@ import { useSessionFeedback } from "@/hooks/useSessionFeedback";
 import { BackButton } from "@/components/BackButton";
 import { SessionFeedbackModal } from "@/components/training/SessionFeedbackModal";
 import { ExerciseImage } from "@/components/training/ExerciseImage";
-import { ExerciseImageModal } from "@/components/training/ExerciseImageModal";
+import { ExerciseHelpDrawer } from "@/components/training/ExerciseHelpDrawer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,15 +44,21 @@ const Session = () => {
   const [showPauseDialog, setShowPauseDialog] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [showExerciseModal, setShowExerciseModal] = useState(false);
+  const [showHelpDrawer, setShowHelpDrawer] = useState(false);
   const [currentWeight, setCurrentWeight] = useState("");
   const [currentRPE, setCurrentRPE] = useState(7);
+  const [advancedTracking, setAdvancedTracking] = useState(false);
 
   // Check for first-time tutorial
   useEffect(() => {
     const hasSeenTutorial = localStorage.getItem('firstSessionTutorial');
     if (!hasSeenTutorial) {
       setShowTutorial(true);
+    }
+    // Load tracking preference
+    const trackingPref = localStorage.getItem('advancedTracking');
+    if (trackingPref) {
+      setAdvancedTracking(trackingPref === 'true');
     }
   }, []);
 
@@ -62,7 +69,6 @@ const Session = () => {
         return;
       }
 
-      // Try to load session from currentSessionId in localStorage
       const currentSessionId = localStorage.getItem("currentSessionId");
       
       if (currentSessionId) {
@@ -80,7 +86,6 @@ const Session = () => {
         }
       }
 
-      // Fallback: load most recent session
       const { data: lastSession } = await supabase
         .from('sessions')
         .select('*')
@@ -117,15 +122,12 @@ const Session = () => {
   const currentExercise = exercises[currentExerciseIndex];
   const totalSets = currentExercise?.sets || 0;
 
-  // Calculate granular progress (series by series)
   const getTotalSets = () => exercises.reduce((sum, ex) => sum + ex.sets, 0);
   const getCompletedSets = () => {
     let completed = 0;
-    // Count all sets from previous exercises
     for (let i = 0; i < currentExerciseIndex; i++) {
       completed += exercises[i].sets;
     }
-    // Add completed sets from current exercise
     completed += (currentSet - 1);
     return completed;
   };
@@ -138,16 +140,23 @@ const Session = () => {
     setIsPaused(false);
   };
 
+  const skipRest = () => {
+    setIsResting(false);
+    setTimeLeft(0);
+    setIsPaused(true);
+  };
+
   const handleSetComplete = async () => {
-    // Log the set with weight and RPE
-    const weight = parseFloat(currentWeight) || 0;
-    if (weight > 0) {
-      logSet(currentExercise.name, currentSet, weight, currentRPE);
+    if (advancedTracking) {
+      const weight = parseFloat(currentWeight) || 0;
+      if (weight > 0) {
+        logSet(currentExercise.name, currentSet, weight, currentRPE);
+      }
     }
 
     if (currentSet < totalSets) {
       setCurrentSet(currentSet + 1);
-      setCurrentWeight(""); // Reset for next set
+      setCurrentWeight("");
       startRest();
     } else {
       if (currentExerciseIndex < exercises.length - 1) {
@@ -156,10 +165,9 @@ const Session = () => {
         setCurrentWeight("");
         setCurrentRPE(7);
         
-        // Suggest weight for next exercise if available
         const nextExercise = exercises[currentExerciseIndex + 1];
         const suggested = getSuggestedWeight(nextExercise.name);
-        if (suggested) {
+        if (suggested && advancedTracking) {
           setCurrentWeight(suggested.toString());
         }
         
@@ -168,7 +176,6 @@ const Session = () => {
           description: "Prends une petite pause et passe au suivant.",
         });
       } else {
-        // Session complete - mark as completed and show feedback
         if (user && sessionId) {
           await supabase
             .from('sessions')
@@ -194,10 +201,14 @@ const Session = () => {
           }
         }
         
-        // Show feedback modal instead of navigating immediately
         setShowFeedbackModal(true);
       }
     }
+  };
+
+  const handleTrackingToggle = (enabled: boolean) => {
+    setAdvancedTracking(enabled);
+    localStorage.setItem('advancedTracking', enabled.toString());
   };
 
   const showAlternative = () => {
@@ -236,12 +247,12 @@ const Session = () => {
       <BackButton label="Pause" onClick={() => setShowPauseDialog(true)} />
       
       <div className="pt-20 px-4">
-        <div className="max-w-3xl mx-auto space-y-6">
-          {/* Progress Bar */}
-          <Card className="bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl p-4">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {/* Progress Bar - Simplified */}
+          <Card className="bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl p-3">
             <div className="flex justify-between text-sm mb-2">
               <span className="font-medium">Série {completedSetsAll + 1}/{totalSetsAll}</span>
-              <span className="text-muted-foreground">{Math.round(progress)}% complété</span>
+              <span className="text-muted-foreground">{Math.round(progress)}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
@@ -251,80 +262,106 @@ const Session = () => {
             </div>
           </Card>
 
-          {/* Main Exercise Card */}
-          <Card className="p-8 bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl min-h-[60vh] flex flex-col justify-center">
-            {/* Exercise Image */}
-            <div 
-              className="mb-4 cursor-pointer"
-              onClick={() => setShowExerciseModal(true)}
-            >
-              <ExerciseImage 
-                exerciseName={currentExercise.name} 
-                size="lg"
-                showGif={true}
-              />
-            </div>
-
-            <h2 className="text-3xl font-bold mb-2">{currentExercise.name}</h2>
-            <div className="flex gap-2 mb-6">
-              <span className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full font-medium">
-                Série {currentSet}/{totalSets}
-              </span>
-              <span className="px-3 py-1 bg-secondary/10 text-secondary text-sm rounded-full font-medium">
-                {currentExercise.reps} reps
-              </span>
-            </div>
-
-            {/* Timer / Rest Display */}
-            {isResting && (
-              <div className="mb-6 p-8 bg-secondary/10 rounded-2xl text-center">
-                <div className="text-sm text-muted-foreground mb-2">Temps de repos</div>
-                <div className="relative w-32 h-32 mx-auto mb-4">
+          {/* Rest Timer - Full Focus Mode */}
+          {isResting && (
+            <Card className="p-8 bg-gradient-to-br from-secondary/20 to-secondary/5 backdrop-blur-xl border-secondary/20 rounded-2xl">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">Repos</p>
+                <div className="relative w-40 h-40 mx-auto mb-6">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle
-                      cx="64"
-                      cy="64"
-                      r="60"
+                      cx="80"
+                      cy="80"
+                      r="72"
                       stroke="currentColor"
                       strokeWidth="8"
                       fill="none"
-                      className="text-muted"
+                      className="text-muted/30"
                     />
                     <circle
-                      cx="64"
-                      cy="64"
-                      r="60"
+                      cx="80"
+                      cy="80"
+                      r="72"
                       stroke="currentColor"
                       strokeWidth="8"
                       fill="none"
-                      strokeDasharray={`${2 * Math.PI * 60}`}
-                      strokeDashoffset={`${2 * Math.PI * 60 * (1 - timeLeft / currentExercise.rest)}`}
+                      strokeDasharray={`${2 * Math.PI * 72}`}
+                      strokeDashoffset={`${2 * Math.PI * 72 * (1 - timeLeft / currentExercise.rest)}`}
                       className="text-secondary transition-all duration-1000"
+                      strokeLinecap="round"
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-4xl font-bold text-secondary">{formatTime(timeLeft)}</div>
+                    <span className="text-5xl font-bold text-secondary">{formatTime(timeLeft)}</span>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPaused(!isPaused)}
-                  size="lg"
-                  className="rounded-xl"
-                >
-                  {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
-                </Button>
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPaused(!isPaused)}
+                    size="lg"
+                    className="rounded-xl"
+                  >
+                    {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={skipRest}
+                    size="lg"
+                    className="rounded-xl"
+                  >
+                    <SkipForward className="w-5 h-5 mr-2" />
+                    Passer
+                  </Button>
+                </div>
               </div>
-            )}
+            </Card>
+          )}
 
-            {/* Exercise Details */}
-            {!isResting && (
-              <>
-                {/* Tracking Inputs */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
+          {/* Main Exercise Card - Focus Mode */}
+          {!isResting && (
+            <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl">
+              {/* Exercise Image */}
+              <div className="mb-4">
+                <ExerciseImage 
+                  exerciseName={currentExercise.name} 
+                  size="lg"
+                  showGif={true}
+                />
+              </div>
+
+              {/* Exercise Name & Stats */}
+              <h2 className="text-2xl font-bold mb-2">{currentExercise.name}</h2>
+              <div className="flex gap-2 mb-6">
+                <span className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full font-medium">
+                  Série {currentSet}/{totalSets}
+                </span>
+                <span className="px-3 py-1 bg-secondary/10 text-secondary text-sm rounded-full font-medium">
+                  {currentExercise.reps} reps
+                </span>
+                <span className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-full">
+                  RPE {currentExercise.rpe}
+                </span>
+              </div>
+
+              {/* Advanced Tracking Toggle */}
+              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-xl mb-4">
+                <Label htmlFor="tracking" className="text-sm cursor-pointer">
+                  Tracking avancé (poids + RPE)
+                </Label>
+                <Switch
+                  id="tracking"
+                  checked={advancedTracking}
+                  onCheckedChange={handleTrackingToggle}
+                />
+              </div>
+
+              {/* Tracking Inputs - Conditional */}
+              {advancedTracking && (
+                <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
                     <Label className="text-xs text-muted-foreground mb-1 block">
-                      Poids utilisé (kg)
+                      Poids (kg)
                     </Label>
                     <Input
                       type="number"
@@ -349,101 +386,58 @@ const Session = () => {
                     />
                   </div>
                 </div>
+              )}
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <Card className="p-4 bg-muted/50 rounded-xl">
-                    <div className="text-sm text-muted-foreground">RPE cible</div>
-                    <div className="text-xl font-bold">{currentExercise.rpe}</div>
-                  </Card>
-                  <Card className="p-4 bg-muted/50 rounded-xl">
-                    <div className="text-sm text-muted-foreground">RIR cible</div>
-                    <div className="text-xl font-bold">{currentExercise.rir}</div>
-                  </Card>
-                </div>
-
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                      Consignes clés
-                    </h3>
-                    <ul className="space-y-1 text-sm">
-                      {currentExercise.tips.map((tip, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-accent mt-0.5">•</span>
-                          <span>{tip}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-destructive" />
-                      Erreurs fréquentes
-                    </h3>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      {currentExercise.commonMistakes.map((mistake, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-destructive mt-0.5">•</span>
-                          <span>{mistake}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    size="lg"
-                    onClick={handleSetComplete}
-                    className="flex-1 bg-gradient-to-r from-primary to-secondary rounded-xl"
-                  >
-                    Série terminée
-                    <ChevronRight className="w-5 h-5 ml-2" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={showAlternative}
-                    className="rounded-xl"
-                  >
-                    <RefreshCw className="w-5 h-5 mr-2" />
-                    Alternative
-                  </Button>
-                </div>
-              </>
-            )}
-          </Card>
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button
+                  size="lg"
+                  onClick={handleSetComplete}
+                  className="flex-1 bg-gradient-to-r from-primary to-secondary rounded-xl"
+                >
+                  Série terminée
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => setShowHelpDrawer(true)}
+                  className="rounded-xl"
+                >
+                  <Lightbulb className="w-5 h-5" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={showAlternative}
+                  className="rounded-xl"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </Button>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
+
+      {/* Help Drawer */}
+      <ExerciseHelpDrawer
+        open={showHelpDrawer}
+        onOpenChange={setShowHelpDrawer}
+        exerciseName={currentExercise?.name || ""}
+        tips={currentExercise?.tips || []}
+        commonMistakes={currentExercise?.commonMistakes || []}
+      />
 
       {/* Tutorial Dialog */}
       <AlertDialog open={showTutorial} onOpenChange={setShowTutorial}>
         <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-white/10">
           <AlertDialogHeader>
-            <AlertDialogTitle>Bienvenue dans ta séance ! 🎯</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-3 text-left pt-2">
-              <div className="flex items-start gap-2">
-                <span className="text-primary font-bold">1.</span>
-                <span>Réalise chaque série en suivant les consignes</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary font-bold">2.</span>
-                <span>Note ton poids et ton RPE après chaque série</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary font-bold">3.</span>
-                <span>Clique sur "Série terminée" pour lancer le timer de repos</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary font-bold">4.</span>
-                <span>La barre de progression avance série par série</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <span className="text-primary font-bold">5.</span>
-                <span>En fin de séance, donne ton feedback pour améliorer tes prochains entraînements</span>
-              </div>
+            <AlertDialogTitle>Bienvenue ! 🎯</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-left pt-2">
+              <p>• Clique sur <strong>"Série terminée"</strong> après chaque série</p>
+              <p>• Utilise <Lightbulb className="w-4 h-4 inline" /> pour voir les conseils</p>
+              <p>• Active le <strong>tracking avancé</strong> pour noter tes poids</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -485,15 +479,6 @@ const Session = () => {
           exerciseLogs={exerciseLogs}
         />
       )}
-
-      {/* Exercise Image Modal */}
-      <ExerciseImageModal
-        exerciseName={currentExercise?.name || ""}
-        open={showExerciseModal}
-        onOpenChange={setShowExerciseModal}
-        tips={currentExercise?.tips}
-        commonMistakes={currentExercise?.commonMistakes}
-      />
     </div>
   );
 };
