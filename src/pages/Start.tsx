@@ -336,7 +336,7 @@ const Start = () => {
               </div>
 
               <div className="mt-6">
-                <Label htmlFor="horizon">À quelle échéance souhaites-tu cet objectif ? *</Label>
+                <Label htmlFor="horizon">À quelle échéance souhaites-tu atteindre cet objectif ? *</Label>
                 <Select value={formData.goalHorizon} onValueChange={(value) => updateField("goalHorizon", value)}>
                   <SelectTrigger className={`mt-2 ${errors.goalHorizon ? "border-destructive" : ""}`}>
                     <SelectValue placeholder="Choisir..." />
