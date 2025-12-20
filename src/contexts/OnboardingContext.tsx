@@ -69,10 +69,10 @@ export const TOUR_STEPS: TourStep[] = [
     icon: Settings,
   },
   {
-    title: "C'est parti !",
-    description: "Tu es prêt à atteindre tes objectifs. Commence par explorer tes entraînements de la semaine !",
+    title: "Dernière étape !",
+    description: "Crée maintenant ta première séance d'entraînement personnalisée. Clique sur 'Terminer' pour commencer !",
     moduleKey: "none",
-    icon: MessageCircleQuestion,
+    icon: Dumbbell,
   },
 ];
 

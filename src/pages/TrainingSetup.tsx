@@ -203,8 +203,8 @@ const TrainingSetup = () => {
       clearTrainingSetup();
       localStorage.removeItem("onboardingData");
       
-      // Redirect directly to training page - user will manually generate
-      navigate("/training");
+      // Redirect to Hub for the guided tour
+      navigate("/hub");
     } catch (error: any) {
       toast({
         title: "Erreur",
