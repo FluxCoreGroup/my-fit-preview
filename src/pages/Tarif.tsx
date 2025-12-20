@@ -19,6 +19,8 @@ import {
   MessageCircle,
   ChevronDown,
   Loader2,
+  Bot,
+  Salad,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -85,6 +87,16 @@ const Tarif = () => {
       highlight: true,
     },
     {
+      icon: Bot,
+      text: "Coach sport IA Alex 24/7",
+      highlight: true,
+    },
+    {
+      icon: Salad,
+      text: "Nutritionniste IA Julie personnalisée",
+      highlight: true,
+    },
+    {
       icon: TrendingUp,
       text: "Nouvelles séances chaque semaine",
       highlight: false,
@@ -94,15 +106,12 @@ const Tarif = () => {
       text: "Ajustements automatiques selon tes progrès",
       highlight: false,
     },
-    {
-      icon: MessageCircle,
-      text: "Support 7j/7 par nos coachs",
-      highlight: false,
-    },
   ];
   const allFeatures = [
     "Programme sport personnalisé adapté à ton niveau",
     "Plan nutrition détaillé avec calcul des macros",
+    "Coach sport IA Alex disponible 24/7",
+    "Nutritionniste IA Julie pour tous tes repas",
     "Nouvelles séances d'entraînement chaque semaine",
     "Ajustements automatiques basés sur tes progrès",
     "Suivi de tes performances et statistiques",
@@ -208,6 +217,8 @@ const Tarif = () => {
               <ul className="space-y-4 mb-8">
                 {[
                   "Programme sport + nutrition personnalisé",
+                  "Coach IA Alex pour adapter tes séances",
+                  "Nutritionniste IA Julie pour tes repas",
                   "Nouvelles séances chaque semaine",
                   "Ajustements automatiques selon tes feedbacks",
                   "Alternatives d'exercices illimitées",
