@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Header } from "@/components/Header";
+import { BackButton } from "@/components/BackButton";
 import { 
   MessageSquare, 
   Check, 
@@ -18,7 +19,6 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
-
 // Exemple de conversations pour Alex
 const alexConversations = [
   {
@@ -55,8 +55,9 @@ const CoachsIA = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <Header />
+      <BackButton to="/" label="Retour" />
       
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
@@ -349,6 +350,20 @@ const CoachsIA = () => {
           </Card>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="py-12 px-4 bg-muted/50 border-t mt-auto">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+            <p>© 2025 Pulse.ai - Tous droits réservés</p>
+            <div className="flex gap-6">
+              <Link to="/tarif" className="hover:text-foreground transition-colors">Tarifs</Link>
+              <Link to="/legal" className="hover:text-foreground transition-colors">Mentions légales</Link>
+              <Link to="/" className="hover:text-foreground transition-colors">Accueil</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
