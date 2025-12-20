@@ -808,19 +808,24 @@ const Landing = () => {
               <h4 className="font-semibold mb-4">Produit</h4>
               <ul className="space-y-3 text-sm text-muted-foreground">
                 <li>
-                  <a href="#features" className="hover:text-foreground transition-colors">
-                    Fonctionnalités
+                  <a href="#comment" className="hover:text-foreground transition-colors">
+                    Comment ?
                   </a>
                 </li>
                 <li>
-                  <Link to="/preview" className="hover:text-foreground transition-colors">
-                    Voir une démo
-                  </Link>
+                  <a href="#pourquoi" className="hover:text-foreground transition-colors">
+                    Pourquoi ?
+                  </a>
                 </li>
                 <li>
-                  <Link to="/start" className="hover:text-foreground transition-colors">
-                    Commencer
-                  </Link>
+                  <a href="#coachs-ia" className="hover:text-foreground transition-colors">
+                    Coach IA
+                  </a>
+                </li>
+                <li>
+                  <a href="#features" className="hover:text-foreground transition-colors">
+                    Prix
+                  </a>
                 </li>
                 <li>
                   <a href="#faq" className="hover:text-foreground transition-colors">
