@@ -125,9 +125,9 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
           <a href="#coachs-ia" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Coach IA
           </a>
-          <Link to="/tarif" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Prix
-          </Link>
+          </a>
           <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             FAQ
           </a>
