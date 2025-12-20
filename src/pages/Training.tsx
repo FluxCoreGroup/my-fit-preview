@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dumbbell, Settings as SettingsIcon, AlertCircle, TrendingUp, ChevronDown, BarChart3, Loader2, Sparkles, Brain, Target } from "lucide-react";
+import { Dumbbell, Settings as SettingsIcon, AlertCircle, TrendingUp, ChevronDown, BarChart3, Loader2, Sparkles, Brain, Target, Check, Zap } from "lucide-react";
 import { BackButton } from "@/components/BackButton";
 import { SessionPreviewCard } from "@/components/training/SessionPreviewCard";
 import { WeeklyFeedbackModal } from "@/components/training/WeeklyFeedbackModal";
@@ -60,12 +60,13 @@ const Training = () => {
   const [showProgression, setShowProgression] = useState(false);
   const [generatingProgress, setGeneratingProgress] = useState(0);
   const [generatingStep, setGeneratingStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
 
   const generatingSteps = [
-    { icon: Brain, text: "Analyse de ton profil..." },
-    { icon: Target, text: "Sélection des exercices..." },
-    { icon: Sparkles, text: "Personnalisation du programme..." },
-    { icon: Dumbbell, text: "Finalisation des séances..." },
+    { icon: Brain, text: "Analyse de ton profil et objectifs", subtext: "Récupération de tes données..." },
+    { icon: Target, text: "Sélection des meilleurs exercices", subtext: "Adaptation à ton niveau..." },
+    { icon: Sparkles, text: "Personnalisation intelligente", subtext: "Optimisation des séries et répétitions..." },
+    { icon: Dumbbell, text: "Création de tes séances sur mesure", subtext: "Finalisation du programme..." },
   ];
 
   // Animate progress when generating
@@ -73,19 +74,28 @@ const Training = () => {
     if (!isGenerating) {
       setGeneratingProgress(0);
       setGeneratingStep(0);
+      setCompletedSteps([]);
       return;
     }
 
     const progressInterval = setInterval(() => {
       setGeneratingProgress(prev => {
         if (prev >= 95) return prev;
-        return prev + Math.random() * 8;
+        return prev + Math.random() * 5;
       });
-    }, 400);
+    }, 300);
 
+    // Move to next step and mark previous as completed
     const stepInterval = setInterval(() => {
-      setGeneratingStep(prev => (prev + 1) % generatingSteps.length);
-    }, 2500);
+      setGeneratingStep(prev => {
+        const next = prev + 1;
+        if (next < generatingSteps.length) {
+          setCompletedSteps(completed => [...completed, prev]);
+          return next;
+        }
+        return prev;
+      });
+    }, 3000);
 
     return () => {
       clearInterval(progressInterval);
@@ -134,39 +144,92 @@ const Training = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Generating Overlay */}
+      {/* Enhanced Generating Overlay */}
       {isGenerating && (
-        <div className="fixed inset-0 bg-background/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <Card className="p-8 text-center max-w-sm w-full bg-gradient-to-br from-card to-card/80 border-white/10">
-            <div className="relative w-20 h-20 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-secondary opacity-20 animate-pulse" />
-              <div className="absolute inset-2 rounded-full bg-gradient-to-r from-primary to-secondary opacity-30 animate-ping" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
+          {/* Animated background */}
+          <div className="absolute inset-0 bg-background/95 backdrop-blur-xl">
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-1000" />
+          </div>
+          
+          <Card className="relative p-8 text-center max-w-md w-full bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl border-white/10 shadow-2xl">
+            {/* Floating icon */}
+            <div className="relative w-24 h-24 mx-auto mb-8">
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-secondary opacity-20 animate-ping" />
+              <div className="absolute inset-2 rounded-full bg-gradient-to-r from-primary/30 to-secondary/30 animate-pulse" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <CurrentStepIcon className="w-10 h-10 text-primary animate-pulse" />
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
+                  <CurrentStepIcon className="w-8 h-8 text-primary-foreground" />
+                </div>
               </div>
             </div>
             
-            <h3 className="text-xl font-bold mb-2">Génération en cours...</h3>
-            <p className="text-muted-foreground text-sm mb-6">
-              {generatingSteps[generatingStep]?.text}
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <Zap className="w-5 h-5 text-primary animate-pulse" />
+              <h3 className="text-2xl font-bold">Création de ton programme</h3>
+            </div>
+            
+            <p className="text-muted-foreground text-sm mb-8">
+              L'IA analyse tes objectifs pour créer le programme parfait
             </p>
             
-            <Progress value={generatingProgress} className="h-2 mb-4" />
+            {/* Steps list */}
+            <div className="space-y-3 mb-8 text-left">
+              {generatingSteps.map((step, idx) => {
+                const StepIcon = step.icon;
+                const isCompleted = completedSteps.includes(idx);
+                const isCurrent = idx === generatingStep;
+                
+                return (
+                  <div
+                    key={idx}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-xl transition-all duration-500",
+                      isCompleted && "bg-primary/10",
+                      isCurrent && "bg-primary/5 ring-1 ring-primary/20"
+                    )}
+                  >
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300",
+                      isCompleted 
+                        ? "bg-primary text-primary-foreground" 
+                        : isCurrent 
+                          ? "bg-primary/20 text-primary" 
+                          : "bg-muted text-muted-foreground"
+                    )}>
+                      {isCompleted ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <StepIcon className={cn("w-4 h-4", isCurrent && "animate-pulse")} />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className={cn(
+                        "text-sm font-medium transition-colors",
+                        isCompleted && "text-primary",
+                        isCurrent && "text-foreground",
+                        !isCompleted && !isCurrent && "text-muted-foreground"
+                      )}>
+                        {step.text}
+                      </p>
+                      {isCurrent && (
+                        <p className="text-xs text-muted-foreground animate-pulse">
+                          {step.subtext}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
             
-            <div className="flex justify-center gap-2">
-              {generatingSteps.map((step, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    "w-2 h-2 rounded-full transition-all duration-300",
-                    idx === generatingStep
-                      ? "bg-primary scale-125"
-                      : idx < generatingStep
-                      ? "bg-primary/50"
-                      : "bg-muted"
-                  )}
-                />
-              ))}
+            {/* Progress bar */}
+            <div className="space-y-2">
+              <Progress value={generatingProgress} className="h-2" />
+              <p className="text-xs text-muted-foreground">
+                Environ 15 secondes...
+              </p>
             </div>
           </Card>
         </div>
