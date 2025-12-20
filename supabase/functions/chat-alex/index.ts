@@ -393,6 +393,31 @@ serve(async (req) => {
       });
     }
 
+    // Check subscription status (allow first use for free)
+    const { count: feedbackCount } = await supabase
+      .from("feedback")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId);
+
+    // If user has used the service before, check subscription
+    if (feedbackCount && feedbackCount > 0) {
+      const { data: subscription } = await supabase
+        .from("subscriptions")
+        .select("status")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (!subscription) {
+        console.warn(`Subscription required for user ${userId} - no active subscription`);
+        return new Response(
+          JSON.stringify({ error: "Abonnement requis pour continuer à utiliser le coach IA" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+    console.log(`Subscription check passed for user ${userId}`);
+
     const systemPrompt = `Tu es Alex, coach sportif expert en musculation et fitness de l'app PULSE.
 
 ⚠️ RÈGLES CRITIQUES - RESPECT ABSOLU OBLIGATOIRE :

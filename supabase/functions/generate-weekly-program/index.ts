@@ -25,8 +25,35 @@ serve(async (req) => {
 
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     if (userError || !user) {
-      throw new Error('Unauthorized');
+      return new Response(
+        JSON.stringify({ error: 'Non authentifié' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    // Check subscription status (allow first use for free)
+    const { count: feedbackCount } = await supabase
+      .from('feedback')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    if (feedbackCount && feedbackCount > 0) {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!subscription) {
+        console.warn(`Subscription required for user ${user.id} - generate-weekly-program`);
+        return new Response(
+          JSON.stringify({ error: 'Abonnement requis pour générer un programme hebdomadaire' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+    console.log(`Subscription check passed for user ${user.id}`);
 
     const { week_start_date, regenerate } = await req.json();
 
