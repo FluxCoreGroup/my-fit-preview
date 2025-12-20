@@ -3,61 +3,90 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles, ShieldCheck, ArrowRight, X, Smartphone, Apple, Heart, MessageSquare, Salad, Bot } from "lucide-react";
+import {
+  Dumbbell,
+  Target,
+  Zap,
+  Clock,
+  Check,
+  Star,
+  Users,
+  TrendingUp,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
+  X,
+  Smartphone,
+  Apple,
+  Heart,
+  MessageSquare,
+  Salad,
+  Bot,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import heroPhone from "@/assets/hero-phone.png";
-import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
-import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
-const testimonials = [{
-  name: "Sophie M.",
-  role: "Perdu 12kg en 3 mois",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
-  quote: "J'ai enfin trouvé un programme qui s'adapte à ma vie de maman. Les résultats sont là !"
-}, {
-  name: "Thomas L.",
-  role: "Prise de masse réussie",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas",
-  quote: "Le suivi nutrition est incroyable. J'ai pris 8kg de muscle en gardant mes abdos visibles."
-}, {
-  name: "Marie K.",
-  role: "Débutante motivée",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
-  quote: "Je n'avais jamais fait de sport. Les exercices sont clairs et j'adore les alternatives proposées."
-}];
-const faqItems = [{
-  q: "C'est vraiment gratuit pour commencer ?",
-  a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à 8,99€/mois sans engagement."
-}, {
-  q: "Je suis débutant(e), ça marche pour moi ?",
-  a: "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo."
-}, {
-  q: "Comment les plans sont-ils générés ?",
-  a: "Notre IA analyse tes réponses (âge, poids, objectif, niveau, matériel disponible, contraintes...) et crée un plan 100% sur mesure en quelques secondes. Il s'ajuste ensuite automatiquement selon tes feedbacks hebdomadaires."
-}, {
-  q: "Puis-je annuler à tout moment ?",
-  a: "Oui, tu peux annuler ton abonnement quand tu veux, directement depuis ton tableau de bord en 1 clic. Aucune question posée, aucun frais cachés."
-}, {
-  q: "Quel matériel ai-je besoin ?",
-  a: "Aucun matériel obligatoire ! Pulse.ai s'adapte à ce que tu as : poids du corps uniquement, haltères, barre, machines en salle... Tu sélectionnes ton équipement lors de la configuration."
-}, {
-  q: "Les résultats sont-ils garantis ?",
-  a: "Nous garantissons des résultats visibles en 4 semaines si tu suis ton plan à 80% minimum. Sinon, tu es remboursé(e) intégralement, sans justification."
-}, {
-  q: "Puis-je suivre mes progrès ?",
-  a: "Oui ! Dashboard complet avec historique des séances, évolution du poids/mensurations, graphiques de progression et ajustements automatiques du plan."
-}, {
-  q: "Le support est-il inclus ?",
-  a: "Oui, support par email 7j/7 inclus dans tous les abonnements. Réponse garantie sous 24h (souvent bien plus rapide)."
-}];
+const testimonials = [
+  {
+    name: "Sophie M.",
+    role: "Perdu 12kg en 3 mois",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
+    quote: "J'ai enfin trouvé un programme qui s'adapte à ma vie de maman. Les résultats sont là !",
+  },
+  {
+    name: "Thomas L.",
+    role: "Prise de masse réussie",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas",
+    quote: "Le suivi nutrition est incroyable. J'ai pris 8kg de muscle en gardant mes abdos visibles.",
+  },
+  {
+    name: "Marie K.",
+    role: "Débutante motivée",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
+    quote: "Je n'avais jamais fait de sport. Les exercices sont clairs et j'adore les alternatives proposées.",
+  },
+];
+const faqItems = [
+  {
+    q: "C'est vraiment gratuit pour commencer ?",
+    a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à 8,99€/mois sans engagement.",
+  },
+  {
+    q: "Je suis débutant(e), ça marche pour moi ?",
+    a: "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo.",
+  },
+  {
+    q: "Comment les plans sont-ils générés ?",
+    a: "Notre IA analyse tes réponses (âge, poids, objectif, niveau, matériel disponible, contraintes...) et crée un plan 100% sur mesure en quelques secondes. Il s'ajuste ensuite automatiquement selon tes feedbacks hebdomadaires.",
+  },
+  {
+    q: "Puis-je annuler à tout moment ?",
+    a: "Oui, tu peux annuler ton abonnement quand tu veux, directement depuis ton tableau de bord en 1 clic. Aucune question posée, aucun frais cachés.",
+  },
+  {
+    q: "Quel matériel ai-je besoin ?",
+    a: "Aucun matériel obligatoire ! Pulse.ai s'adapte à ce que tu as : poids du corps uniquement, haltères, barre, machines en salle... Tu sélectionnes ton équipement lors de la configuration.",
+  },
+  {
+    q: "Les résultats sont-ils garantis ?",
+    a: "Nous garantissons des résultats visibles en 4 semaines si tu suis ton plan à 80% minimum. Sinon, tu es remboursé(e) intégralement, sans justification.",
+  },
+  {
+    q: "Puis-je suivre mes progrès ?",
+    a: "Oui ! Dashboard complet avec historique des séances, évolution du poids/mensurations, graphiques de progression et ajustements automatiques du plan.",
+  },
+  {
+    q: "Le support est-il inclus ?",
+    a: "Oui, support par email 7j/7 inclus dans tous les abonnements. Réponse garantie sous 24h (souvent bien plus rapide).",
+  },
+];
 const Landing = () => {
-  const {
-    user
-  } = useAuth();
-  return <div className="min-h-screen">
+  const { user } = useAuth();
+  return (
+    <div className="min-h-screen">
       <Header />
-      
+
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-20 md:pt-24 px-4 md:px-6 lg:px-8 pb-8">
         <div className="max-w-5xl mx-auto">
@@ -69,35 +98,50 @@ const Landing = () => {
                 <br />
                 dans ta poche.
               </h1>
-              
+
               <p className="text-base md:text-lg text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed px-4">
-                Obtiens un plan sport & nutrition <strong>100% personnalisé</strong>. Résultats visibles en 4 semaines, garantis.
+                Obtiens un plan sport & nutrition <strong>100% personnalisé</strong>. Résultats visibles en 4 semaines,
+                garantis.
               </p>
-              
-            {/* Social Proof */}
-            <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
-              <Star className="w-5 h-5 fill-accent text-accent" />
-              <span className="text-base md:text-lg font-semibold">4,9/5 sur +1 200 utilisateurs actifs</span>
+
+              {/* Social Proof */}
+              <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
+                <Star className="w-5 h-5 fill-accent text-accent" />
+                <span className="text-base md:text-lg font-semibold">4,9/5 sur +1 200 utilisateurs actifs</span>
+              </div>
             </div>
-          </div>
-          
-          {/* Phone Mockup - Centered */}
-          <div className="flex justify-center z-10 my-4 flex-shrink">
-            <img src={heroPhone} alt="Interface du Hub Pulse.ai avec 6 modules : Entraînements, Nutrition, Coach Alex, Coach Julie, Paramètres et Aide" className="w-[clamp(130px,30vw,240px)] max-h-[35vh] object-contain drop-shadow-2xl pointer-events-none select-none" />
-          </div>
-          
-          {/* CTA - Bottom */}
-          <div className="pb-4 md:pb-6 z-10 flex-shrink-0">
-              {user ? <Link to="/hub">
-                  <Button size="lg" className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold">
+
+            {/* Phone Mockup - Centered */}
+            <div className="flex justify-center z-10 my-4 flex-shrink">
+              <img
+                src={heroPhone}
+                alt="Interface du Hub Pulse.ai avec 6 modules : Entraînements, Nutrition, Coach Alex, Coach Julie, Paramètres et Aide"
+                className="w-[clamp(130px,30vw,240px)] max-h-[35vh] object-contain drop-shadow-2xl pointer-events-none select-none"
+              />
+            </div>
+
+            {/* CTA - Bottom */}
+            <div className="pb-4 md:pb-6 z-10 flex-shrink-0">
+              {user ? (
+                <Link to="/hub">
+                  <Button
+                    size="lg"
+                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                  >
                     Aller au Hub
                   </Button>
-                </Link> : <Link to="/start">
-                  <Button size="lg" className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold">
+                </Link>
+              ) : (
+                <Link to="/start">
+                  <Button
+                    size="lg"
+                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                  >
                     Faire le quiz
                     <span className="ml-2 text-sm opacity-70">~2 min</span>
                   </Button>
-                </Link>}
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -124,10 +168,11 @@ const Landing = () => {
               <div className="text-muted-foreground">Perte moyenne en 2 mois</div>
             </div>
           </div>
-          
+
           {/* Témoignages */}
           <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => <Card key={i} className="p-6">
+            {testimonials.map((t, i) => (
+              <Card key={i} className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Avatar>
                     <AvatarImage src={t.avatar} />
@@ -140,20 +185,23 @@ const Landing = () => {
                 </div>
                 <p className="text-sm italic text-muted-foreground">"{t.quote}"</p>
                 <div className="flex gap-1 mt-3">
-                  {[...Array(5)].map((_, j) => <Star key={j} className="w-3 h-3 fill-primary text-primary" />)}
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} className="w-3 h-3 fill-primary text-primary" />
+                  ))}
                 </div>
-              </Card>)}
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Comment ça marche Section - NOUVEAU */}
-      <section id="comment" className="py-20 px-4">
+      <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="mb-4">Comment ça marche ?</h2>
           <p className="text-xl text-muted-foreground">3 étapes simples pour transformer ton corps</p>
         </div>
-        
+
         <div className="max-w-5xl mx-auto space-y-16">
           {/* Étape 1 */}
           <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -163,7 +211,8 @@ const Landing = () => {
               </Badge>
               <h3 className="text-3xl font-bold">Réponds à 15 questions</h3>
               <p className="text-muted-foreground text-lg">
-                Âge, objectif, niveau, matériel disponible... Notre IA analyse ton profil pour créer un plan 100% personnalisé.
+                Âge, objectif, niveau, matériel disponible... Notre IA analyse ton profil pour créer un plan 100%
+                personnalisé.
               </p>
               <ul className="space-y-3 pt-2">
                 <li className="flex items-center gap-3">
@@ -193,7 +242,7 @@ const Landing = () => {
               <p className="text-center text-sm text-muted-foreground mt-4">Questionnaire personnalisé</p>
             </Card>
           </div>
-          
+
           {/* Étape 2 */}
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <Card className="p-6 bg-muted/30">
@@ -208,7 +257,8 @@ const Landing = () => {
               </Badge>
               <h3 className="text-3xl font-bold">Reçois ton plan complet</h3>
               <p className="text-muted-foreground text-lg">
-                Nutrition (calories, macros, hydratation) + Programme d'entraînement adapté à ton matériel et ton emploi du temps.
+                Nutrition (calories, macros, hydratation) + Programme d'entraînement adapté à ton matériel et ton emploi
+                du temps.
               </p>
               <ul className="space-y-3 pt-2">
                 <li className="flex items-center gap-3">
@@ -232,7 +282,7 @@ const Landing = () => {
               </ul>
             </div>
           </div>
-          
+
           {/* Étape 3 */}
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div className="order-2 md:order-1 space-y-4">
@@ -275,7 +325,7 @@ const Landing = () => {
       </section>
 
       {/* Benefits Section */}
-      <section id="pourquoi" className="py-20 px-4 bg-muted/30">
+      <section className="py-20 px-4 bg-muted/30">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-center mb-12">Pourquoi Pulse.ai ?</h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -288,7 +338,7 @@ const Landing = () => {
                 Plans adaptés à ton âge, ton niveau, ton matériel et tes contraintes de temps.
               </p>
             </Card>
-            
+
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 rounded-lg bg-secondary/10 flex items-center justify-center mb-4">
                 <Clock className="w-6 h-6 text-secondary" />
@@ -298,7 +348,7 @@ const Landing = () => {
                 Ton plan en moins de 5 minutes. Des séances de 30 à 60 minutes adaptées à ton emploi du temps.
               </p>
             </Card>
-            
+
             <Card className="p-6 hover:shadow-lg transition-shadow">
               <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center mb-4">
                 <TrendingUp className="w-6 h-6 text-accent" />
@@ -319,17 +369,29 @@ const Landing = () => {
             <div>
               <h2 className="mb-6">Ce que tu obtiens</h2>
               <ul className="space-y-4">
-                {["Plans nutrition personnalisés (calories + macros)", "Séances d'entraînement détaillées avec alternatives", "Coach sport IA Alex disponible 24/7", "Nutritionniste IA Julie pour tes repas", "Timer intégré et suivi RPE/RIR", "Check-in hebdomadaire pour ajustements", "Exercices en vidéo avec consignes claires", "Support par email 7j/7"].map((feature, i) => <li key={i} className="flex items-start gap-3">
+                {[
+                  "Plans nutrition personnalisés (calories + macros)",
+                  "Séances d'entraînement détaillées avec alternatives",
+                  "Coach sport IA Alex disponible 24/7",
+                  "Nutritionniste IA Julie pour tes repas",
+                  "Timer intégré et suivi RPE/RIR",
+                  "Check-in hebdomadaire pour ajustements",
+                  "Exercices en vidéo avec consignes claires",
+                  "Support par email 7j/7",
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
                     <span>{feature}</span>
-                  </li>)}
+                  </li>
+                ))}
               </ul>
             </div>
             <Card className="p-8 bg-card">
               <Dumbbell className="w-16 h-16 text-primary mb-4" />
               <h3 className="text-2xl font-bold mb-4">À la maison ou en salle</h3>
               <p className="text-muted-foreground mb-6">
-                Que tu aies une salle complète ou juste ton poids du corps, Pulse.ai adapte tes séances à ton matériel disponible.
+                Que tu aies une salle complète ou juste ton poids du corps, Pulse.ai adapte tes séances à ton matériel
+                disponible.
               </p>
               <Link to="/start">
                 <Button variant="default" size="lg" className="w-full">
@@ -342,7 +404,7 @@ const Landing = () => {
       </section>
 
       {/* Section Coachs IA */}
-      <section id="coachs-ia" className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">
@@ -354,23 +416,22 @@ const Landing = () => {
               Des experts virtuels qui connaissent ton profil et répondent à toutes tes questions, jour et nuit
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             {/* Alex - Coach Sport */}
             <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-primary/20 bg-gradient-to-br from-card to-primary/5 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-6">
-                  <Avatar className="w-16 h-16 border-4 border-primary/20 shadow-lg">
-                    <AvatarImage src={coachAlexAvatar} alt="Alex - Coach Sport IA" />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xl">A</AvatarFallback>
-                  </Avatar>
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center ring-4 ring-primary/20">
+                    <Dumbbell className="w-8 h-8 text-primary" />
+                  </div>
                   <div>
                     <h3 className="text-2xl font-bold">Alex</h3>
                     <p className="text-muted-foreground">Coach Sport IA</p>
                   </div>
                 </div>
-                
+
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
@@ -385,7 +446,7 @@ const Landing = () => {
                     <span>Répond à toutes tes questions entraînement</span>
                   </li>
                 </ul>
-                
+
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="text-xs">
                     <MessageSquare className="w-3 h-3 mr-1" />
@@ -402,22 +463,21 @@ const Landing = () => {
                 </div>
               </div>
             </Card>
-            
+
             {/* Julie - Nutritionniste IA */}
             <Card className="p-8 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-secondary/20 bg-gradient-to-br from-card to-secondary/5 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl group-hover:bg-secondary/20 transition-all" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-6">
-                  <Avatar className="w-16 h-16 border-4 border-secondary/20 shadow-lg">
-                    <AvatarImage src={coachJulieAvatar} alt="Julie - Nutritionniste IA" />
-                    <AvatarFallback className="bg-secondary/10 text-secondary text-xl">J</AvatarFallback>
-                  </Avatar>
+                  <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center ring-4 ring-secondary/20">
+                    <Salad className="w-8 h-8 text-secondary" />
+                  </div>
                   <div>
                     <h3 className="text-2xl font-bold">Julie</h3>
                     <p className="text-muted-foreground">Nutritionniste IA</p>
                   </div>
                 </div>
-                
+
                 <ul className="space-y-3 mb-6">
                   <li className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-secondary mt-0.5 flex-shrink-0" />
@@ -432,7 +492,7 @@ const Landing = () => {
                     <span>Crée ta liste de courses en 1 clic</span>
                   </li>
                 </ul>
-                
+
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="secondary" className="text-xs">
                     <MessageSquare className="w-3 h-3 mr-1" />
@@ -450,9 +510,9 @@ const Landing = () => {
               </div>
             </Card>
           </div>
-          
+
           <div className="text-center mt-12">
-            <Link to="/coachs-ia">
+            <Link to="/start">
               <Button size="lg" variant="default">
                 Découvrir mes coachs IA
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -471,7 +531,7 @@ const Landing = () => {
               Compare notre approche avec les alternatives traditionnelles
             </p>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full bg-card rounded-lg overflow-hidden">
               <thead>
@@ -492,7 +552,7 @@ const Landing = () => {
                 <tr className="border-b">
                   <td className="py-4 px-6 font-medium">Prix mensuel</td>
                   <td className="text-center py-4 px-6 bg-primary/5">
-                    <span className="font-bold text-primary">9,90€</span>
+                    <span className="font-bold text-primary">8,99€</span>
                   </td>
                   <td className="text-center py-4 px-6 text-muted-foreground">50-150€</td>
                   <td className="text-center py-4 px-6 text-muted-foreground">0-15€</td>
@@ -572,7 +632,7 @@ const Landing = () => {
               </tbody>
             </table>
           </div>
-          
+
           <div className="text-center mt-12">
             <Link to="/start">
               <Button size="lg">
@@ -592,7 +652,7 @@ const Landing = () => {
           <p className="text-muted-foreground text-lg mb-12">
             Connecte Pulse.ai à tes applications de santé et fitness pour un suivi optimal
           </p>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <Card className="p-6 hover:shadow-lg transition-all hover:scale-105">
               <Apple className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
@@ -618,18 +678,16 @@ const Landing = () => {
       <section className="py-20 px-4 bg-muted/30" id="faq">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-center mb-4">Questions fréquentes</h2>
-          <p className="text-center text-muted-foreground mb-12">
-            Tout ce que tu dois savoir sur Pulse.ai
-          </p>
+          <p className="text-center text-muted-foreground mb-12">Tout ce que tu dois savoir sur Pulse.ai</p>
           <Accordion type="single" collapsible className="space-y-4">
-            {faqItems.map((faq, i) => <AccordionItem key={i} value={`item-${i}`} className="bg-card border rounded-lg px-6">
+            {faqItems.map((faq, i) => (
+              <AccordionItem key={i} value={`item-${i}`} className="bg-card border rounded-lg px-6">
                 <AccordionTrigger className="text-left hover:no-underline">
                   <span className="font-semibold">{faq.q}</span>
                 </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {faq.a}
-                </AccordionContent>
-              </AccordionItem>)}
+                <AccordionContent className="text-muted-foreground">{faq.a}</AccordionContent>
+              </AccordionItem>
+            ))}
           </Accordion>
         </div>
       </section>
@@ -638,20 +696,18 @@ const Landing = () => {
       <section className="relative py-20 px-4 overflow-hidden">
         <div className="absolute inset-0 gradient-hero opacity-90" />
         <div className="absolute inset-0 bg-grid-white/5" />
-        
+
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10 text-primary-foreground">
           <Badge variant="default" className="mb-4">
             <ShieldCheck className="w-3 h-3 mr-1" />
             Satisfait ou remboursé sous 30 jours
           </Badge>
-          <h2 className="text-4xl md:text-5xl font-bold">
-            Prêt(e) à transformer ton corps ?
-          </h2>
+          <h2 className="text-4xl md:text-5xl font-bold">Prêt(e) à transformer ton corps ?</h2>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
-            Rejoins <strong>1,247 membres</strong> qui progressent chaque jour avec Pulse.ai.
-            Résultats visibles en 4 semaines ou remboursé.
+            Rejoins <strong>1,247 membres</strong> qui progressent chaque jour avec Pulse.ai. Résultats visibles en 4
+            semaines ou remboursé.
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link to="/start">
               <Button size="lg" className="text-lg">
@@ -661,14 +717,20 @@ const Landing = () => {
               </Button>
             </Link>
             <Link to="/preview">
-              <Button size="lg" variant="outline" className="text-lg border-primary-foreground hover:bg-primary-foreground text-zinc-800">
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-lg border-primary-foreground hover:bg-primary-foreground text-zinc-800"
+              >
                 Voir une démo
               </Button>
             </Link>
           </div>
-          
+
           <div className="flex flex-wrap justify-center gap-8 pt-8 text-sm opacity-80">
-            <div className="flex items-center gap-2">Sans engagement<Check className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              Sans engagement
+              <Check className="w-4 h-4" />
               Sans carte bancaire
             </div>
             <div className="flex items-center gap-2">
@@ -782,6 +844,7 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
 export default Landing;
