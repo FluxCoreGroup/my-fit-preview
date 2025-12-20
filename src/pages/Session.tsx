@@ -197,24 +197,6 @@ const Session = () => {
             .from('sessions')
             .update({ completed: true })
             .eq('id', sessionId);
-
-          const { count } = await supabase
-            .from('sessions')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('completed', true);
-
-          const { data: subscription } = await supabase
-            .from('subscriptions')
-            .select('status')
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .maybeSingle();
-
-          if (count === 1 && !subscription) {
-            navigate("/paywall");
-            return;
-          }
         }
         
         setShowFeedbackModal(true);
