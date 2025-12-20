@@ -1,7 +1,15 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dumbbell, ArrowLeft, LogOut, Settings } from "lucide-react";
+import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, X } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 interface HeaderProps {
   variant?: "marketing" | "onboarding" | "app";
@@ -15,6 +23,7 @@ interface HeaderProps {
 export const Header = ({ variant = "marketing", showBack = false, backLabel = "Retour", onBack, hideAuthButton = false, disableNavigation = false }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleBack = () => {
     if (onBack) {
@@ -24,6 +33,8 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
     }
   };
 
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   // Header App (pour dashboard, session, etc.)
   if (variant === "app") {
     return (
@@ -31,7 +42,7 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/hub" className="flex items-center gap-2 font-bold text-xl">
             <Dumbbell className="w-6 h-6 text-primary" />
-            <span>Pulse.ai</span>
+            <span className="hidden sm:inline">Pulse.ai</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
@@ -50,14 +61,81 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link to="/settings">
-              <Button variant="ghost" size="sm">
-                <Settings className="w-4 h-4" />
+            {/* Desktop actions */}
+            <div className="hidden md:flex items-center gap-2">
+              <Link to="/settings">
+                <Button variant="ghost" size="sm">
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={signOut}>
+                <LogOut className="w-4 h-4" />
               </Button>
-            </Link>
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              <LogOut className="w-4 h-4" />
-            </Button>
+            </div>
+
+            {/* Mobile menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild className="md:hidden">
+                <Button variant="ghost" size="sm">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+                <SheetHeader>
+                  <SheetTitle className="flex items-center gap-2">
+                    <Dumbbell className="w-5 h-5 text-primary" />
+                    Pulse.ai
+                  </SheetTitle>
+                </SheetHeader>
+                <nav className="flex flex-col gap-4 mt-8">
+                  <Link 
+                    to="/hub" 
+                    onClick={closeMobileMenu}
+                    className="text-lg font-medium hover:text-primary transition-colors py-2"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link 
+                    to="/training" 
+                    onClick={closeMobileMenu}
+                    className="text-lg font-medium hover:text-primary transition-colors py-2"
+                  >
+                    Entraînements
+                  </Link>
+                  <Link 
+                    to="/nutrition" 
+                    onClick={closeMobileMenu}
+                    className="text-lg font-medium hover:text-primary transition-colors py-2"
+                  >
+                    Nutrition
+                  </Link>
+                  <Link 
+                    to="/settings/support" 
+                    onClick={closeMobileMenu}
+                    className="text-lg font-medium hover:text-primary transition-colors py-2"
+                  >
+                    Support
+                  </Link>
+                  <div className="border-t pt-4 mt-4 space-y-4">
+                    <Link 
+                      to="/settings" 
+                      onClick={closeMobileMenu}
+                      className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2"
+                    >
+                      <Settings className="w-5 h-5" />
+                      Paramètres
+                    </Link>
+                    <button 
+                      onClick={() => { closeMobileMenu(); signOut(); }}
+                      className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2 w-full text-left"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      Déconnexion
+                    </button>
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
@@ -72,17 +150,17 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
           {disableNavigation ? (
             <div className="flex items-center gap-2 font-bold text-xl">
               <Dumbbell className="w-6 h-6 text-primary" />
-              <span>Pulse.ai</span>
+              <span className="hidden sm:inline">Pulse.ai</span>
             </div>
           ) : showBack ? (
             <Button variant="ghost" size="sm" onClick={handleBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              {backLabel}
+              <span className="hidden sm:inline">{backLabel}</span>
             </Button>
           ) : (
             <Link to="/" className="flex items-center gap-2 font-bold text-xl">
               <Dumbbell className="w-6 h-6 text-primary" />
-              <span>Pulse.ai</span>
+              <span className="hidden sm:inline">Pulse.ai</span>
             </Link>
           )}
 
@@ -136,15 +214,80 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
         <div className="flex items-center gap-3">
           {user ? (
             <Link to="/hub">
-              <Button>Dashboard</Button>
+              <Button size="sm">Dashboard</Button>
             </Link>
           ) : (
-            <Link to="/auth">
+            <Link to="/auth" className="hidden sm:block">
               <Button variant="ghost" size="sm">
                 Connexion
               </Button>
             </Link>
           )}
+
+          {/* Mobile menu for marketing */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="sm">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <Dumbbell className="w-5 h-5 text-primary" />
+                  Pulse.ai
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col gap-4 mt-8">
+                <a 
+                  href="#comment" 
+                  onClick={closeMobileMenu}
+                  className="text-lg font-medium hover:text-primary transition-colors py-2"
+                >
+                  Comment ?
+                </a>
+                <a 
+                  href="#pourquoi" 
+                  onClick={closeMobileMenu}
+                  className="text-lg font-medium hover:text-primary transition-colors py-2"
+                >
+                  Pourquoi ?
+                </a>
+                <a 
+                  href="#coachs-ia" 
+                  onClick={closeMobileMenu}
+                  className="text-lg font-medium hover:text-primary transition-colors py-2"
+                >
+                  Coach IA
+                </a>
+                <a 
+                  href="#features" 
+                  onClick={closeMobileMenu}
+                  className="text-lg font-medium hover:text-primary transition-colors py-2"
+                >
+                  Prix
+                </a>
+                <a 
+                  href="#faq" 
+                  onClick={closeMobileMenu}
+                  className="text-lg font-medium hover:text-primary transition-colors py-2"
+                >
+                  FAQ
+                </a>
+                <div className="border-t pt-4 mt-4">
+                  {user ? (
+                    <Link to="/hub" onClick={closeMobileMenu}>
+                      <Button className="w-full">Dashboard</Button>
+                    </Link>
+                  ) : (
+                    <Link to="/auth" onClick={closeMobileMenu}>
+                      <Button className="w-full">Connexion</Button>
+                    </Link>
+                  )}
+                </div>
+              </nav>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </header>

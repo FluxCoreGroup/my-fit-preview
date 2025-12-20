@@ -194,7 +194,7 @@ const Support = () => {
         <Card className="p-8">
           <h2 className="text-2xl font-bold mb-6">Envoyer un message</h2>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="name">Nom / Prénom</Label>
                 <Input
@@ -259,7 +259,7 @@ const Support = () => {
         {/* Additional Resources */}
         <div className="mt-12 text-center">
           <h3 className="text-xl font-bold mb-4">Ressources utiles</h3>
-          <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-center">
             <Link to="/legal">
               <Button variant="outline">Mentions légales</Button>
             </Link>

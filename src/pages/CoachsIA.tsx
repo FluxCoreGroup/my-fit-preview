@@ -67,7 +67,7 @@ const CoachsIA = () => {
             Intelligence Artificielle
           </Badge>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
             Tes Coachs IA <span className="text-primary">24/7</span>
           </h1>
           
@@ -76,7 +76,7 @@ const CoachsIA = () => {
             Pose-leur n'importe quelle question, ils sont là pour toi.
           </p>
           
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-12">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20">
               <Clock className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium">Disponibles 24h/24</span>
@@ -166,7 +166,7 @@ const CoachsIA = () => {
                 </div>
               </div>
               
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-6 lg:mb-0">
                 <Badge variant="outline" className="text-xs">"Simplifie ma séance"</Badge>
                 <Badge variant="outline" className="text-xs">"Alternative sans douleur"</Badge>
                 <Badge variant="outline" className="text-xs">"Séance de 30 min"</Badge>

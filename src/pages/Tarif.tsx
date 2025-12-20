@@ -248,7 +248,7 @@ const Tarif = () => {
           </div>
 
           {/* Réassurance */}
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-5xl mx-auto">
             <Card className="p-6 text-center bg-card/50 border-border">
               <Shield className="w-8 h-8 text-primary mx-auto mb-3" />
               <h4 className="font-semibold mb-2">Paiement sécurisé</h4>
