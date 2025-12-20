@@ -1,7 +1,5 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -59,28 +57,30 @@ serve(async (req) => {
       );
     }
 
-    // Get authenticated user
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    const { name, email, subject, message } = await req.json();
 
-    const authHeader = req.headers.get('Authorization');
-    const token = authHeader?.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError || !user?.email) {
-      console.error('User not authenticated:', userError);
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
       return new Response(
-        JSON.stringify({ error: 'User not authenticated' }),
+        JSON.stringify({ error: 'Valid email is required' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 401 
+          status: 400 
         }
       );
     }
 
-    const { subject, message } = await req.json();
+    // Validate name
+    if (!name || name.trim().length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Name is required' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
 
     // Validate inputs
     const validation = validateInput(subject, message);
@@ -95,21 +95,25 @@ serve(async (req) => {
     }
 
     // Sanitize inputs to prevent XSS
+    const sanitizedName = sanitizeHtml(name.trim());
+    const sanitizedEmail = sanitizeHtml(email.trim());
     const sanitizedSubject = sanitizeHtml(subject.trim());
     const sanitizedMessage = sanitizeHtml(message.trim());
 
     const resend = new Resend(RESEND_API_KEY);
 
+    console.log('Sending support email from:', sanitizedEmail);
+
     // Send email to support team
     const { data, error } = await resend.emails.send({
       from: 'Pulse-AI Support <support@notifications.pulse-ai.app>',
       to: ['general@pulse-ai.app'],
-      replyTo: user.email,
+      replyTo: email,
       subject: `[Support] ${sanitizedSubject}`,
       html: `
         <h2>Nouveau message de support</h2>
-        <p><strong>De:</strong> ${user.email}</p>
-        <p><strong>User ID:</strong> ${user.id}</p>
+        <p><strong>Nom:</strong> ${sanitizedName}</p>
+        <p><strong>Email:</strong> ${sanitizedEmail}</p>
         <p><strong>Sujet:</strong> ${sanitizedSubject}</p>
         <hr>
         <p><strong>Message:</strong></p>
@@ -131,10 +135,10 @@ serve(async (req) => {
     // Send confirmation to user
     await resend.emails.send({
       from: 'Pulse-AI <noreply@notifications.pulse-ai.app>',
-      to: [user.email],
+      to: [email],
       subject: 'Nous avons bien reçu ton message',
       html: `
-        <h2>Salut !</h2>
+        <h2>Salut ${sanitizedName} !</h2>
         <p>Nous avons bien reçu ton message et nous te répondrons dans les plus brefs délais.</p>
         <p><strong>Ton message:</strong></p>
         <p>${sanitizedMessage.replace(/\n/g, '<br>')}</p>
