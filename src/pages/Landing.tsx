@@ -539,100 +539,193 @@ const Landing = () => {
             </p>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Mobile Cards Layout */}
+          <div className="md:hidden space-y-4">
+            {/* Pulse.ai Card - Featured */}
+            <div className="bg-card rounded-xl border-2 border-primary p-5 relative">
+              <div className="absolute -top-3 left-4 bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                Recommandé
+              </div>
+              <div className="flex justify-between items-start mb-4 mt-2">
+                <h3 className="font-bold text-lg text-primary">Pulse.ai</h3>
+                <div className="text-right">
+                  <span className="text-2xl font-bold text-primary">8,99€</span>
+                  <span className="text-muted-foreground text-sm">/mois</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: "Personnalisation IA", has: true },
+                  { label: "Ajustements automatiques", has: true },
+                  { label: "Disponibilité 24/7", has: true },
+                  { label: "Plans nutrition + sport", has: true },
+                  { label: "Coach IA 24/7", has: true },
+                  { label: "Support 7j/7", has: true },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Check className="w-5 h-5 text-primary shrink-0" />
+                    <span className="text-sm">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Coach Personnel Card */}
+            <div className="bg-card rounded-xl border border-border p-5">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="font-semibold text-muted-foreground">Coach personnel</h3>
+                <div className="text-right">
+                  <span className="text-xl font-bold text-muted-foreground">50-150€</span>
+                  <span className="text-muted-foreground text-sm">/mois</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: "Personnalisation IA", has: true },
+                  { label: "Ajustements automatiques", has: true },
+                  { label: "Disponibilité 24/7", has: false },
+                  { label: "Plans nutrition + sport", has: true },
+                  { label: "Coach IA 24/7", has: false },
+                  { label: "Support 7j/7", has: true },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    {item.has ? (
+                      <Check className="w-5 h-5 text-muted-foreground shrink-0" />
+                    ) : (
+                      <X className="w-5 h-5 text-muted-foreground/50 shrink-0" />
+                    )}
+                    <span className={`text-sm ${!item.has ? 'text-muted-foreground/50' : ''}`}>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Apps Génériques Card */}
+            <div className="bg-card rounded-xl border border-border p-5">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="font-semibold text-muted-foreground">Apps génériques</h3>
+                <div className="text-right">
+                  <span className="text-xl font-bold text-muted-foreground">0-15€</span>
+                  <span className="text-muted-foreground text-sm">/mois</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { label: "Personnalisation IA", has: false },
+                  { label: "Ajustements automatiques", has: false },
+                  { label: "Disponibilité 24/7", has: true },
+                  { label: "Plans nutrition + sport", has: false },
+                  { label: "Coach IA 24/7", has: false },
+                  { label: "Support 7j/7", has: false },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    {item.has ? (
+                      <Check className="w-5 h-5 text-muted-foreground shrink-0" />
+                    ) : (
+                      <X className="w-5 h-5 text-muted-foreground/50 shrink-0" />
+                    )}
+                    <span className={`text-sm ${!item.has ? 'text-muted-foreground/50' : ''}`}>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Table Layout */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full bg-card rounded-lg overflow-hidden">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-6 px-6 font-semibold"></th>
-                  <th className="text-center py-6 px-6 bg-primary/5">
+                  <th className="text-left py-6 px-3 lg:px-6 font-semibold"></th>
+                  <th className="text-center py-6 px-3 lg:px-6 bg-primary/5">
                     <div className="font-bold text-primary text-lg">Pulse.ai</div>
                   </th>
-                  <th className="text-center py-6 px-6">
+                  <th className="text-center py-6 px-3 lg:px-6">
                     <div className="font-semibold text-muted-foreground">Coach personnel</div>
                   </th>
-                  <th className="text-center py-6 px-6">
+                  <th className="text-center py-6 px-3 lg:px-6">
                     <div className="font-semibold text-muted-foreground">Apps génériques</div>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="border-b">
-                  <td className="py-4 px-6 font-medium">Prix mensuel</td>
-                  <td className="text-center py-4 px-6 bg-primary/5">
+                  <td className="py-4 px-3 lg:px-6 font-medium">Prix mensuel</td>
+                  <td className="text-center py-4 px-3 lg:px-6 bg-primary/5">
                     <span className="font-bold text-primary">8,99€</span>
                   </td>
-                  <td className="text-center py-4 px-6 text-muted-foreground">50-150€</td>
-                  <td className="text-center py-4 px-6 text-muted-foreground">0-15€</td>
+                  <td className="text-center py-4 px-3 lg:px-6 text-muted-foreground">50-150€</td>
+                  <td className="text-center py-4 px-3 lg:px-6 text-muted-foreground">0-15€</td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-6 font-medium">Personnalisation IA</td>
-                  <td className="text-center py-4 px-6 bg-primary/5">
+                  <td className="py-4 px-3 lg:px-6 font-medium">Personnalisation IA</td>
+                  <td className="text-center py-4 px-3 lg:px-6 bg-primary/5">
                     <Check className="w-5 h-5 text-primary mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <Check className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <X className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-6 font-medium">Ajustements automatiques</td>
-                  <td className="text-center py-4 px-6 bg-primary/5">
+                  <td className="py-4 px-3 lg:px-6 font-medium">Ajustements automatiques</td>
+                  <td className="text-center py-4 px-3 lg:px-6 bg-primary/5">
                     <Check className="w-5 h-5 text-primary mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <Check className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <X className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-6 font-medium">Disponibilité 24/7</td>
-                  <td className="text-center py-4 px-6 bg-primary/5">
+                  <td className="py-4 px-3 lg:px-6 font-medium">Disponibilité 24/7</td>
+                  <td className="text-center py-4 px-3 lg:px-6 bg-primary/5">
                     <Check className="w-5 h-5 text-primary mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <X className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <Check className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-6 font-medium">Plans nutrition + sport</td>
-                  <td className="text-center py-4 px-6 bg-primary/5">
+                  <td className="py-4 px-3 lg:px-6 font-medium">Plans nutrition + sport</td>
+                  <td className="text-center py-4 px-3 lg:px-6 bg-primary/5">
                     <Check className="w-5 h-5 text-primary mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <Check className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <X className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
                 </tr>
                 <tr className="border-b">
-                  <td className="py-4 px-6 font-medium">Coach IA 24/7</td>
-                  <td className="text-center py-4 px-6 bg-primary/5">
+                  <td className="py-4 px-3 lg:px-6 font-medium">Coach IA 24/7</td>
+                  <td className="text-center py-4 px-3 lg:px-6 bg-primary/5">
                     <Check className="w-5 h-5 text-primary mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <X className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <X className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-4 px-6 font-medium">Support 7j/7</td>
-                  <td className="text-center py-4 px-6 bg-primary/5">
+                  <td className="py-4 px-3 lg:px-6 font-medium">Support 7j/7</td>
+                  <td className="text-center py-4 px-3 lg:px-6 bg-primary/5">
                     <Check className="w-5 h-5 text-primary mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <Check className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
-                  <td className="text-center py-4 px-6">
+                  <td className="text-center py-4 px-3 lg:px-6">
                     <X className="w-5 h-5 text-muted-foreground mx-auto" />
                   </td>
                 </tr>
