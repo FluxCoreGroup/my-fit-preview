@@ -23,7 +23,7 @@ serve(async (req) => {
     logStep("Function started");
 
     const { mode = "subscription" } = await req.json();
-    const priceId = "price_1SS9BTFHkkJtNHC3dr9vpvNP"; // 8,99€/mois All In
+    const priceId = "price_1SgMu4GmCvXEfWmDJlWHfwsS"; // 8,99€/mois Pulse All In
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
