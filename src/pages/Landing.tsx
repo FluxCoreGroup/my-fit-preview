@@ -453,11 +453,6 @@ const Landing = () => {
           
           <div className="text-center mt-12">
             <Link to="/coachs-ia">
-              <Button size="lg" variant="outline" className="mr-4">
-                En savoir plus
-              </Button>
-            </Link>
-            <Link to="/start">
               <Button size="lg" variant="default">
                 Découvrir mes coachs IA
                 <ArrowRight className="w-5 h-5 ml-2" />
