@@ -54,38 +54,30 @@ const Session = () => {
 
   useEffect(() => {
     const loadSession = async () => {
-      const generatedSessionStr = localStorage.getItem("generatedSession");
-      
-      if (generatedSessionStr) {
-        try {
-          const generatedSession = JSON.parse(generatedSessionStr);
-          setExercises(generatedSession.exercises);
-          localStorage.removeItem("generatedSession");
-
-          if (user) {
-            const { data: session } = await supabase
-              .from("sessions")
-              .insert({
-                user_id: user.id,
-                exercises: generatedSession.exercises,
-                completed: false
-              })
-              .select()
-              .single();
-
-            if (session) setSessionId(session.id);
-          }
-          return;
-        } catch (error) {
-          console.error("Error loading generated session:", error);
-        }
-      }
-
       if (!user) {
         navigate("/auth");
         return;
       }
 
+      // Try to load session from currentSessionId in localStorage
+      const currentSessionId = localStorage.getItem("currentSessionId");
+      
+      if (currentSessionId) {
+        const { data: session } = await supabase
+          .from('sessions')
+          .select('*')
+          .eq('id', currentSessionId)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (session?.exercises && Array.isArray(session.exercises)) {
+          setExercises(session.exercises as any);
+          setSessionId(session.id);
+          return;
+        }
+      }
+
+      // Fallback: load most recent session
       const { data: lastSession } = await supabase
         .from('sessions')
         .select('*')
@@ -98,7 +90,7 @@ const Session = () => {
         setExercises(lastSession.exercises as any);
         setSessionId(lastSession.id);
       } else {
-        navigate("/training-setup");
+        navigate("/training");
       }
     };
 
