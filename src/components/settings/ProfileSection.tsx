@@ -52,15 +52,12 @@ export const ProfileSection = () => {
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({
-        data: { name: name.trim() }
+        data: { name: name.trim() },
       });
 
       if (error) throw error;
 
-      await supabase
-        .from("profiles")
-        .update({ name: name.trim() })
-        .eq("id", user?.id);
+      await supabase.from("profiles").update({ name: name.trim() }).eq("id", user?.id);
 
       toast.success("Nom mis à jour avec succès");
     } catch (error: any) {
@@ -94,42 +91,42 @@ export const ProfileSection = () => {
   const checkSubscriptionBeforeDelete = async () => {
     setCheckingSubscription(true);
     setDialogOpen(true);
-    
+
     try {
       const { data: sub, error } = await supabase
-        .from('subscriptions')
-        .select('plan_type, ends_at, status')
-        .eq('user_id', user?.id)
+        .from("subscriptions")
+        .select("plan_type, ends_at, status")
+        .eq("user_id", user?.id)
         .maybeSingle();
 
-      if (error || !sub || (sub.status !== 'active' && sub.status !== 'trialing')) {
-        setSubscriptionInfo({ 
-          hasSubscription: false, 
-          plan_type: '', 
-          ends_at: '', 
+      if (error || !sub || (sub.status !== "active" && sub.status !== "trialing")) {
+        setSubscriptionInfo({
+          hasSubscription: false,
+          plan_type: "",
+          ends_at: "",
           price: 0,
-          status: '' 
+          status: "",
         });
       } else {
         // Prix unique All In
         const price = 899; // 8,99€
-        
+
         setSubscriptionInfo({
           hasSubscription: true,
           plan_type: sub.plan_type,
           ends_at: sub.ends_at,
           price: price,
-          status: sub.status
+          status: sub.status,
         });
       }
     } catch (error) {
-      console.error('Error checking subscription:', error);
-      setSubscriptionInfo({ 
-        hasSubscription: false, 
-        plan_type: '', 
-        ends_at: '', 
+      console.error("Error checking subscription:", error);
+      setSubscriptionInfo({
+        hasSubscription: false,
+        plan_type: "",
+        ends_at: "",
         price: 0,
-        status: '' 
+        status: "",
       });
     } finally {
       setCheckingSubscription(false);
@@ -144,33 +141,32 @@ export const ProfileSection = () => {
   const handleDeleteAccount = async () => {
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session) {
         toast.error("Session expirée");
         return;
       }
 
-      const response = await fetch(
-        `https://nsowlnpntphxwykzbwmc.supabase.co/functions/v1/delete-user-account`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await fetch(`https://nsowlnpntphxwykzbwmc.supabase.co/functions/v1/delete-user-account`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
-        throw new Error('Erreur lors de la suppression du compte');
+        throw new Error("Erreur lors de la suppression du compte");
       }
 
       toast.success("Compte supprimé avec succès");
-      
+
       // Sign out and redirect
       await signOut();
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (error: any) {
       toast.error("Erreur lors de la suppression du compte");
       console.error(error);
@@ -181,11 +177,11 @@ export const ProfileSection = () => {
   };
 
   const formatPrice = (price: number) => {
-    return (price / 100).toFixed(2).replace('.', ',') + '€';
+    return (price / 100).toFixed(2).replace(".", ",") + "€";
   };
 
   const getPlanLabel = (planType: string) => {
-    return planType === 'year' ? 'Annuel' : 'Mensuel';
+    return planType === "year" ? "Annuel" : "Mensuel";
   };
 
   return (
@@ -201,34 +197,18 @@ export const ProfileSection = () => {
             <Mail className="w-4 h-4" />
             Email
           </Label>
-          <Input
-            id="email"
-            type="email"
-            value={user?.email || ""}
-            disabled
-            className="bg-muted"
-          />
-          <p className="text-sm text-muted-foreground">
-            L'email ne peut pas être modifié
-          </p>
+          <Input id="email" type="email" value={user?.email || ""} disabled className="bg-muted" />
+          <p className="text-sm text-muted-foreground">L'email ne peut pas être modifié</p>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="name" className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            Nom
+            Prénom
           </Label>
           <div className="flex gap-2">
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ton nom"
-            />
-            <Button
-              onClick={handleNameUpdate}
-              disabled={loading || name === user?.user_metadata?.name}
-            >
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ton nom" />
+            <Button onClick={handleNameUpdate} disabled={loading || name === user?.user_metadata?.name}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Sauvegarder"}
             </Button>
           </div>
@@ -239,31 +219,16 @@ export const ProfileSection = () => {
             <Lock className="w-4 h-4" />
             Mot de passe
           </Label>
-          <Button
-            variant="outline"
-            onClick={handlePasswordReset}
-            disabled={passwordLoading}
-            className="w-full"
-          >
-            {passwordLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
-              <Lock className="w-4 h-4 mr-2" />
-            )}
+          <Button variant="outline" onClick={handlePasswordReset} disabled={passwordLoading} className="w-full">
+            {passwordLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Lock className="w-4 h-4 mr-2" />}
             Réinitialiser mon mot de passe
           </Button>
-          <p className="text-sm text-muted-foreground">
-            Un email te sera envoyé pour changer ton mot de passe
-          </p>
+          <p className="text-sm text-muted-foreground">Un email te sera envoyé pour changer ton mot de passe</p>
         </div>
       </div>
 
       <div className="pt-6 border-t">
-        <Button 
-          variant="destructive" 
-          className="w-full"
-          onClick={() => setShowFeedbackDialog(true)}
-        >
+        <Button variant="destructive" className="w-full" onClick={() => setShowFeedbackDialog(true)}>
           Supprimer mon compte
         </Button>
 
@@ -278,24 +243,22 @@ export const ProfileSection = () => {
 
         <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <AlertDialogTrigger asChild>
-            <div style={{ display: 'none' }} />
+            <div style={{ display: "none" }} />
           </AlertDialogTrigger>
           <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
               <AlertDialogTitle className="flex items-center gap-2">
-                {subscriptionInfo?.hasSubscription && (
-                  <AlertTriangle className="w-5 h-5 text-orange-500" />
-                )}
+                {subscriptionInfo?.hasSubscription && <AlertTriangle className="w-5 h-5 text-orange-500" />}
                 Es-tu sûr(e) ?
               </AlertDialogTitle>
-              
+
               {subscriptionInfo?.hasSubscription ? (
                 <div className="space-y-4">
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 space-y-3">
                     <Badge variant="destructive" className="mb-2">
                       Abonnement actif
                     </Badge>
-                    
+
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -304,36 +267,31 @@ export const ProfileSection = () => {
                           {format(new Date(subscriptionInfo.ends_at), "dd MMMM yyyy", { locale: fr })}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <Euro className="w-4 h-4 text-muted-foreground" />
                         <span className="text-muted-foreground">Plan :</span>
                         <span className="font-semibold">
                           {getPlanLabel(subscriptionInfo.plan_type)} - {formatPrice(subscriptionInfo.price)}
-                          {subscriptionInfo.plan_type === 'month' ? '/mois' : '/an'}
+                          {subscriptionInfo.plan_type === "month" ? "/mois" : "/an"}
                         </span>
                       </div>
                     </div>
                   </div>
-                  
+
                   <AlertDialogDescription className="text-base">
-                    <span className="font-semibold text-destructive">
-                      Ton abonnement sera immédiatement annulé
-                    </span>{" "}
-                    et tu ne seras plus facturé. Toutes tes données seront définitivement supprimées.
+                    <span className="font-semibold text-destructive">Ton abonnement sera immédiatement annulé</span> et
+                    tu ne seras plus facturé. Toutes tes données seront définitivement supprimées.
                   </AlertDialogDescription>
-                  
+
                   <div className="flex items-start space-x-3 bg-muted/50 p-3 rounded-lg">
-                    <Checkbox 
-                      id="confirm-delete" 
+                    <Checkbox
+                      id="confirm-delete"
                       checked={confirmDelete}
                       onCheckedChange={(checked) => setConfirmDelete(checked === true)}
                       className="mt-1"
                     />
-                    <label
-                      htmlFor="confirm-delete"
-                      className="text-sm leading-tight cursor-pointer select-none"
-                    >
+                    <label htmlFor="confirm-delete" className="text-sm leading-tight cursor-pointer select-none">
                       Je comprends que mon abonnement sera annulé et que cette action est irréversible
                     </label>
                   </div>
@@ -344,16 +302,18 @@ export const ProfileSection = () => {
                 </AlertDialogDescription>
               )}
             </AlertDialogHeader>
-            
+
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => {
-                setConfirmDelete(false);
-                setDialogOpen(false);
-              }}>
+              <AlertDialogCancel
+                onClick={() => {
+                  setConfirmDelete(false);
+                  setDialogOpen(false);
+                }}
+              >
                 Annuler
               </AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleDeleteAccount} 
+              <AlertDialogAction
+                onClick={handleDeleteAccount}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 disabled={subscriptionInfo?.hasSubscription && !confirmDelete}
               >
