@@ -21,6 +21,56 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication check
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Non authentifié" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+    
+    const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2.75.0");
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: "Non authentifié" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check subscription status (allow first use for free)
+    const { count: feedbackCount } = await supabase
+      .from("feedback")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    if (feedbackCount && feedbackCount > 0) {
+      const { data: subscription } = await supabase
+        .from("subscriptions")
+        .select("status")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (!subscription) {
+        console.warn(`Subscription required for user ${user.id} - generate-meal`);
+        return new Response(
+          JSON.stringify({ error: "Abonnement requis pour générer des repas" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+    console.log(`Subscription check passed for user ${user.id}`);
+
     const rawBody = await req.json();
     
     // Validate input

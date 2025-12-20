@@ -1,8 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Input validation schema
+const healthDataSchema = z.object({
+  allergies: z.string().max(500).optional(),
+  restrictions: z.string().max(500).optional(),
+  healthConditions: z.string().max(500).optional(),
+});
+
+// Sanitize inputs to prevent prompt injection
+const sanitize = (str: string | undefined): string => {
+  if (!str) return 'Aucune';
+  return str.replace(/[<>{}]/g, '').substring(0, 500);
 };
 
 serve(async (req) => {
@@ -11,7 +26,70 @@ serve(async (req) => {
   }
 
   try {
-    const { allergies, restrictions, healthConditions } = await req.json();
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Non authentifié' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Non authentifié' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check subscription status (allow first use for free)
+    const { count: feedbackCount } = await supabase
+      .from('feedback')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    if (feedbackCount && feedbackCount > 0) {
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (!subscription) {
+        console.warn(`Subscription required for user ${user.id} - format-health-data`);
+        return new Response(
+          JSON.stringify({ error: 'Abonnement requis pour utiliser cette fonctionnalité' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+    console.log(`Subscription check passed for user ${user.id}`);
+
+    // Validate input
+    const rawBody = await req.json();
+    const parseResult = healthDataSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      console.error('❌ Validation error:', parseResult.error.errors);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Données invalides',
+          details: parseResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`)
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { allergies, restrictions, healthConditions } = parseResult.data;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -21,9 +99,9 @@ serve(async (req) => {
     const systemPrompt = `Tu es un assistant nutrition/santé expert. Reformate les informations suivantes de manière claire, professionnelle et DÉTAILLÉE.
 
 DONNÉES À REFORMATER :
-- Allergies : "${allergies || 'Aucune'}"
-- Restrictions : "${restrictions || 'Aucune'}"
-- Conditions de santé : "${healthConditions || 'Aucune'}"
+- Allergies : "${sanitize(allergies)}"
+- Restrictions : "${sanitize(restrictions)}"
+- Conditions de santé : "${sanitize(healthConditions)}"
 
 INSTRUCTIONS DE FORMATAGE :
 
