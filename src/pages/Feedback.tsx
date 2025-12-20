@@ -56,30 +56,7 @@ const Feedback = () => {
         duration: 2000,
       });
 
-      // Vérifier si c'est la première séance complétée
-      const { count: feedbackCount } = await supabase
-        .from('feedback')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id);
-
-      if (feedbackCount === 1) {
-        // Première séance terminée → Paywall obligatoire
-        navigate("/paywall");
-      } else {
-        // Vérifier si l'utilisateur a un abonnement actif
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('status')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .maybeSingle();
-        
-        if (subscription) {
-          navigate("/hub");
-        } else {
-          navigate("/paywall");
-        }
-      }
+      navigate("/hub");
     } catch (error) {
       console.error("Error saving feedback:", error);
       toast({
