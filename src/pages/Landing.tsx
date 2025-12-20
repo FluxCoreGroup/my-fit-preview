@@ -148,7 +148,7 @@ const Landing = () => {
       </section>
 
       {/* Comment ça marche Section - NOUVEAU */}
-      <section className="py-20 px-4">
+      <section id="comment" className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center mb-16">
           <h2 className="mb-4">Comment ça marche ?</h2>
           <p className="text-xl text-muted-foreground">3 étapes simples pour transformer ton corps</p>
@@ -275,7 +275,7 @@ const Landing = () => {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section id="pourquoi" className="py-20 px-4 bg-muted/30">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-center mb-12">Pourquoi Pulse.ai ?</h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -342,7 +342,7 @@ const Landing = () => {
       </section>
 
       {/* Section Coachs IA */}
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+      <section id="coachs-ia" className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">

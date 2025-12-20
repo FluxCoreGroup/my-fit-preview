@@ -116,18 +116,21 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
-          <Link to="/preview" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Démo
-          </Link>
-          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Fonctionnalités
+          <a href="#comment" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Comment ?
           </a>
+          <a href="#pourquoi" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Pourquoi ?
+          </a>
+          <a href="#coachs-ia" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Coach IA
+          </a>
+          <Link to="/tarif" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Prix
+          </Link>
           <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             FAQ
           </a>
-          <Link to="/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Support
-          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -136,18 +139,11 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
               <Button>Dashboard</Button>
             </Link>
           ) : (
-            <>
-              <Link to="/auth">
-                <Button variant="ghost" size="sm">
-                  Connexion
-                </Button>
-              </Link>
-              <Link to="/start">
-                <Button size="sm">
-                  Commencer
-                </Button>
-              </Link>
-            </>
+            <Link to="/auth">
+              <Button variant="ghost" size="sm">
+                Connexion
+              </Button>
+            </Link>
           )}
         </div>
       </div>
