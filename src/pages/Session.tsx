@@ -13,6 +13,8 @@ import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 import { useSessionFeedback } from "@/hooks/useSessionFeedback";
 import { BackButton } from "@/components/BackButton";
 import { SessionFeedbackModal } from "@/components/training/SessionFeedbackModal";
+import { ExerciseImage } from "@/components/training/ExerciseImage";
+import { ExerciseImageModal } from "@/components/training/ExerciseImageModal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +43,7 @@ const Session = () => {
   const [showPauseDialog, setShowPauseDialog] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
   const [currentWeight, setCurrentWeight] = useState("");
   const [currentRPE, setCurrentRPE] = useState(7);
 
@@ -250,6 +253,18 @@ const Session = () => {
 
           {/* Main Exercise Card */}
           <Card className="p-8 bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl min-h-[60vh] flex flex-col justify-center">
+            {/* Exercise Image */}
+            <div 
+              className="mb-4 cursor-pointer"
+              onClick={() => setShowExerciseModal(true)}
+            >
+              <ExerciseImage 
+                exerciseName={currentExercise.name} 
+                size="lg"
+                showGif={true}
+              />
+            </div>
+
             <h2 className="text-3xl font-bold mb-2">{currentExercise.name}</h2>
             <div className="flex gap-2 mb-6">
               <span className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full font-medium">
@@ -470,6 +485,15 @@ const Session = () => {
           exerciseLogs={exerciseLogs}
         />
       )}
+
+      {/* Exercise Image Modal */}
+      <ExerciseImageModal
+        exerciseName={currentExercise?.name || ""}
+        open={showExerciseModal}
+        onOpenChange={setShowExerciseModal}
+        tips={currentExercise?.tips}
+        commonMistakes={currentExercise?.commonMistakes}
+      />
     </div>
   );
 };

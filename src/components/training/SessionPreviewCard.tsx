@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ExerciseImage } from "./ExerciseImage";
+import { ExerciseImageModal } from "./ExerciseImageModal";
 
 interface Exercise {
   name: string;
@@ -21,6 +23,8 @@ interface Exercise {
   rest: number;
   rpe: number;
   rir: number;
+  tips?: string[];
+  commonMistakes?: string[];
 }
 
 interface SessionData {
@@ -49,7 +53,7 @@ export const SessionPreviewCard = ({
   onStartSession 
 }: SessionPreviewCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const sessionData = session.exercises || {};
   const exercises = Array.isArray(sessionData.exercises) ? sessionData.exercises : [];
   const warmup = sessionData.warmup || [];
@@ -171,16 +175,26 @@ export const SessionPreviewCard = ({
                 </h4>
                 <div className="space-y-3">
                   {exercises.map((exercise, i) => (
-                    <div key={i} className="pb-3 border-b border-white/5 last:border-0">
-                      <p className="font-medium mb-1">
-                        {i + 1}. {exercise.name}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{exercise.sets}×{exercise.reps}</span>
-                        <span>|</span>
-                        <span>{exercise.rest}s repos</span>
-                        <span>|</span>
-                        <span>RPE {exercise.rpe}</span>
+                    <div 
+                      key={i} 
+                      className="pb-3 border-b border-white/5 last:border-0 flex items-center gap-3 cursor-pointer hover:bg-white/5 rounded-lg p-2 -m-2 transition-colors"
+                      onClick={() => setSelectedExercise(exercise)}
+                    >
+                      <ExerciseImage 
+                        exerciseName={exercise.name} 
+                        size="sm"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium mb-1 truncate">
+                          {i + 1}. {exercise.name}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span>{exercise.sets}×{exercise.reps}</span>
+                          <span>|</span>
+                          <span>{exercise.rest}s repos</span>
+                          <span>|</span>
+                          <span>RPE {exercise.rpe}</span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -219,6 +233,17 @@ export const SessionPreviewCard = ({
           </Collapsible>
         </div>
       </div>
+
+      {/* Exercise Image Modal */}
+      {selectedExercise && (
+        <ExerciseImageModal
+          exerciseName={selectedExercise.name}
+          open={!!selectedExercise}
+          onOpenChange={(open) => !open && setSelectedExercise(null)}
+          tips={selectedExercise.tips}
+          commonMistakes={selectedExercise.commonMistakes}
+        />
+      )}
     </Card>
   );
 };
