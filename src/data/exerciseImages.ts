@@ -708,31 +708,189 @@ export const exerciseImages: Record<string, ExerciseImageData> = {
   }
 };
 
-// Get image data from local dictionary
+// Alias mapping for common exercise name variations (AI-generated names -> dictionary keys)
+const exerciseAliases: Record<string, string> = {
+  // Pectoraux
+  "developpe couche barre": "developpe couche",
+  "bench press": "developpe couche",
+  "developpe couche avec barre": "developpe couche",
+  "developpe couche avec halteres": "developpe couche halteres",
+  "developpe incline barre": "developpe incline",
+  "developpe incline avec barre": "developpe incline",
+  "developpe incline avec halteres": "developpe incline halteres",
+  "ecarte couche halteres": "ecarte couche",
+  "ecartes couches": "ecarte couche",
+  "ecartes inclines": "ecarte incline",
+  "push ups": "pompes",
+  "push-ups": "pompes",
+  "chest press machine": "pec deck",
+  
+  // Dos
+  "pull ups": "tractions",
+  "pull-ups": "tractions",
+  "chin ups": "tractions supination",
+  "chin-ups": "tractions supination",
+  "tractions pronation": "tractions",
+  "tractions prise large": "tractions",
+  "rowing barre penche": "rowing barre",
+  "rowing penche": "rowing barre",
+  "bent over row": "rowing barre",
+  "rowing un bras": "rowing haltere",
+  "rowing haltere un bras": "rowing haltere",
+  "lat pulldown": "tirage vertical",
+  "tirage vertical poulie haute": "tirage vertical",
+  "tirage poitrine": "tirage vertical",
+  "seated row": "tirage horizontal",
+  "tirage horizontal poulie basse": "tirage horizontal",
+  "deadlift": "soulevé de terre",
+  "romanian deadlift": "soulevé de terre roumain",
+  "rdl": "soulevé de terre roumain",
+  
+  // Épaules
+  "developpe epaules": "developpe militaire",
+  "overhead press": "developpe militaire",
+  "military press": "developpe militaire",
+  "shoulder press": "developpe epaules halteres",
+  "lateral raise": "elevations laterales",
+  "elevations laterales halteres": "elevations laterales",
+  "front raise": "elevations frontales",
+  "elevations frontales halteres": "elevations frontales",
+  "rear delt fly": "oiseau",
+  "oiseau halteres": "oiseau",
+  "oiseau penche": "oiseau",
+  "face pulls": "face pull",
+  "shrug": "shrugs",
+  "shrugs halteres": "shrugs",
+  
+  // Biceps
+  "curl biceps barre": "curl barre",
+  "barbell curl": "curl barre",
+  "curl ez": "curl barre",
+  "curl barre ez": "curl barre",
+  "dumbbell curl": "curl halteres",
+  "curl biceps halteres": "curl halteres",
+  "hammer curl": "curl marteau",
+  "curl marteau halteres": "curl marteau",
+  "incline curl": "curl incline",
+  "preacher curl": "curl pupitre",
+  "curl au pupitre": "curl pupitre",
+  
+  // Triceps
+  "triceps pushdown": "extensions triceps poulie",
+  "pushdown triceps": "extensions triceps poulie",
+  "extension triceps poulie haute": "extensions triceps poulie",
+  "skull crusher": "barre au front",
+  "skull crushers": "barre au front",
+  "lying triceps extension": "barre au front",
+  "triceps kickback": "kickback",
+  "kickback triceps": "kickback",
+  "overhead triceps extension": "extension triceps haltere",
+  
+  // Jambes
+  "back squat": "squat",
+  "squat barre": "squat",
+  "squat avec barre": "squat",
+  "goblet squat": "squat goblet",
+  "leg press": "presse a cuisses",
+  "presse cuisses": "presse a cuisses",
+  "presse inclinee": "presse a cuisses",
+  "extensions jambes": "leg extension",
+  "extension quadriceps": "leg extension",
+  "lunges": "fentes",
+  "fentes avant": "fentes",
+  "fentes halteres": "fentes",
+  "walking lunges": "fentes marchees",
+  "bulgarian split squat": "squat bulgare",
+  "split squat bulgare": "squat bulgare",
+  "leg curl allonge": "leg curl",
+  "leg curl assis": "leg curl",
+  "curl ischio": "leg curl",
+  "hip thrust barre": "hip thrust",
+  "pont fessier": "glute bridge",
+  "calf raise": "mollets debout",
+  "extension des mollets": "mollets debout",
+  "seated calf raise": "mollets assis",
+  
+  // Abdos
+  "crunches": "crunch",
+  "abdos crunch": "crunch",
+  "cable crunch": "crunch poulie",
+  "hanging leg raise": "releve de jambes",
+  "leg raise": "releve de jambes",
+  "plank": "gainage",
+  "planche abdos": "gainage",
+};
+
+// Words to ignore during matching (equipment/modifiers that shouldn't affect matching)
+const ignoreWords = new Set([
+  "barre", "halteres", "haltere", "machine", "poulie", "cables", "cable",
+  "avec", "a", "au", "aux", "de", "du", "la", "le", "les", "un", "une",
+  "prise", "large", "serree", "haute", "basse", "incline", "decline"
+]);
+
+// Extract core exercise words (remove equipment/modifiers)
+const getCoreWords = (name: string): string[] => {
+  return name.split(/\s+/).filter(word => !ignoreWords.has(word) && word.length > 2);
+};
+
+// Get image data from local dictionary with improved matching
 export const getLocalExerciseImage = (exerciseName: string): ExerciseImageData | null => {
   const normalized = normalizeExerciseName(exerciseName);
   
-  // Direct match
+  // 1. Direct match
   if (exerciseImages[normalized]) {
     return exerciseImages[normalized];
   }
   
-  // Partial match - find best match
-  const keys = Object.keys(exerciseImages);
-  for (const key of keys) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return exerciseImages[key];
+  // 2. Alias match
+  if (exerciseAliases[normalized] && exerciseImages[exerciseAliases[normalized]]) {
+    return exerciseImages[exerciseAliases[normalized]];
+  }
+  
+  // 3. Partial alias match (for longer names)
+  for (const [alias, target] of Object.entries(exerciseAliases)) {
+    if (normalized.includes(alias) || alias.includes(normalized)) {
+      if (exerciseImages[target]) {
+        return exerciseImages[target];
+      }
     }
   }
   
-  // Word match - at least 2 words in common
-  const normalizedWords = normalized.split(/\s+/);
+  // 4. Core words match (ignore equipment modifiers)
+  const coreWords = getCoreWords(normalized);
+  const keys = Object.keys(exerciseImages);
+  
+  if (coreWords.length > 0) {
+    // Score each key by how many core words match
+    let bestMatch: { key: string; score: number } | null = null;
+    
+    for (const key of keys) {
+      const keyCore = getCoreWords(key);
+      let score = 0;
+      
+      for (const word of coreWords) {
+        for (const kw of keyCore) {
+          if (word === kw) {
+            score += 3; // Exact match
+          } else if (word.includes(kw) || kw.includes(word)) {
+            score += 2; // Partial match
+          }
+        }
+      }
+      
+      if (score > 0 && (!bestMatch || score > bestMatch.score)) {
+        bestMatch = { key, score };
+      }
+    }
+    
+    if (bestMatch && bestMatch.score >= 2) {
+      return exerciseImages[bestMatch.key];
+    }
+  }
+  
+  // 5. Fallback: partial string match
   for (const key of keys) {
-    const keyWords = key.split(/\s+/);
-    const commonWords = normalizedWords.filter(word => 
-      keyWords.some(kw => kw.includes(word) || word.includes(kw))
-    );
-    if (commonWords.length >= 2) {
+    if (normalized.includes(key) || key.includes(normalized)) {
       return exerciseImages[key];
     }
   }

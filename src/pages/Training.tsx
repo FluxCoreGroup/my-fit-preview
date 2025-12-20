@@ -61,6 +61,17 @@ const Training = () => {
   const [generatingProgress, setGeneratingProgress] = useState(0);
   const [generatingStep, setGeneratingStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [isReady, setIsReady] = useState(false);
+
+  // Wait for data to be fully loaded before showing content
+  useEffect(() => {
+    if (!loading) {
+      // Small delay to ensure smooth transition
+      const timer = setTimeout(() => setIsReady(true), 100);
+      return () => clearTimeout(timer);
+    }
+    setIsReady(false);
+  }, [loading]);
 
   const generatingSteps = [
     { icon: Brain, text: "Analyse de ton profil et objectifs", subtext: "Récupération de tes données..." },
@@ -141,8 +152,25 @@ const Training = () => {
 
   const CurrentStepIcon = generatingSteps[generatingStep]?.icon || Brain;
 
+  // Show skeleton while loading
+  if (!isReady && loading) {
+    return (
+      <div className="min-h-screen bg-background pb-24">
+        <BackButton to="/hub" />
+        <div className={`${isMobile ? 'pt-16 px-3' : 'pt-20 px-4'}`}>
+          <div className={isMobile ? '' : 'max-w-4xl mx-auto'}>
+            <TrainingSkeleton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className={cn(
+      "min-h-screen bg-background pb-24 transition-opacity duration-300",
+      isReady ? "opacity-100" : "opacity-0"
+    )}>
       {/* Enhanced Generating Overlay */}
       {isGenerating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">

@@ -79,10 +79,18 @@ const Session = () => {
           .eq('user_id', user.id)
           .single();
         
-        if (session?.exercises && Array.isArray(session.exercises)) {
-          setExercises(session.exercises as any);
-          setSessionId(session.id);
-          return;
+        if (session?.exercises) {
+          // Handle both array format and object format { exercises: [], warmup: [] }
+          const sessionData = session.exercises as any;
+          const exercisesArray = Array.isArray(sessionData) 
+            ? sessionData 
+            : (sessionData.exercises || []);
+          
+          if (exercisesArray.length > 0) {
+            setExercises(exercisesArray);
+            setSessionId(session.id);
+            return;
+          }
         }
       }
 
@@ -94,12 +102,20 @@ const Session = () => {
         .limit(1)
         .single();
       
-      if (lastSession?.exercises && Array.isArray(lastSession.exercises)) {
-        setExercises(lastSession.exercises as any);
-        setSessionId(lastSession.id);
-      } else {
-        navigate("/training");
+      if (lastSession?.exercises) {
+        // Handle both array format and object format { exercises: [], warmup: [] }
+        const sessionData = lastSession.exercises as any;
+        const exercisesArray = Array.isArray(sessionData) 
+          ? sessionData 
+          : (sessionData.exercises || []);
+        
+        if (exercisesArray.length > 0) {
+          setExercises(exercisesArray);
+          setSessionId(lastSession.id);
+          return;
+        }
       }
+      navigate("/training");
     };
 
     loadSession();
