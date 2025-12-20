@@ -15,7 +15,8 @@ import { toast } from "@/hooks/use-toast";
 const signupSchema = z.object({
   name: z.string().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
   email: z.string().email("Email invalide").max(255),
-  password: z.string()
+  password: z
+    .string()
     .min(8, "Le mot de passe doit contenir au moins 8 caractères")
     .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
     .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
@@ -47,8 +48,8 @@ const Signup = () => {
 
   const fetchStripeSessionData = async (stripeSessionId: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('get-checkout-session', {
-        body: { sessionId: stripeSessionId }
+      const { data, error } = await supabase.functions.invoke("get-checkout-session", {
+        body: { sessionId: stripeSessionId },
       });
 
       if (error) throw error;
@@ -58,7 +59,7 @@ const Signup = () => {
         setEmailReadonly(true);
       }
     } catch (error: any) {
-      console.error('Error fetching session:', error);
+      console.error("Error fetching session:", error);
       toast({
         title: "Erreur",
         description: "Impossible de récupérer les données de paiement",
@@ -99,7 +100,7 @@ const Signup = () => {
         validatedData.email,
         validatedData.password,
         validatedData.name,
-        isPostPayment // Skip email confirmation if post-payment
+        isPostPayment, // Skip email confirmation if post-payment
       );
 
       if (!error) {
@@ -108,23 +109,24 @@ const Signup = () => {
 
           try {
             // Wait for user session to be fully established
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // Get fresh session
-            const { data: { session } } = await supabase.auth.getSession();
+            const {
+              data: { session },
+            } = await supabase.auth.getSession();
             if (!session) {
               throw new Error("Session non établie");
             }
 
-            const { error: linkError } = await supabase.functions.invoke('link-stripe-subscription', {
+            const { error: linkError } = await supabase.functions.invoke("link-stripe-subscription", {
               body: { sessionId },
               headers: {
-                Authorization: `Bearer ${session.access_token}`
-              }
+                Authorization: `Bearer ${session.access_token}`,
+              },
             });
 
             if (linkError) throw linkError;
-
 
             // Clear onboarding data
             localStorage.removeItem("onboardingData");
@@ -133,7 +135,7 @@ const Signup = () => {
             // Redirect to onboarding intro
             navigate("/onboarding-intro");
           } catch (linkError: any) {
-            console.error('Error linking subscription:', linkError);
+            console.error("Error linking subscription:", linkError);
             navigate("/onboarding-intro");
           }
         } else {
@@ -166,9 +168,7 @@ const Signup = () => {
               <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
               <div>
                 <p className="font-semibold text-primary">Paiement validé !</p>
-                <p className="text-sm text-muted-foreground">
-                  Essai gratuit de 7 jours activé • Aucun débit immédiat
-                </p>
+                <p className="text-sm text-muted-foreground">Essai gratuit de 7 jours activé • Aucun débit immédiat</p>
               </div>
             </div>
           )}
@@ -178,17 +178,16 @@ const Signup = () => {
               {isPostPayment ? "Finalise ton inscription" : "Crée ton compte"}
             </h1>
             <p className="text-muted-foreground">
-              {isPostPayment 
+              {isPostPayment
                 ? "Dernière étape pour accéder à ton programme personnalisé"
-                : "Accède à ton programme personnalisé et ta première séance gratuite"
-              }
+                : "Accède à ton programme personnalisé et ta première séance gratuite"}
             </p>
           </div>
 
           <Card className="p-8">
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
-                <Label htmlFor="signup-name">Nom</Label>
+                <Label htmlFor="signup-name">Prénom</Label>
                 <div className="relative mt-2">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
@@ -219,9 +218,7 @@ const Signup = () => {
                   />
                 </div>
                 {emailReadonly && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Email récupéré depuis ton paiement
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Email récupéré depuis ton paiement</p>
                 )}
               </div>
 
@@ -241,23 +238,35 @@ const Signup = () => {
                 </div>
                 {/* Password strength indicator */}
                 <div className="mt-2 space-y-1">
-                  <p className={`text-xs flex items-center gap-1 ${signupPassword.length >= 8 ? 'text-green-600' : 'text-muted-foreground'}`}>
-                    {signupPassword.length >= 8 ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
-                    8 caractères minimum
+                  <p
+                    className={`text-xs flex items-center gap-1 ${signupPassword.length >= 8 ? "text-green-600" : "text-muted-foreground"}`}
+                  >
+                    {signupPassword.length >= 8 ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}8
+                    caractères minimum
                   </p>
-                  <p className={`text-xs flex items-center gap-1 ${/[A-Z]/.test(signupPassword) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                    {/[A-Z]/.test(signupPassword) ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
-                    1 majuscule
+                  <p
+                    className={`text-xs flex items-center gap-1 ${/[A-Z]/.test(signupPassword) ? "text-green-600" : "text-muted-foreground"}`}
+                  >
+                    {/[A-Z]/.test(signupPassword) ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}1
+                    majuscule
                   </p>
-                  <p className={`text-xs flex items-center gap-1 ${/[0-9]/.test(signupPassword) ? 'text-green-600' : 'text-muted-foreground'}`}>
-                    {/[0-9]/.test(signupPassword) ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
-                    1 chiffre
+                  <p
+                    className={`text-xs flex items-center gap-1 ${/[0-9]/.test(signupPassword) ? "text-green-600" : "text-muted-foreground"}`}
+                  >
+                    {/[0-9]/.test(signupPassword) ? <Check className="w-3 h-3" /> : <Circle className="w-3 h-3" />}1
+                    chiffre
                   </p>
                 </div>
               </div>
 
               <Button type="submit" size="lg" variant="default" className="w-full" disabled={loading}>
-                {loading ? (isPostPayment ? "Finalisation..." : "Création...") : (isPostPayment ? "Activer mon programme" : "Créer mon compte")}
+                {loading
+                  ? isPostPayment
+                    ? "Finalisation..."
+                    : "Création..."
+                  : isPostPayment
+                    ? "Activer mon programme"
+                    : "Créer mon compte"}
               </Button>
             </form>
 
