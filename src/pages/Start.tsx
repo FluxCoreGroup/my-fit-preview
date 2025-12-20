@@ -336,7 +336,7 @@ const Start = () => {
               </div>
 
               <div className="mt-6">
-                <Label htmlFor="horizon">À quelle échéance souhaites-tu atteindre cet objectif ? *</Label>
+                <Label htmlFor="horizon">À quelle échéance souhaites-tu cet objectif ? *</Label>
                 <Select value={formData.goalHorizon} onValueChange={(value) => updateField("goalHorizon", value)}>
                   <SelectTrigger className={`mt-2 ${errors.goalHorizon ? "border-destructive" : ""}`}>
                     <SelectValue placeholder="Choisir..." />
@@ -426,7 +426,7 @@ const Start = () => {
             <Card className="p-8 animate-in">
               <h2 className="text-2xl font-bold mb-6">Ton niveau d'activité quotidien</h2>
               <div className="space-y-4">
-                <Label>Hors entraînement, tu seras plutôt... *</Label>
+                <Label>Hors entraînement, tu es plutôt... *</Label>
                 {[
                   {
                     value: "sedentary",
