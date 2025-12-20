@@ -308,16 +308,17 @@ const Training = () => {
             </Card>
           )}
 
-          <Card className={`${isMobile ? 'p-4' : 'p-6'} bg-gradient-to-br from-card/80 to-card/50 backdrop-blur-xl border-white/10 mb-6 rounded-2xl`}>
-            <div className="text-center">
-              <p className="font-semibold text-lg mb-2">{getWeekLabel()}</p>
+          {/* Week Progress Card - Simplified */}
+          <Card className={`${isMobile ? 'p-4' : 'p-5'} bg-gradient-to-br from-card/80 to-card/50 backdrop-blur-xl border-white/10 mb-6 rounded-2xl`}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-semibold">{getWeekLabel()}</p>
               {sessions.length > 0 && (
-                <div className="space-y-2">
-                  <Badge variant="secondary">{getCompletedCount()}/{sessions.length} séances</Badge>
-                  <Progress value={getProgressPercentage()} className="h-2" />
-                </div>
+                <Badge variant="secondary">{getCompletedCount()}/{sessions.length}</Badge>
               )}
             </div>
+            {sessions.length > 0 && (
+              <Progress value={getProgressPercentage()} className="h-2" />
+            )}
           </Card>
 
           {loading ? (
@@ -362,7 +363,7 @@ const Training = () => {
             </>
           )}
 
-          {/* Section Progression */}
+          {/* Section Progression - Now includes history */}
           <Collapsible open={showProgression} onOpenChange={setShowProgression} className="mt-6">
             <CollapsibleTrigger asChild>
               <Button 
@@ -371,7 +372,7 @@ const Training = () => {
               >
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-primary" />
-                  <span>Voir ma progression</span>
+                  <span>Progression & Historique</span>
                 </div>
                 <ChevronDown className={cn(
                   "w-5 h-5 transition-transform duration-200",
@@ -382,31 +383,27 @@ const Training = () => {
             <CollapsibleContent className="mt-4 space-y-4">
               <WeightChart />
               <AdherenceChart />
+              
+              {/* Historical Programs - Now inside collapsible */}
+              {historicalPrograms.length > 0 && (
+                <Card className="p-4 bg-card/50 border-white/10">
+                  <h3 className="text-sm font-semibold mb-3 text-muted-foreground">Historique</h3>
+                  <div className="space-y-2">
+                    {historicalPrograms.slice(0, 4).map((program) => (
+                      <div key={program.id} className="flex items-center justify-between p-2 bg-card/30 rounded-lg text-sm">
+                        <span>
+                          {format(new Date(program.week_start_date), "dd MMM", { locale: fr })} - {format(new Date(program.week_end_date), "dd MMM", { locale: fr })}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {program.completed_sessions}/{program.total_sessions}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </CollapsibleContent>
           </Collapsible>
-
-          {historicalPrograms.length > 0 && (
-            <Card className="p-4 mt-6">
-              <h3 className="text-lg font-bold mb-4">Historique des programmes</h3>
-              <div className="space-y-3">
-                {historicalPrograms.map((program) => (
-                  <div key={program.id} className="flex items-center justify-between p-3 bg-card/30 rounded-lg">
-                    <div>
-                      <p className="text-sm font-medium">
-                        {format(new Date(program.week_start_date), "dd MMM", { locale: fr })} - {format(new Date(program.week_end_date), "dd MMM", { locale: fr })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {program.completed_sessions}/{program.total_sessions} séances
-                      </p>
-                    </div>
-                    <Badge variant={program.check_in_completed ? "default" : "secondary"}>
-                      {program.check_in_completed ? "✓ Check-in" : "⏳ En attente"}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
         </div>
       </div>
 

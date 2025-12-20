@@ -3,18 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Play, 
-  ChevronDown, 
-  ChevronUp, 
+  Eye,
   Clock, 
   Dumbbell,
-  CheckCircle2,
-  AlertCircle,
-  Timer
+  CheckCircle2
 } from "lucide-react";
 import { useState } from "react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ExerciseImage } from "./ExerciseImage";
-import { ExerciseImageModal } from "./ExerciseImageModal";
+import { SessionDetailsDrawer } from "./SessionDetailsDrawer";
 
 interface Exercise {
   name: string;
@@ -52,8 +47,7 @@ export const SessionPreviewCard = ({
   sessionNumber,
   onStartSession 
 }: SessionPreviewCardProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
   const sessionData = session.exercises || {};
   const exercises = Array.isArray(sessionData.exercises) ? sessionData.exercises : [];
   const warmup = sessionData.warmup || [];
@@ -62,63 +56,44 @@ export const SessionPreviewCard = ({
   const estimatedTime = sessionData.estimatedTime || exercises.length * 5;
   const sessionName = sessionData.sessionName || 'Entraînement';
 
-  const getStatusBadge = () => {
-    if (session.completed) {
-      return (
-        <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
-          <CheckCircle2 className="w-3 h-3 mr-1" />
-          Terminée
-        </Badge>
-      );
-    }
-    
-    return (
-      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
-        À faire
-      </Badge>
-    );
-  };
-
   return (
-    <Card className="p-6 bg-gradient-to-br from-card/80 to-card/50 backdrop-blur-xl border-white/10 hover:border-primary/30 transition-all duration-300">
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold px-3 py-1 bg-primary/10 rounded-full text-primary">
-                SÉANCE {sessionNumber}
-              </span>
-              {getStatusBadge()}
-            </div>
-            <h3 className="text-xl font-bold mb-1">
-              Séance {sessionNumber}
-            </h3>
-            <p className="text-sm text-muted-foreground">{sessionName}</p>
+    <>
+      <Card className="p-5 bg-gradient-to-br from-card/80 to-card/50 backdrop-blur-xl border-white/10 hover:border-primary/30 transition-all duration-300">
+        {/* Header Row */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold px-2.5 py-1 bg-primary/10 rounded-full text-primary">
+              SÉANCE {sessionNumber}
+            </span>
+            {session.completed ? (
+              <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Terminée
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                À faire
+              </Badge>
+            )}
           </div>
         </div>
+
+        {/* Session Name */}
+        <h3 className="text-lg font-bold mb-1">{sessionName}</h3>
 
         {/* Quick Stats */}
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+          <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
-            <span>~{estimatedTime}min</span>
-          </div>
-          <div className="flex items-center gap-1">
+            ~{estimatedTime}min
+          </span>
+          <span className="flex items-center gap-1">
             <Dumbbell className="w-4 h-4" />
-            <span>{exercises.length} exercices</span>
-          </div>
+            {exercises.length} exercices
+          </span>
         </div>
 
-        {/* Exercise Preview */}
-        <div className="text-sm">
-          <p className="text-muted-foreground mb-1">Aperçu:</p>
-          <p className="line-clamp-1">
-            {exercises.slice(0, 3).map(ex => ex.name).join(' • ')}
-          </p>
-        </div>
-
-        {/* Actions */}
+        {/* Actions - Side by Side */}
         <div className="flex gap-2">
           {!session.completed && (
             <Button 
@@ -127,123 +102,32 @@ export const SessionPreviewCard = ({
               className="flex-1 bg-gradient-to-r from-primary to-secondary"
             >
               <Play className="w-4 h-4 mr-2" />
-              Lancer séance
+              Lancer
             </Button>
           )}
-          <Collapsible open={isOpen} onOpenChange={setIsOpen} className="flex-1">
-            <CollapsibleTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full">
-                {isOpen ? (
-                  <>
-                    <ChevronUp className="w-4 h-4 mr-2" />
-                    Masquer programme
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="w-4 h-4 mr-2" />
-                    Voir le programme complet
-                  </>
-                )}
-              </Button>
-            </CollapsibleTrigger>
-
-            {/* Collapsible Content */}
-            <CollapsibleContent className="mt-4 space-y-4">
-              {/* Warmup */}
-              {warmup.length > 0 && (
-                <div className="p-4 bg-card/50 rounded-lg border border-primary/10">
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <Timer className="w-4 h-4 text-primary" />
-                    A. ÉCHAUFFEMENT ({Math.floor(estimatedTime * 0.15)}min)
-                  </h4>
-                  <ul className="space-y-1 text-sm">
-                    {warmup.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-primary mt-0.5">•</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Main Exercises */}
-              <div className="p-4 bg-card/50 rounded-lg border border-secondary/10">
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <Dumbbell className="w-4 h-4 text-secondary" />
-                  B. EXERCICES PRINCIPAUX
-                </h4>
-                <div className="space-y-3">
-                  {exercises.map((exercise, i) => (
-                    <div 
-                      key={i} 
-                      className="pb-3 border-b border-white/5 last:border-0 flex items-center gap-3 cursor-pointer hover:bg-white/5 rounded-lg p-2 -m-2 transition-colors"
-                      onClick={() => setSelectedExercise(exercise)}
-                    >
-                      <ExerciseImage 
-                        exerciseName={exercise.name} 
-                        size="sm"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium mb-1 truncate">
-                          {i + 1}. {exercise.name}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>{exercise.sets}×{exercise.reps}</span>
-                          <span>|</span>
-                          <span>{exercise.rest}s repos</span>
-                          <span>|</span>
-                          <span>RPE {exercise.rpe}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Checklist */}
-              {checklist.length > 0 && (
-                <div className="p-4 bg-card/50 rounded-lg border border-accent/10">
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-accent" />
-                    C. CHECKLIST PRÉ-SÉANCE
-                  </h4>
-                  <ul className="space-y-1 text-sm">
-                    {checklist.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-accent mt-0.5">☐</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Coach Notes */}
-              {coachNotes && (
-                <div className="p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20">
-                  <h4 className="font-semibold mb-2 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-primary" />
-                    D. NOTES DU COACH IA
-                  </h4>
-                  <p className="text-sm text-muted-foreground">{coachNotes}</p>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowDetails(true)}
+            className={session.completed ? "flex-1" : ""}
+          >
+            <Eye className="w-4 h-4 mr-2" />
+            Détails
+          </Button>
         </div>
-      </div>
+      </Card>
 
-      {/* Exercise Image Modal */}
-      {selectedExercise && (
-        <ExerciseImageModal
-          exerciseName={selectedExercise.name}
-          open={!!selectedExercise}
-          onOpenChange={(open) => !open && setSelectedExercise(null)}
-          tips={selectedExercise.tips}
-          commonMistakes={selectedExercise.commonMistakes}
-        />
-      )}
-    </Card>
+      {/* Session Details Drawer */}
+      <SessionDetailsDrawer
+        open={showDetails}
+        onOpenChange={setShowDetails}
+        sessionName={sessionName}
+        estimatedTime={estimatedTime}
+        warmup={warmup}
+        exercises={exercises}
+        checklist={checklist}
+        coachNotes={coachNotes}
+      />
+    </>
   );
 };
