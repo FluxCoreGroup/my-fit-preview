@@ -51,7 +51,7 @@ const tools = [
     type: "function",
     function: {
       name: "get_recent_sessions",
-      description: "Récupère les séances d'entraînement récentes de l'utilisateur",
+      description: "Récupère les séances d'entraînement récentes de l'utilisateur avec les exercices effectués",
       parameters: {
         type: "object",
         properties: {
@@ -68,7 +68,7 @@ const tools = [
     type: "function",
     function: {
       name: "get_checkin_stats",
-      description: "Récupère les statistiques des check-ins hebdomadaires (RPE moyen, adhérence, énergie)",
+      description: "Récupère les statistiques des check-ins hebdomadaires (RPE moyen, adhérence, énergie, douleurs)",
       parameters: {
         type: "object",
         properties: {
@@ -98,10 +98,89 @@ const tools = [
     type: "function",
     function: {
       name: "get_nutrition_targets",
-      description: "UTILISER SYSTÉMATIQUEMENT pour toute question sur le poids INITIAL, l'âge, la taille, les objectifs, les calories cibles, les macros. Retourne les données de la table goals + calculs TDEE.",
+      description: "UTILISER SYSTÉMATIQUEMENT pour toute question sur le poids INITIAL, l'âge, la taille, le sexe, les objectifs, les calories cibles, les macros, les conditions de santé, les allergies, les restrictions alimentaires. Retourne TOUTES les données de la table goals + calculs TDEE.",
       parameters: {
         type: "object",
         properties: {},
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_training_preferences",
+      description: "UTILISER pour toute question sur le split, les zones prioritaires, le niveau, les exercices favoris/à éviter, les limitations physiques, le type de séance, la préférence de mobilité, la progression.",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_nutrition_logs",
+      description: "Récupère les repas et calories consommés récemment par l'utilisateur",
+      parameters: {
+        type: "object",
+        properties: {
+          days: {
+            type: "number",
+            description: "Nombre de jours à récupérer (par défaut 7)",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_user_profile",
+      description: "Récupère le profil complet de l'utilisateur incluant nom, email, date d'inscription, et statut d'onboarding",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_weekly_progress",
+      description: "Récupère la progression du programme hebdomadaire (séances complétées vs planifiées, check-in fait ou non)",
+      parameters: {
+        type: "object",
+        properties: {
+          weeks: {
+            type: "number",
+            description: "Nombre de semaines à récupérer (par défaut 4)",
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_exercise_history",
+      description: "Récupère l'historique des performances pour un exercice spécifique (poids utilisés, RPE ressenti, commentaires)",
+      parameters: {
+        type: "object",
+        properties: {
+          exercise_name: {
+            type: "string",
+            description: "Nom de l'exercice à rechercher (recherche partielle supportée)",
+          },
+          limit: {
+            type: "number",
+            description: "Nombre d'entrées à récupérer (par défaut 10)",
+          },
+        },
         required: [],
       },
     },
@@ -133,7 +212,7 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
 
         const { data, error } = await supabase
           .from("weekly_checkins")
-          .select("average_weight, created_at, week_iso")
+          .select("average_weight, created_at, week_iso, weight_measure_1, weight_measure_2, weight_measure_3")
           .eq("user_id", userId)
           .gte("created_at", weeksAgo.toISOString())
           .order("created_at", { ascending: true });
@@ -186,7 +265,7 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
 
         const { data, error } = await supabase
           .from("weekly_checkins")
-          .select("rpe_avg, adherence_diet, energy_level, created_at")
+          .select("rpe_avg, adherence_diet, energy_level, has_pain, pain_zones, blockers, created_at")
           .eq("user_id", userId)
           .gte("created_at", startDate.toISOString())
           .order("created_at", { ascending: false });
@@ -243,7 +322,7 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
       case "get_nutrition_targets": {
         const { data: goals, error } = await supabase
           .from("goals")
-          .select("weight, height, age, sex, goal_type, activity_level, created_at")
+          .select("*")
           .eq("user_id", userId)
           .order("created_at", { ascending: false })
           .limit(1)
@@ -271,13 +350,25 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
 
         console.log("get_nutrition_targets: Goals found, calculating TDEE");
 
+        // Calculate age from birth_date if age is not set
+        let age = goals.age;
+        if (!age && goals.birth_date) {
+          const birthDate = new Date(goals.birth_date);
+          const today = new Date();
+          age = today.getFullYear() - birthDate.getFullYear();
+          const m = today.getMonth() - birthDate.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+        }
+
         // Simple TDEE calculation (Mifflin-St Jeor)
         let bmr = 0;
-        if (goals.weight && goals.height && goals.age && goals.sex) {
+        if (goals.weight && goals.height && age && goals.sex) {
           if (goals.sex === "male") {
-            bmr = 10 * goals.weight + 6.25 * goals.height - 5 * goals.age + 5;
+            bmr = 10 * goals.weight + 6.25 * goals.height - 5 * age + 5;
           } else {
-            bmr = 10 * goals.weight + 6.25 * goals.height - 5 * goals.age - 161;
+            bmr = 10 * goals.weight + 6.25 * goals.height - 5 * age - 161;
           }
         }
 
@@ -300,13 +391,206 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
           success: true,
           data: {
             weight: goals.weight,
+            height: goals.height,
+            age: age,
+            sex: goals.sex,
+            birth_date: goals.birth_date,
+            goal_type: goals.goal_type,
+            activity_level: goals.activity_level,
+            frequency: goals.frequency,
+            session_duration: goals.session_duration,
+            location: goals.location,
+            equipment: goals.equipment,
+            horizon: goals.horizon,
+            target_weight_loss: goals.target_weight_loss,
+            health_conditions: goals.health_conditions,
+            restrictions: goals.restrictions,
+            allergies: goals.allergies,
+            has_cardio: goals.has_cardio,
+            cardio_frequency: goals.cardio_frequency,
+            meals_per_day: goals.meals_per_day,
+            has_breakfast: goals.has_breakfast,
             tdee,
             targetCalories,
             protein,
             fat,
             carbs,
           },
-          summary: `Poids initial: ${goals.weight} kg - ${targetCalories} kcal/jour - P: ${protein}g, L: ${fat}g, G: ${carbs}g`,
+          summary: `Poids initial: ${goals.weight}kg, Taille: ${goals.height}cm, Âge: ${age} ans, Objectif: ${goals.goal_type}, ${targetCalories} kcal/jour`,
+        };
+      }
+
+      case "get_training_preferences": {
+        const { data, error } = await supabase
+          .from("training_preferences")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          console.error("get_training_preferences error:", error);
+          throw error;
+        }
+
+        if (!data) {
+          console.log("get_training_preferences: No preferences found");
+          return { success: false, error: "Aucune préférence d'entraînement définie" };
+        }
+
+        console.log("get_training_preferences: Found preferences");
+        return {
+          success: true,
+          data: {
+            experience_level: data.experience_level,
+            session_type: data.session_type,
+            mobility_preference: data.mobility_preference,
+            progression_focus: data.progression_focus,
+            split_preference: data.split_preference,
+            priority_zones: data.priority_zones,
+            limitations: data.limitations,
+            favorite_exercises: data.favorite_exercises,
+            exercises_to_avoid: data.exercises_to_avoid,
+            cardio_intensity: data.cardio_intensity,
+          },
+          summary: `Niveau: ${data.experience_level}, Type: ${data.session_type}, Split: ${data.split_preference || "non défini"}`,
+        };
+      }
+
+      case "get_nutrition_logs": {
+        const argsSchema = z.object({ days: z.number().min(1).max(30).optional() });
+        const validated = validateToolArgs(argsSchema, args);
+        const days = validated?.days || 7;
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+
+        const { data, error } = await supabase
+          .from("nutrition_logs")
+          .select("*")
+          .eq("user_id", userId)
+          .gte("logged_at", startDate.toISOString())
+          .order("logged_at", { ascending: false });
+
+        if (error) {
+          console.error("get_nutrition_logs error:", error);
+          throw error;
+        }
+
+        console.log(`get_nutrition_logs: Found ${data?.length || 0} records`);
+        
+        // Calculate totals
+        const totalCalories = data?.reduce((sum: number, log: any) => sum + (log.calories || 0), 0) || 0;
+        const avgCaloriesPerDay = data?.length ? Math.round(totalCalories / days) : 0;
+
+        return {
+          success: true,
+          data: data || [],
+          summary: `${data?.length || 0} repas enregistrés sur ${days} jours, moyenne ${avgCaloriesPerDay} kcal/jour`,
+          totalCalories,
+          avgCaloriesPerDay,
+        };
+      }
+
+      case "get_user_profile": {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (error) {
+          console.error("get_user_profile error:", error);
+          throw error;
+        }
+
+        if (!data) {
+          console.log("get_user_profile: No profile found");
+          return { success: false, error: "Profil non trouvé" };
+        }
+
+        console.log("get_user_profile: Found profile");
+        return {
+          success: true,
+          data: {
+            name: data.name,
+            email: data.email,
+            created_at: data.created_at,
+            onboarding_completed: data.onboarding_completed,
+            onboarding_completed_at: data.onboarding_completed_at,
+          },
+          summary: `Utilisateur: ${data.name || data.email}, inscrit le ${new Date(data.created_at).toLocaleDateString("fr-FR")}`,
+        };
+      }
+
+      case "get_weekly_progress": {
+        const argsSchema = z.object({ weeks: z.number().min(1).max(12).optional() });
+        const validated = validateToolArgs(argsSchema, args);
+        const weeks = validated?.weeks || 4;
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - weeks * 7);
+
+        const { data, error } = await supabase
+          .from("weekly_programs")
+          .select("*")
+          .eq("user_id", userId)
+          .gte("week_start_date", startDate.toISOString())
+          .order("week_start_date", { ascending: false });
+
+        if (error) {
+          console.error("get_weekly_progress error:", error);
+          throw error;
+        }
+
+        console.log(`get_weekly_progress: Found ${data?.length || 0} programs`);
+
+        const totalCompleted = data?.reduce((sum: number, p: any) => sum + (p.completed_sessions || 0), 0) || 0;
+        const totalPlanned = data?.reduce((sum: number, p: any) => sum + (p.total_sessions || 0), 0) || 0;
+        const adherenceRate = totalPlanned > 0 ? Math.round((totalCompleted / totalPlanned) * 100) : 0;
+
+        return {
+          success: true,
+          data: data || [],
+          summary: `${data?.length || 0} semaines, ${totalCompleted}/${totalPlanned} séances (${adherenceRate}% adhérence)`,
+          totalCompleted,
+          totalPlanned,
+          adherenceRate,
+        };
+      }
+
+      case "get_exercise_history": {
+        const argsSchema = z.object({ 
+          exercise_name: z.string().max(100).optional(),
+          limit: z.number().min(1).max(50).optional() 
+        });
+        const validated = validateToolArgs(argsSchema, args);
+        const limit = validated?.limit || 10;
+        const exerciseName = validated?.exercise_name;
+
+        let query = supabase
+          .from("exercise_logs")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+
+        if (exerciseName) {
+          query = query.ilike("exercise_name", `%${exerciseName}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("get_exercise_history error:", error);
+          throw error;
+        }
+
+        console.log(`get_exercise_history: Found ${data?.length || 0} logs`);
+
+        return {
+          success: true,
+          data: data || [],
+          summary: `${data?.length || 0} entrées trouvées${exerciseName ? ` pour "${exerciseName}"` : ""}`,
         };
       }
 
@@ -431,21 +715,32 @@ serve(async (req) => {
 5. Si un tool retourne des données vides → dis clairement "Tu n'as pas encore enregistré..."
 
 TOOLS DISPONIBLES (À UTILISER SYSTÉMATIQUEMENT) :
-- get_weight_history : historique des pesées (weekly_checkins)
-- get_recent_sessions : dernières séances d'entraînement
-- get_checkin_stats : stats des check-ins hebdomadaires (RPE, adhérence, énergie)
+- get_weight_history : historique des pesées hebdomadaires (weekly_checkins)
+- get_recent_sessions : dernières séances d'entraînement avec exercices
+- get_checkin_stats : stats des check-ins (RPE, adhérence, énergie, douleurs)
 - get_next_session : prochaine séance planifiée
-- get_nutrition_targets : objectifs nutritionnels ET poids initial de l'utilisateur (table goals)
+- get_nutrition_targets : TOUTES les données de l'utilisateur (poids, taille, âge, sexe, objectifs, calories, macros, conditions de santé, allergies, restrictions)
+- get_training_preferences : préférences d'entraînement (niveau, split, zones prioritaires, limitations, exercices favoris/à éviter)
+- get_nutrition_logs : repas et calories consommés récemment
+- get_user_profile : profil utilisateur (nom, email, date d'inscription)
+- get_weekly_progress : progression des programmes hebdomadaires (adhérence, séances complétées)
+- get_exercise_history : historique des performances par exercice (poids, RPE, commentaires)
 
 QUAND UTILISER LES TOOLS (EXEMPLES CONCRETS) :
 - "Quel est mon poids ?" → get_weight_history + get_nutrition_targets
-- "Mon poids initial ?" → get_nutrition_targets (contient goals.weight = poids de départ)
-- "Quel était mon poids la semaine dernière ?" → get_weight_history
+- "Mon poids initial ?" → get_nutrition_targets
 - "Mes dernières séances ?" → get_recent_sessions
 - "Mon prochain training ?" → get_next_session
 - "Mon objectif ?" → get_nutrition_targets
 - "Mes calories ?" → get_nutrition_targets
 - "Mon RPE ?" → get_checkin_stats
+- "Mon split ?" → get_training_preferences
+- "Mes zones prioritaires ?" → get_training_preferences
+- "Ce que j'ai mangé ?" → get_nutrition_logs
+- "Ma progression ?" → get_weekly_progress
+- "Mes perfs au squat ?" → get_exercise_history avec exercise_name="squat"
+- "Mes conditions de santé ?" → get_nutrition_targets
+- "Mes allergies ?" → get_nutrition_targets
 
 Contexte utilisateur actuel (informations générales) :
 - Objectif : ${sanitizedContext.goal_type}
@@ -455,7 +750,7 @@ Contexte utilisateur actuel (informations générales) :
 - Préférences : ${sanitizedContext.session_type}
 - Limitations : ${sanitizedContext.limitations}
 
-⚠️ ATTENTION : Ce contexte ne contient PAS de données chiffrées (poids, calories, etc.). 
+⚠️ ATTENTION : Ce contexte ne contient PAS de données chiffrées. 
 Pour obtenir ces données, tu DOIS utiliser les tools.
 
 Format de réponse structuré :
@@ -561,8 +856,9 @@ Ton : Motivant, professionnel, bienveillant.`;
 
       // Detect keywords in last user message to force tool usage
       const lastUserMessage = [...messages].reverse().find(m => m.role === "user")?.content?.toLowerCase() || "";
-      const needsWeightData = /poids|kg|weight|initial|objectif|calories|macro/i.test(lastUserMessage);
+      const needsWeightData = /poids|kg|weight|initial|objectif|calories|macro|santé|condition|allergie|restriction/i.test(lastUserMessage);
       const needsWeightHistory = /semaine dernière|historique|évolution|progression/i.test(lastUserMessage);
+      const needsTrainingPrefs = /split|zone|priorit|niveau|exercice favori|éviter|limitation/i.test(lastUserMessage);
 
       const body: any = {
         model: "google/gemini-2.5-flash",
@@ -571,7 +867,7 @@ Ton : Motivant, professionnel, bienveillant.`;
         stream: false,
       };
 
-      // Force tool_choice for weight-related questions
+      // Force tool_choice for specific questions
       if (iterationCount === 1) {
         if (needsWeightData) {
           body.tool_choice = { type: "function", function: { name: "get_nutrition_targets" } };
@@ -579,6 +875,9 @@ Ton : Motivant, professionnel, bienveillant.`;
         } else if (needsWeightHistory) {
           body.tool_choice = { type: "function", function: { name: "get_weight_history" } };
           console.log("Forcing tool: get_weight_history");
+        } else if (needsTrainingPrefs) {
+          body.tool_choice = { type: "function", function: { name: "get_training_preferences" } };
+          console.log("Forcing tool: get_training_preferences");
         }
       }
 
