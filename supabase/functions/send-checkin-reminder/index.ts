@@ -1,5 +1,7 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.0";
+import { Resend } from "https://esm.sh/resend@4.0.0";
+import { generateEmailHtml, BRAND } from '../_shared/email-template.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,21 +14,19 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-
-    if (!supabaseUrl || !supabaseServiceKey || !resendApiKey) {
-      throw new Error("Missing environment variables");
-    }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const resendApiKey = Deno.env.get("RESEND_API_KEY")!;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const resend = new Resend(resendApiKey);
 
     const currentWeekISO = getCurrentWeekISO();
 
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, email, name");
+      .select("id, email, name")
+      .eq("onboarding_completed", true);
 
     if (!profiles) {
       return new Response(
@@ -39,6 +39,7 @@ serve(async (req) => {
     let errors = 0;
 
     for (const profile of profiles) {
+      // Check if already completed check-in this week
       const { data: checkIn } = await supabase
         .from("weekly_checkins")
         .select("id")
@@ -49,52 +50,59 @@ serve(async (req) => {
       if (checkIn) continue;
 
       try {
-        const response = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${resendApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "Pulse.ai <noreply@pulse.ai>",
-            to: [profile.email],
-            subject: "⏰ Check-in hebdomadaire en attente",
-            html: `
-              <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h1 style="color: #8b5cf6;">Salut ${profile.name || "Champion"} 👋</h1>
-                <p style="font-size: 16px; line-height: 1.6;">
-                  C'est l'heure de ton check-in hebdomadaire ! 
-                  <strong>2 minutes</strong> pour ajuster ton programme et maximiser tes résultats.
-                </p>
-                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 12px; margin: 30px 0;">
-                  <p style="color: white; margin: 0 0 15px 0; font-size: 14px;">
-                    ✅ Poids de la semaine<br />
-                    ✅ Adhérence nutrition<br />
-                    ✅ Difficulté des entraînements
-                  </p>
-                  <a href="https://app.pulse.ai/training" style="display: inline-block; background: white; color: #667eea; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-                    Faire mon check-in →
-                  </a>
-                </div>
-                <p style="font-size: 14px; color: #666;">
-                  💡 Ton programme sera automatiquement ajusté en fonction de tes réponses.
-                </p>
-              </div>
-            `,
-          }),
+        const emailHtml = generateEmailHtml({
+          recipientName: profile.name || "Champion",
+          recipientEmail: profile.email,
+          subject: "⏰ Check-in hebdomadaire en attente",
+          previewText: "2 minutes pour ajuster ton programme et maximiser tes résultats",
+          title: `Hey ${profile.name || "Champion"} ! 👋`,
+          subtitle: "C'est l'heure de ton check-in hebdomadaire !",
+          bodyContent: `
+            <p style="margin:0 0 20px;color:#334155">
+              <strong>2 minutes</strong> pour ajuster ton programme et maximiser tes résultats.
+            </p>
+            
+            <div style="background:linear-gradient(135deg,#6366F1 0%, #8B5CF6 100%);border-radius:16px;padding:24px;margin:16px 0">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="color:white;font-size:14px;line-height:22px">
+                    <div style="margin-bottom:8px">✅ Poids de la semaine</div>
+                    <div style="margin-bottom:8px">✅ Adhérence nutrition</div>
+                    <div>✅ Difficulté des entraînements</div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            
+            <p style="margin:16px 0;text-align:center;font-size:14px;color:#64748B">
+              💡 Ton programme sera automatiquement ajusté en fonction de tes réponses.
+            </p>
+          `,
+          ctaText: "Faire mon check-in →",
+          ctaUrl: `${BRAND.baseUrl}/training`,
+          footerNote: "Le check-in prend moins de 2 minutes et aide Alex à optimiser tes séances."
         });
 
-        if (response.ok) {
-          emailsSent++;
-        } else {
-          console.error(`Failed to send to ${profile.email}:`, await response.text());
+        const { error: sendError } = await resend.emails.send({
+          from: BRAND.from,
+          to: [profile.email],
+          subject: `⏰ ${profile.name || "Champion"}, ton check-in t'attend !`,
+          html: emailHtml,
+        });
+
+        if (sendError) {
+          console.error(`Failed to send to ${profile.email}:`, sendError);
           errors++;
+        } else {
+          emailsSent++;
         }
       } catch (emailError) {
         console.error(`Failed to send to ${profile.email}:`, emailError);
         errors++;
       }
     }
+
+    console.log(`Check-in reminders: ${emailsSent} sent, ${errors} failed`);
 
     return new Response(
       JSON.stringify({ 
