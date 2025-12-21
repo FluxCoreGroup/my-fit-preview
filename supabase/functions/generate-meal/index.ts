@@ -204,11 +204,25 @@ ${dietaryConstraints ? "- RESPECTE OBLIGATOIREMENT les contraintes alimentaires 
     // Parse JSON from response
     let mealData;
     try {
-      // Remove potential markdown code blocks
-      const cleanContent = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      // Remove potential markdown code blocks and extract JSON
+      let cleanContent = content;
+      
+      // Remove markdown code blocks (```json ... ``` or ``` ... ```)
+      cleanContent = cleanContent.replace(/```(?:json)?\s*/gi, "").replace(/```\s*/g, "");
+      
+      // Try to extract JSON object if there's extra text
+      const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanContent = jsonMatch[0];
+      }
+      
+      cleanContent = cleanContent.trim();
+      console.log("🔍 Cleaned content for parsing:", cleanContent.substring(0, 300));
+      
       mealData = JSON.parse(cleanContent);
     } catch (parseError) {
       console.error("❌ JSON parse error:", parseError);
+      console.error("❌ Raw content:", content);
       throw new Error("Failed to parse AI response as JSON");
     }
 
