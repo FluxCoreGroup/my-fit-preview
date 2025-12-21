@@ -25,6 +25,7 @@ const contextSchema = z.object({
 const requestSchema = z.object({
   messages: z.array(messageSchema).min(1).max(50),
   context: contextSchema.optional(),
+  dataConsent: z.boolean().nullable().optional(),
 });
 
 // Tool definitions for AI to access user data
@@ -359,8 +360,9 @@ serve(async (req) => {
       );
     }
     
-    const { messages, context } = parseResult.data;
+    const { messages, context, dataConsent } = parseResult.data;
     const sanitizedContext = sanitizeContext(context);
+    const hasDataAccess = dataConsent === true;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -418,7 +420,8 @@ serve(async (req) => {
     }
     console.log(`Subscription check passed for user ${userId}`);
 
-    const systemPrompt = `Tu es Alex, coach sportif expert en musculation et fitness de l'app PULSE.
+    // System prompt based on data consent
+    const systemPromptWithAccess = `Tu es Alex, coach sportif expert en musculation et fitness de l'app PULSE.
 
 ⚠️ RÈGLES CRITIQUES - RESPECT ABSOLU OBLIGATOIRE :
 1. TOUJOURS utiliser les tools pour TOUTE question sur les données utilisateur
@@ -468,12 +471,86 @@ COMPORTEMENT :
 - Proposer des alternatives d'exercices si demandé
 - Tenir compte des limitations et du matériel`;
 
+    const systemPromptWithoutAccess = `Tu es Alex, coach sportif expert en musculation et fitness de l'app PULSE.
+
+⚠️ IMPORTANT : L'utilisateur n'a pas autorisé l'accès à ses données personnelles.
+Tu dois donner des conseils GÉNÉRAUX sans données personnalisées.
+
+📌 Commence TOUJOURS ta réponse par :
+"📌 Réponse générale (sans accès à tes données personnelles)"
+
+Puis donne un conseil pertinent basé uniquement sur la question posée.
+
+Tu ne peux PAS :
+- Accéder au poids, aux séances, aux objectifs ou aux check-ins de l'utilisateur
+- Donner des chiffres personnalisés (calories, macros, etc.)
+- Mentionner des données spécifiques à l'utilisateur
+
+Tu PEUX :
+- Donner des conseils généraux sur l'entraînement
+- Expliquer des techniques d'exercices
+- Proposer des programmes génériques
+- Répondre à des questions théoriques sur le fitness
+
+Contexte général :
+- Objectif déclaré : ${sanitizedContext.goal_type}
+- Niveau déclaré : ${sanitizedContext.experience_level}
+
+Ton : Motivant, professionnel, bienveillant.`;
+
+    const systemPrompt = hasDataAccess ? systemPromptWithAccess : systemPromptWithoutAccess;
+
     // Track data sources used
     let dataSources: any[] = [];
     let debugGoalsStatus = "not-checked";
 
-    // Initial AI call with tools
+    // Build AI messages array
     let aiMessages: any[] = [{ role: "system", content: systemPrompt }, ...messages];
+
+    // If no data access, skip tool loop entirely and go straight to streaming
+    if (!hasDataAccess) {
+      console.log("No data access consent - skipping tools, going to streaming response");
+      const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: aiMessages,
+          stream: true,
+        }),
+      });
+
+      if (!finalResponse.ok) {
+        if (finalResponse.status === 429) {
+          return new Response(JSON.stringify({ error: "Trop de requêtes, réessaye dans quelques instants." }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (finalResponse.status === 402) {
+          return new Response(JSON.stringify({ error: "Crédits épuisés, contacte le support." }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw new Error("Failed to get streaming response");
+      }
+
+      return new Response(finalResponse.body, {
+        headers: { 
+          ...corsHeaders, 
+          "Content-Type": "text/event-stream",
+          "X-Data-Sources": JSON.stringify([]),
+          "X-Debug-UserId": userId,
+          "X-Debug-DataConsent": "false",
+        },
+      });
+    }
+
+    // Initial AI call with tools (only if data access granted)
     let needsToolExecution = true;
     let iterationCount = 0;
     const MAX_ITERATIONS = 5;

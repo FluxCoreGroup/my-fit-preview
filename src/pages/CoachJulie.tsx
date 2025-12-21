@@ -139,6 +139,7 @@ const CoachJulie = () => {
           ) : (
             <ChatInterface
               conversationId={activeConversationId}
+              conversation={conversations.find(c => c.id === activeConversationId)}
               functionName="chat-julie"
               systemPrompt=""
               shortcuts={[
