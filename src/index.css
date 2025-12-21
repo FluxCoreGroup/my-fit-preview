@@ -175,11 +175,11 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-glow);
   }
 
-  .animate-in {
-    animation: fade-in 0.5s ease-out;
+  .custom-fade-in {
+    animation: custom-fade-in 0.5s ease-out;
   }
 
-  @keyframes fade-in {
+  @keyframes custom-fade-in {
     from {
       opacity: 0;
       transform: translateY(10px);
