@@ -86,7 +86,36 @@ const tools = [
     type: "function",
     function: {
       name: "get_next_session",
-      description: "Récupère la prochaine séance d'entraînement planifiée",
+      description: "Récupère la prochaine séance d'entraînement non complétée (inclut les séances récentes des 7 derniers jours)",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_session_by_index",
+      description: "UTILISER quand l'utilisateur demande 'ma séance 1', 'séance 2', etc. Récupère une séance spécifique par son numéro dans la semaine courante.",
+      parameters: {
+        type: "object",
+        properties: {
+          index: {
+            type: "number",
+            description: "Numéro de la séance (1 pour la première, 2 pour la deuxième, etc.)",
+          },
+        },
+        required: ["index"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "get_all_week_sessions",
+      description: "UTILISER pour voir toutes les séances de la semaine courante. Retourne la liste complète des séances planifiées/réalisées cette semaine.",
       parameters: {
         type: "object",
         properties: {},
@@ -294,12 +323,16 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
       }
 
       case "get_next_session": {
+        // Look for uncompleted sessions in the last 7 days AND future
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+
         const { data, error } = await supabase
           .from("sessions")
-          .select("id, session_date, exercises")
+          .select("id, session_date, exercises, completed")
           .eq("user_id", userId)
           .eq("completed", false)
-          .gte("session_date", new Date().toISOString())
+          .gte("session_date", weekAgo.toISOString())
           .order("session_date", { ascending: true })
           .limit(1)
           .maybeSingle();
@@ -316,6 +349,102 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
           summary: data
             ? `Prochaine séance prévue le ${new Date(data.session_date).toLocaleDateString("fr-FR")}`
             : "Aucune séance planifiée",
+        };
+      }
+
+      case "get_session_by_index": {
+        const argsSchema = z.object({ index: z.number().min(1).max(10) });
+        const validated = validateToolArgs(argsSchema, args);
+        const index = validated?.index || 1;
+
+        // Get current week bounds (Monday to Sunday)
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() + diffToMonday);
+        weekStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+
+        const { data, error } = await supabase
+          .from("sessions")
+          .select("id, session_date, exercises, completed")
+          .eq("user_id", userId)
+          .gte("session_date", weekStart.toISOString())
+          .lt("session_date", weekEnd.toISOString())
+          .order("session_date", { ascending: true });
+
+        if (error) {
+          console.error("get_session_by_index error:", error);
+          throw error;
+        }
+
+        const session = data?.[index - 1];
+        console.log(`get_session_by_index: Looking for session ${index}, found ${data?.length || 0} total, match: ${session ? "yes" : "no"}`);
+
+        if (!session) {
+          return {
+            success: true,
+            data: null,
+            totalSessions: data?.length || 0,
+            summary: data?.length 
+              ? `Séance ${index} non trouvée. Tu as ${data.length} séance(s) cette semaine.`
+              : "Aucune séance planifiée cette semaine",
+          };
+        }
+
+        return {
+          success: true,
+          data: session,
+          sessionNumber: index,
+          totalSessions: data.length,
+          summary: `Séance ${index}/${data.length} - ${new Date(session.session_date).toLocaleDateString("fr-FR")} - ${session.completed ? "Complétée" : "À faire"}`,
+        };
+      }
+
+      case "get_all_week_sessions": {
+        // Get current week bounds (Monday to Sunday)
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() + diffToMonday);
+        weekStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 7);
+
+        const { data, error } = await supabase
+          .from("sessions")
+          .select("id, session_date, exercises, completed")
+          .eq("user_id", userId)
+          .gte("session_date", weekStart.toISOString())
+          .lt("session_date", weekEnd.toISOString())
+          .order("session_date", { ascending: true });
+
+        if (error) {
+          console.error("get_all_week_sessions error:", error);
+          throw error;
+        }
+
+        console.log(`get_all_week_sessions: Found ${data?.length || 0} sessions this week`);
+
+        const completedCount = data?.filter((s: any) => s.completed).length || 0;
+        const sessionsWithIndex = data?.map((s: any, i: number) => ({
+          ...s,
+          sessionNumber: i + 1,
+        })) || [];
+
+        return {
+          success: true,
+          data: sessionsWithIndex,
+          totalSessions: data?.length || 0,
+          completedCount,
+          weekStart: weekStart.toISOString(),
+          weekEnd: weekEnd.toISOString(),
+          summary: data?.length
+            ? `${data.length} séance(s) cette semaine (${completedCount} complétée(s))`
+            : "Aucune séance planifiée cette semaine",
         };
       }
 
@@ -718,7 +847,9 @@ TOOLS DISPONIBLES (À UTILISER SYSTÉMATIQUEMENT) :
 - get_weight_history : historique des pesées hebdomadaires (weekly_checkins)
 - get_recent_sessions : dernières séances d'entraînement avec exercices
 - get_checkin_stats : stats des check-ins (RPE, adhérence, énergie, douleurs)
-- get_next_session : prochaine séance planifiée
+- get_next_session : prochaine séance NON COMPLÉTÉE (7 derniers jours + futur)
+- get_session_by_index : ⭐ UTILISER quand l'utilisateur dit "ma séance 1", "séance 2", "séance n°3", etc.
+- get_all_week_sessions : ⭐ UTILISER pour voir TOUTES les séances de la semaine courante
 - get_nutrition_targets : TOUTES les données de l'utilisateur (poids, taille, âge, sexe, objectifs, calories, macros, conditions de santé, allergies, restrictions)
 - get_training_preferences : préférences d'entraînement (niveau, split, zones prioritaires, limitations, exercices favoris/à éviter)
 - get_nutrition_logs : repas et calories consommés récemment
@@ -726,10 +857,18 @@ TOOLS DISPONIBLES (À UTILISER SYSTÉMATIQUEMENT) :
 - get_weekly_progress : progression des programmes hebdomadaires (adhérence, séances complétées)
 - get_exercise_history : historique des performances par exercice (poids, RPE, commentaires)
 
+⭐ RÈGLE IMPORTANTE POUR LES SÉANCES :
+- "Ma séance 1" / "Séance n°1" / "Première séance" → get_session_by_index avec index=1
+- "Ma séance 2" / "Séance n°2" / "Deuxième séance" → get_session_by_index avec index=2
+- "Mes séances de la semaine" / "Toutes mes séances" → get_all_week_sessions
+- "Ma prochaine séance" / "Mon prochain training" → get_next_session
+
 QUAND UTILISER LES TOOLS (EXEMPLES CONCRETS) :
 - "Quel est mon poids ?" → get_weight_history + get_nutrition_targets
 - "Mon poids initial ?" → get_nutrition_targets
 - "Mes dernières séances ?" → get_recent_sessions
+- "Ma séance 1 ?" → get_session_by_index avec index=1
+- "Mes séances cette semaine ?" → get_all_week_sessions
 - "Mon prochain training ?" → get_next_session
 - "Mon objectif ?" → get_nutrition_targets
 - "Mes calories ?" → get_nutrition_targets
@@ -859,6 +998,8 @@ Ton : Motivant, professionnel, bienveillant.`;
       const needsWeightData = /poids|kg|weight|initial|objectif|calories|macro|santé|condition|allergie|restriction/i.test(lastUserMessage);
       const needsWeightHistory = /semaine dernière|historique|évolution|progression/i.test(lastUserMessage);
       const needsTrainingPrefs = /split|zone|priorit|niveau|exercice favori|éviter|limitation/i.test(lastUserMessage);
+      const needsSessionByIndex = /séance\s*[n°#]?\s*\d+|séance\s*(1|2|3|4|5|6|7)|première séance|deuxième séance|troisième séance/i.test(lastUserMessage);
+      const needsAllSessions = /mes séances|toutes les séances|séances de la semaine|programme de la semaine/i.test(lastUserMessage);
 
       const body: any = {
         model: "google/gemini-2.5-flash",
@@ -869,7 +1010,21 @@ Ton : Motivant, professionnel, bienveillant.`;
 
       // Force tool_choice for specific questions
       if (iterationCount === 1) {
-        if (needsWeightData) {
+        if (needsSessionByIndex) {
+          // Extract the session number from the message
+          const match = lastUserMessage.match(/séance\s*[n°#]?\s*(\d+)|première|deuxième|troisième/i);
+          const sessionIndex = match ? 
+            (match[1] ? parseInt(match[1]) : 
+             match[0].includes("première") ? 1 :
+             match[0].includes("deuxième") ? 2 :
+             match[0].includes("troisième") ? 3 : 1) : 1;
+          console.log(`Detected session by index request, index: ${sessionIndex}`);
+          body.tool_choice = { type: "function", function: { name: "get_session_by_index" } };
+          console.log("Forcing tool: get_session_by_index");
+        } else if (needsAllSessions) {
+          body.tool_choice = { type: "function", function: { name: "get_all_week_sessions" } };
+          console.log("Forcing tool: get_all_week_sessions");
+        } else if (needsWeightData) {
           body.tool_choice = { type: "function", function: { name: "get_nutrition_targets" } };
           console.log("Forcing tool: get_nutrition_targets");
         } else if (needsWeightHistory) {
