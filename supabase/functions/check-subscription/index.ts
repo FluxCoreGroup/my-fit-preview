@@ -76,8 +76,21 @@ serve(async (req) => {
     if (hasValidSub) {
       const subscription = validSubscription;
       subscriptionStatus = subscription.status;
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      
+      // Log raw Stripe data for debugging
+      logStep("Subscription raw data", { 
+        current_period_end: subscription.current_period_end,
+        trial_end: subscription.trial_end,
+        created: subscription.created,
+        status: subscription.status
+      });
+      
+      // Safe date conversions with null checks
+      if (subscription.current_period_end) {
+        subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+      }
       logStep("Valid subscription found", { subscriptionId: subscription.id, status: subscriptionStatus, endDate: subscriptionEnd });
+      
       productId = subscription.items.data[0].price.product as string;
       logStep("Determined subscription tier", { productId });
       
@@ -95,7 +108,9 @@ serve(async (req) => {
           stripe_subscription_id: subscription.id,
           status: subscriptionStatus,
           plan_type: subscription.items.data[0].price.recurring?.interval || 'month',
-          started_at: new Date(subscription.created * 1000).toISOString(),
+          started_at: subscription.created 
+            ? new Date(subscription.created * 1000).toISOString() 
+            : new Date().toISOString(),
           ends_at: subscriptionEnd
         }, { onConflict: 'user_id' });
     } else {
