@@ -71,6 +71,15 @@ serve(async (req) => {
     }
     console.log(`Subscription check passed for user ${user.id}`);
 
+    // Récupérer les préférences nutritionnelles de l'utilisateur
+    const { data: goals } = await supabase
+      .from("goals")
+      .select("allergies, restrictions, health_conditions")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    console.log("📋 User dietary preferences:", goals);
+
     const rawBody = await req.json();
     
     // Validate input
@@ -104,7 +113,23 @@ serve(async (req) => {
 
     const typeDesc = type === "sweet" ? "sucré" : "salé";
 
+    // Construire les contraintes alimentaires
+    let dietaryConstraints = "";
+    
+    if (goals?.allergies && goals.allergies.length > 0) {
+      dietaryConstraints += `\n⚠️ ALLERGIES (à éviter ABSOLUMENT) : ${goals.allergies.join(", ")}`;
+    }
+    
+    if (goals?.restrictions && goals.restrictions.length > 0) {
+      dietaryConstraints += `\n🚫 Restrictions alimentaires : ${goals.restrictions.join(", ")}`;
+    }
+    
+    if (goals?.health_conditions && goals.health_conditions.length > 0) {
+      dietaryConstraints += `\n🏥 Conditions de santé à prendre en compte : ${goals.health_conditions.join(", ")}`;
+    }
+
     const systemPrompt = `Tu es un nutritionniste expert. Génère un repas ${typeDesc} pour le ${categoryNames[category] || "repas"} avec exactement ces macros : ${protein}g protéines, ${carbs}g glucides, ${fats}g lipides (environ ${calories} kcal).
+${dietaryConstraints ? "\nCONTRAINTES ALIMENTAIRES DE L'UTILISATEUR (TRÈS IMPORTANT) :" + dietaryConstraints : ""}
 
 Réponds UNIQUEMENT avec un objet JSON valide dans ce format exact :
 {
@@ -126,9 +151,10 @@ Règles strictes :
 - Liste 5-8 ingrédients maximum
 - 3-5 étapes de préparation maximum
 - Adapte la complexité au type de repas
+${dietaryConstraints ? "- RESPECTE OBLIGATOIREMENT les contraintes alimentaires listées ci-dessus" : ""}
 - Pas de markdown, juste le JSON brut`;
 
-    console.log("🍽️ Generating meal with params:", { protein, carbs, fats, type, category });
+    console.log("🍽️ Generating meal with params:", { protein, carbs, fats, type, category, dietaryConstraints: dietaryConstraints || "none" });
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
