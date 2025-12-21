@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
-export type SubscriptionStatus = "loading" | "active" | "inactive" | "error";
+export type SubscriptionStatus = "loading" | "active" | "trialing" | "inactive" | "error";
 
 interface SubscriptionData {
   status: SubscriptionStatus;
   productId: string | null;
   subscriptionEnd: string | null;
+  trialEnd: string | null;
   error: string | null;
 }
 
@@ -17,13 +18,14 @@ export const useSubscription = () => {
     status: "loading",
     productId: null,
     subscriptionEnd: null,
+    trialEnd: null,
     error: null,
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const checkSubscription = useCallback(async () => {
     if (!user) {
-      setData({ status: "inactive", productId: null, subscriptionEnd: null, error: null });
+      setData({ status: "inactive", productId: null, subscriptionEnd: null, trialEnd: null, error: null });
       return;
     }
 
@@ -33,10 +35,12 @@ export const useSubscription = () => {
       if (error) throw error;
 
       if (response?.subscribed) {
+        const subStatus: SubscriptionStatus = response.subscription_status === "trialing" ? "trialing" : "active";
         setData({
-          status: "active",
+          status: subStatus,
           productId: response.product_id,
           subscriptionEnd: response.subscription_end,
+          trialEnd: response.trial_end,
           error: null,
         });
       } else {
@@ -44,6 +48,7 @@ export const useSubscription = () => {
           status: "inactive",
           productId: null,
           subscriptionEnd: null,
+          trialEnd: null,
           error: null,
         });
       }
@@ -53,6 +58,7 @@ export const useSubscription = () => {
         status: "error",
         productId: null,
         subscriptionEnd: null,
+        trialEnd: null,
         error: err instanceof Error ? err.message : "Erreur lors de la vérification",
       });
     }
