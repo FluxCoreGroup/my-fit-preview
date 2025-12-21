@@ -7,17 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Input validation schema
+// Input validation schema - accepts both strings and arrays
 const healthDataSchema = z.object({
-  allergies: z.string().max(500).optional(),
-  restrictions: z.string().max(500).optional(),
-  healthConditions: z.string().max(500).optional(),
+  allergies: z.union([z.string(), z.array(z.string())]).optional(),
+  restrictions: z.union([z.string(), z.array(z.string())]).optional(),
+  healthConditions: z.union([z.string(), z.array(z.string())]).optional(),
 });
 
-// Sanitize inputs to prevent prompt injection
-const sanitize = (str: string | undefined): string => {
-  if (!str) return 'Aucune';
-  return str.replace(/[<>{}]/g, '').substring(0, 500);
+// Sanitize inputs to prevent prompt injection - handles both strings and arrays
+const sanitize = (input: string | string[] | undefined): string => {
+  if (!input) return 'Aucune';
+  if (Array.isArray(input)) {
+    if (input.length === 0) return 'Aucune';
+    return input.map(s => s.replace(/[<>{}]/g, '')).join(', ').substring(0, 500);
+  }
+  return input.replace(/[<>{}]/g, '').substring(0, 500);
 };
 
 serve(async (req) => {
