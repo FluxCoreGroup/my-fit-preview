@@ -775,10 +775,7 @@ const Landing = () => {
         <div className="absolute inset-0 bg-grid-white/5" />
 
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10 text-primary-foreground">
-          <Badge variant="default" className="mb-4">
-            <ShieldCheck className="w-3 h-3 mr-1" />
-            Satisfait ou remboursé sous 30 jours
-          </Badge>
+          
           <h2 className="text-4xl md:text-5xl font-bold">Prêt(e) à transformer ton corps ?</h2>
           <p className="text-xl opacity-90 max-w-2xl mx-auto">
             Rejoins <strong>1,247 membres</strong> qui progressent chaque jour avec Pulse.ai. Résultats visibles en 4
