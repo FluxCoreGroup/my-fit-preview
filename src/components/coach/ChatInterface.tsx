@@ -172,8 +172,22 @@ export const ChatInterface = ({
       }
 
       if (!resp.ok) {
+        let serverMessage = "";
+        try {
+          const errJson = await resp.clone().json();
+          serverMessage = typeof errJson?.error === "string" ? errJson.error : "";
+        } catch {
+          // ignore
+        }
+
         if (resp.status === 401) {
           toast({ title: "Non authentifié", description: "Reconnecte-toi pour continuer", variant: "destructive" });
+        } else if (resp.status === 403) {
+          toast({
+            title: "Abonnement requis",
+            description: serverMessage || "Un abonnement est nécessaire pour continuer à utiliser le coach IA.",
+            variant: "destructive",
+          });
         } else if (resp.status === 429) {
           toast({ title: "Trop de requêtes", description: "Réessaye dans quelques instants.", variant: "destructive" });
         } else if (resp.status === 402) {
@@ -184,8 +198,6 @@ export const ChatInterface = ({
         setIsLoading(false);
         return;
       }
-
-      if (!resp.body) throw new Error("No response body");
 
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();

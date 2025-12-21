@@ -820,7 +820,7 @@ serve(async (req) => {
         .from("subscriptions")
         .select("status")
         .eq("user_id", userId)
-        .eq("status", "active")
+        .in("status", ["active", "trialing"])
         .maybeSingle();
 
       if (!subscription) {
