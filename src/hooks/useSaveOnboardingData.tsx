@@ -44,11 +44,24 @@ export const useSaveOnboardingData = () => {
           console.error("Erreur lors de la vérification des données existantes:", checkError);
         }
 
+        // Calculer l'âge depuis la date de naissance si disponible
+        let calculatedAge = data.age || null;
+        if (data.birthDate) {
+          const birthDate = new Date(data.birthDate);
+          const today = new Date();
+          calculatedAge = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            calculatedAge--;
+          }
+        }
+
         // Utiliser upsert pour rendre l'opération idempotente
         const { error } = await supabase.from("goals").upsert({
           user_id: user.id,
           // Étape 1 : Profil de base
-          age: data.age || null,
+          birth_date: data.birthDate || null,
+          age: calculatedAge,
           sex: data.sex || null,
           height: data.height || null,
           weight: data.weight || null,

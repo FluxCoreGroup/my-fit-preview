@@ -301,6 +301,7 @@ export type Database = {
           activity_level: string | null
           age: number | null
           allergies: string[] | null
+          birth_date: string | null
           cardio_frequency: number | null
           created_at: string
           equipment: string[] | null
@@ -325,6 +326,7 @@ export type Database = {
           activity_level?: string | null
           age?: number | null
           allergies?: string[] | null
+          birth_date?: string | null
           cardio_frequency?: number | null
           created_at?: string
           equipment?: string[] | null
@@ -349,6 +351,7 @@ export type Database = {
           activity_level?: string | null
           age?: number | null
           allergies?: string[] | null
+          birth_date?: string | null
           cardio_frequency?: number | null
           created_at?: string
           equipment?: string[] | null
