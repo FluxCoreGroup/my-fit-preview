@@ -28,6 +28,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import heroPhone from "@/assets/hero-phone.png";
+import questionnairePreview from "@/assets/questionnaire-preview.png";
 import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
 const testimonials = [
@@ -239,8 +240,8 @@ const Landing = () => {
               </ul>
             </div>
             <Card className="p-6 order-1 md:order-2 bg-muted/30">
-              <div className="aspect-[4/3] bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
-                <Target className="w-20 h-20 text-primary/40" />
+              <div className="aspect-[4/3] rounded-lg overflow-hidden">
+                <img src={questionnairePreview} alt="Questionnaire personnalisé" className="w-full h-full object-cover" />
               </div>
               <p className="text-center text-sm text-muted-foreground mt-4">Un questionnaire adaptatif selon tes objectifs.</p>
             </Card>
