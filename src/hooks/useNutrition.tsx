@@ -19,6 +19,8 @@ export const useNutrition = () => {
       return data;
     },
     enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   console.log("🔍 [useNutrition] Current state:", { user: user?.id, goals, isLoading });
