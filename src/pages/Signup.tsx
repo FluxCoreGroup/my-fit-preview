@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { Mail, Lock, User, CheckCircle2, Check, Circle } from "lucide-react";
+import { Mail, Lock, User, CheckCircle2, Check, Circle, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,7 @@ const Signup = () => {
   const [isPostPayment, setIsPostPayment] = useState(false);
   const [emailReadonly, setEmailReadonly] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Check for post-payment flow
   useEffect(() => {
@@ -228,13 +229,20 @@ const Signup = () => {
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="signup-password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
                 {/* Password strength indicator */}
                 <div className="mt-2 space-y-1">
