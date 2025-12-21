@@ -84,7 +84,7 @@ const faqItems = [
   },
   {
     q: "Le support est-il inclus ?",
-    a: "Oui, support par email 7j/7 inclus dans tous les abonnements. Réponse garantie sous 24h (souvent bien plus rapide).",
+    a: "Oui ! Nos coachs IA Alex et Julie sont disponibles 24/7 pour t'accompagner. Pour le service client humain, nous répondons sous 48h (jours ouvrés) à general@pulse-ai.app.",
   },
 ];
 const Landing = () => {
@@ -383,7 +383,7 @@ const Landing = () => {
                   "Timer intégré et suivi RPE/RIR",
                   "Check-in hebdomadaire pour ajustements",
                   "Exercices en vidéo avec consignes claires",
-                  "Support par email 7j/7",
+                  "Support par email (réponse sous 48h)",
                 ].map((feature, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />

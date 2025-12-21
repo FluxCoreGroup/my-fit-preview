@@ -148,13 +148,13 @@ const Support = () => {
                 <div>
                   <div className="font-semibold mb-1">Email</div>
                   <a
-                    href="mailto:support@pulse-ai.fr"
+                    href="mailto:general@pulse-ai.app"
                     className="text-primary hover:underline"
                   >
-                    support@pulse-ai.fr
+                    general@pulse-ai.app
                   </a>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Réponse sous 24h (jours ouvrés)
+                    Réponse sous 48h (jours ouvrés)
                   </p>
                 </div>
               </div>
