@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 export const useSaveOnboardingData = () => {
   const { user } = useAuth();
@@ -77,6 +78,8 @@ export const useSaveOnboardingData = () => {
           console.log("📋 Payload upsert:", { location: data.location, equipment: data.equipment });
           // Retirer le flag de sauvegarde
           localStorage.removeItem("onboarding_saving");
+          // Invalider le cache React Query pour forcer le rechargement des données nutrition
+          queryClient.invalidateQueries({ queryKey: ["goals"] });
           // Ne pas supprimer le localStorage ici, il sera supprimé après TrainingSetup
           // localStorage.removeItem("onboardingData");
         }
