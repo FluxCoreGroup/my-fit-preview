@@ -242,7 +242,7 @@ const Landing = () => {
               <div className="aspect-[4/3] bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg flex items-center justify-center">
                 <Target className="w-20 h-20 text-primary/40" />
               </div>
-              <p className="text-center text-sm text-muted-foreground mt-4">Questionnaire personnalisé</p>
+              <p className="text-center text-sm text-muted-foreground mt-4">Un questionnaire adaptatif selon tes objectifs.</p>
             </Card>
           </div>
 
