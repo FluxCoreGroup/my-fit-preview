@@ -29,6 +29,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import heroPhone from "@/assets/hero-phone.png";
 import questionnairePreview from "@/assets/questionnaire-preview.png";
+import programCreationPreview from "@/assets/program-creation-preview.png";
 import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
 const testimonials = [
@@ -250,10 +251,10 @@ const Landing = () => {
           {/* Étape 2 */}
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <Card className="p-6 bg-muted/30">
-              <div className="aspect-[4/3] bg-gradient-to-br from-secondary/10 to-primary/10 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-20 h-20 text-primary/40" />
+              <div className="aspect-[4/3] rounded-lg overflow-hidden">
+                <img src={programCreationPreview} alt="Création de programme IA" className="w-full h-full object-cover" />
               </div>
-              <p className="text-center text-sm text-muted-foreground mt-4">Analyse IA instantanée</p>
+              <p className="text-center text-sm text-muted-foreground mt-4">L'IA crée ton programme sur mesure</p>
             </Card>
             <div className="space-y-4">
               <Badge variant="default" className="mb-2">
