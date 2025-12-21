@@ -13,7 +13,8 @@ const MODE_DEMO = false;
 
 export interface OnboardingInput {
   age: number;
-  sex: 'male' | 'female' | 'other';
+  birthDate?: string; // YYYY-MM-DD format
+  sex: 'male' | 'female';
   height: number; // cm
   weight: number; // kg
   goal: 'weight-loss' | 'muscle-gain' | 'endurance' | 'strength' | 'wellness';

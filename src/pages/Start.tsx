@@ -23,6 +23,7 @@ const Start = () => {
   const totalSteps = 5;
   const [formData, setFormData] = useState<Partial<OnboardingInput>>({
     age: undefined,
+    birthDate: undefined,
     sex: undefined,
     height: undefined,
     weight: undefined,
@@ -89,13 +90,26 @@ const Start = () => {
   );
 
   // Vérifie si l'étape est valide avec useMemo pour éviter recalculs
+  // Fonction pour calculer l'âge depuis la date de naissance
+  const calculateAgeFromBirthDate = (birthDateStr: string): number => {
+    const birthDate = new Date(birthDateStr);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const isStepValid = useMemo((): boolean => {
     switch (step) {
       case 1:
+        const age = formData.birthDate ? calculateAgeFromBirthDate(formData.birthDate) : 0;
         return !!(
-          formData.age &&
-          formData.age >= 15 &&
-          formData.age <= 100 &&
+          formData.birthDate &&
+          age >= 15 &&
+          age <= 100 &&
           formData.sex &&
           formData.height &&
           formData.height >= 120 &&
@@ -135,7 +149,12 @@ const Start = () => {
     const newErrors: Record<string, string> = {};
     switch (step) {
       case 1:
-        if (!formData.age || formData.age < 15 || formData.age > 100) newErrors.age = "Âge requis (15-100)";
+        if (!formData.birthDate) {
+          newErrors.birthDate = "Date de naissance requise";
+        } else {
+          const age = calculateAgeFromBirthDate(formData.birthDate);
+          if (age < 15 || age > 100) newErrors.birthDate = "Âge doit être entre 15 et 100 ans";
+        }
         if (!formData.sex) newErrors.sex = "Sexe requis";
         if (!formData.height || formData.height < 120 || formData.height > 250)
           newErrors.height = "Taille requise (120-250cm)";
@@ -239,16 +258,29 @@ const Start = () => {
               <div className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="age">Âge *</Label>
+                    <Label htmlFor="birthDate">Date de naissance *</Label>
                     <Input
-                      id="age"
-                      type="number"
-                      placeholder="25"
-                      value={formData.age || ""}
-                      onChange={(e) => updateField("age", parseInt(e.target.value))}
-                      className={`mt-2 ${errors.age ? "border-destructive" : ""}`}
+                      id="birthDate"
+                      type="date"
+                      value={formData.birthDate || ""}
+                      onChange={(e) => {
+                        const birthDate = e.target.value;
+                        updateField("birthDate", birthDate);
+                        // Calculer et stocker l'âge automatiquement
+                        if (birthDate) {
+                          const age = calculateAgeFromBirthDate(birthDate);
+                          updateField("age", age);
+                        }
+                      }}
+                      max={new Date().toISOString().split('T')[0]}
+                      className={`mt-2 ${errors.birthDate ? "border-destructive" : ""}`}
                     />
-                    {errors.age && <p className="text-xs text-destructive mt-1">{errors.age}</p>}
+                    {formData.birthDate && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {calculateAgeFromBirthDate(formData.birthDate)} ans
+                      </p>
+                    )}
+                    {errors.birthDate && <p className="text-xs text-destructive mt-1">{errors.birthDate}</p>}
                   </div>
                   <div>
                     <Label htmlFor="sex">Sexe *</Label>
@@ -259,7 +291,6 @@ const Start = () => {
                       <SelectContent>
                         <SelectItem value="male">Homme</SelectItem>
                         <SelectItem value="female">Femme</SelectItem>
-                        <SelectItem value="other">Autre</SelectItem>
                       </SelectContent>
                     </Select>
                     {errors.sex && <p className="text-xs text-destructive mt-1">{errors.sex}</p>}
