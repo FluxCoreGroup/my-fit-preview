@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 
+// Helper pour convertir string ou array en array
+const toArray = (value: unknown): string[] | null => {
+  if (!value) return null;
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    return value.split(',').map((s: string) => s.trim()).filter(Boolean);
+  }
+  return null;
+};
+
 export const useSaveOnboardingData = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -58,9 +68,9 @@ export const useSaveOnboardingData = () => {
           // Étape 5 : Alimentation et santé
           meals_per_day: data.mealsPerDay || 3,
           has_breakfast: data.hasBreakfast !== undefined ? data.hasBreakfast : true,
-          allergies: data.allergies ? data.allergies.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
-          restrictions: data.restrictions ? data.restrictions.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
-          health_conditions: data.healthConditions ? data.healthConditions.split(',').map((s: string) => s.trim()).filter(Boolean) : null,
+          allergies: toArray(data.allergies),
+          restrictions: toArray(data.restrictions),
+          health_conditions: toArray(data.healthConditions),
         }, {
           onConflict: 'user_id'
         });
