@@ -56,7 +56,7 @@ const CoachsIA = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Header variant="onboarding" />
       <BackButton to="/" label="Retour" />
       
       {/* Hero Section */}
