@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { Mail, Lock, User, CheckCircle2, Check, Circle, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
@@ -20,6 +21,9 @@ const signupSchema = z.object({
     .min(8, "Le mot de passe doit contenir au moins 8 caractères")
     .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
     .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
+  acceptedTerms: z.literal(true, {
+    errorMap: () => ({ message: "Vous devez accepter les conditions d'utilisation" }),
+  }),
 });
 
 const Signup = () => {
@@ -34,6 +38,7 @@ const Signup = () => {
   const [emailReadonly, setEmailReadonly] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   // Check for post-payment flow
   useEffect(() => {
@@ -94,6 +99,7 @@ const Signup = () => {
         name: signupName,
         email: signupEmail,
         password: signupPassword,
+        acceptedTerms: acceptedTerms,
       });
 
       // For post-payment flow, skip email confirmation
@@ -265,6 +271,46 @@ const Signup = () => {
                     chiffre
                   </p>
                 </div>
+              </div>
+
+              {/* Terms acceptance checkbox */}
+              <div className="flex items-start gap-3 pt-2">
+                <Checkbox
+                  id="terms"
+                  checked={acceptedTerms}
+                  onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer font-normal">
+                  J'accepte les{" "}
+                  <a
+                    href="/legal"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Conditions Générales d'Utilisation
+                  </a>
+                  {" "}et la{" "}
+                  <a
+                    href="/legal"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Politique de Confidentialité
+                  </a>
+                  . Je reconnais avoir pris connaissance des{" "}
+                  <a
+                    href="/legal"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    avertissements médicaux
+                  </a>
+                  .
+                </Label>
               </div>
 
               <Button type="submit" size="lg" variant="default" className="w-full" disabled={loading}>
