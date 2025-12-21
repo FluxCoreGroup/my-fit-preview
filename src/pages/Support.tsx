@@ -164,7 +164,7 @@ const Support = () => {
                 <div>
                   <div className="font-semibold mb-1">Discord</div>
                 <a 
-                  href="https://discord.gg/pulse-ai"
+                  href="https://discord.gg/aqcgwuwy"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary hover:underline"
