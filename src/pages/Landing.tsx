@@ -3,59 +3,91 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Dumbbell, Target, Zap, Clock, Check, Star, Users, TrendingUp, Sparkles, ShieldCheck, ArrowRight, X, Smartphone, Apple, Heart, MessageSquare, Salad, Bot, HelpCircle } from "lucide-react";
+import {
+  Dumbbell,
+  Target,
+  Zap,
+  Clock,
+  Check,
+  Star,
+  Users,
+  TrendingUp,
+  Sparkles,
+  ShieldCheck,
+  ArrowRight,
+  X,
+  Smartphone,
+  Apple,
+  Heart,
+  MessageSquare,
+  Salad,
+  Bot,
+  HelpCircle,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import heroPhone from "@/assets/hero-phone.png";
 import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
-const testimonials = [{
-  name: "Sophie M.",
-  role: "Perdu 12kg en 3 mois",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
-  quote: "J'ai enfin trouvé un programme qui s'adapte à ma vie de maman. Les résultats sont là !"
-}, {
-  name: "Thomas L.",
-  role: "Prise de masse réussie",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas",
-  quote: "Le suivi nutrition est incroyable. J'ai pris 8kg de muscle en gardant mes abdos visibles."
-}, {
-  name: "Marie K.",
-  role: "Débutante motivée",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
-  quote: "Je n'avais jamais fait de sport. Les exercices sont clairs et j'adore les alternatives proposées."
-}];
-const faqItems = [{
-  q: "C'est vraiment gratuit pour commencer ?",
-  a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à 8,99€/mois sans engagement."
-}, {
-  q: "Je suis débutant(e), ça marche pour moi ?",
-  a: "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo."
-}, {
-  q: "Comment les plans sont-ils générés ?",
-  a: "Notre IA analyse tes réponses (âge, poids, objectif, niveau, matériel disponible, contraintes...) et crée un plan 100% sur mesure en quelques secondes. Il s'ajuste ensuite automatiquement selon tes feedbacks hebdomadaires."
-}, {
-  q: "Puis-je annuler à tout moment ?",
-  a: "Oui, tu peux annuler ton abonnement quand tu veux, directement depuis ton tableau de bord en 1 clic. Aucune question posée, aucun frais cachés."
-}, {
-  q: "Quel matériel ai-je besoin ?",
-  a: "Aucun matériel obligatoire ! Pulse.ai s'adapte à ce que tu as : poids du corps uniquement, haltères, barre, machines en salle... Tu sélectionnes ton équipement lors de la configuration."
-}, {
-  q: "Les résultats sont-ils garantis ?",
-  a: "Nous garantissons des résultats visibles en 4 semaines si tu suis ton plan à 80% minimum. Sinon, tu es remboursé(e) intégralement, sans justification."
-}, {
-  q: "Puis-je suivre mes progrès ?",
-  a: "Oui ! Dashboard complet avec historique des séances, évolution du poids/mensurations, graphiques de progression et ajustements automatiques du plan."
-}, {
-  q: "Le support est-il inclus ?",
-  a: "Oui, support par email 7j/7 inclus dans tous les abonnements. Réponse garantie sous 24h (souvent bien plus rapide)."
-}];
+const testimonials = [
+  {
+    name: "Sophie M.",
+    role: "Perdu 12kg en 3 mois",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
+    quote: "J'ai enfin trouvé un programme qui s'adapte à ma vie de maman. Les résultats sont là !",
+  },
+  {
+    name: "Thomas L.",
+    role: "Prise de masse réussie",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas",
+    quote: "Le suivi nutrition est incroyable. J'ai pris 8kg de muscle en gardant mes abdos visibles.",
+  },
+  {
+    name: "Marie K.",
+    role: "Débutante motivée",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
+    quote: "Je n'avais jamais fait de sport. Les exercices sont clairs et j'adore les alternatives proposées.",
+  },
+];
+const faqItems = [
+  {
+    q: "C'est vraiment gratuit pour commencer ?",
+    a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à 8,99€/mois sans engagement.",
+  },
+  {
+    q: "Je suis débutant(e), ça marche pour moi ?",
+    a: "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo.",
+  },
+  {
+    q: "Comment les plans sont-ils générés ?",
+    a: "Notre IA analyse tes réponses (âge, poids, objectif, niveau, matériel disponible, contraintes...) et crée un plan 100% sur mesure en quelques secondes. Il s'ajuste ensuite automatiquement selon tes feedbacks hebdomadaires.",
+  },
+  {
+    q: "Puis-je annuler à tout moment ?",
+    a: "Oui, tu peux annuler ton abonnement quand tu veux, directement depuis ton tableau de bord en 1 clic. Aucune question posée, aucun frais cachés.",
+  },
+  {
+    q: "Quel matériel ai-je besoin ?",
+    a: "Aucun matériel obligatoire ! Pulse.ai s'adapte à ce que tu as : poids du corps uniquement, haltères, barre, machines en salle... Tu sélectionnes ton équipement lors de la configuration.",
+  },
+  {
+    q: "Les résultats sont-ils garantis ?",
+    a: "Nous garantissons des résultats visibles en 4 semaines si tu suis ton plan à 80% minimum. Sinon, tu es remboursé(e) intégralement, sans justification.",
+  },
+  {
+    q: "Puis-je suivre mes progrès ?",
+    a: "Oui ! Dashboard complet avec historique des séances, évolution du poids/mensurations, graphiques de progression et ajustements automatiques du plan.",
+  },
+  {
+    q: "Le support est-il inclus ?",
+    a: "Oui, support par email 7j/7 inclus dans tous les abonnements. Réponse garantie sous 24h (souvent bien plus rapide).",
+  },
+];
 const Landing = () => {
-  const {
-    user
-  } = useAuth();
-  return <div className="min-h-screen">
+  const { user } = useAuth();
+  return (
+    <div className="min-h-screen">
       <Header />
 
       {/* Hero Section */}
@@ -70,7 +102,8 @@ const Landing = () => {
                 dans ta poche.
               </h1>
 
-              <p className="text-base md:text-lg text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed px-4">Obtiens un plan sport & nutrition 100% personnalisé. Résultats visibles en 4 semaines.<strong>100% personnalisé</strong>. Résultats visibles en 4 semaines,
+              <p className="text-base md:text-lg text-primary-foreground/90 max-w-2xl mx-auto leading-relaxed px-4">
+                Obtiens un plan sport & nutrition <strong>100% personnalisé</strong>. Résultats visibles en 4 semaines,
                 garantis.
               </p>
 
@@ -83,21 +116,35 @@ const Landing = () => {
 
             {/* Phone Mockup - Centered */}
             <div className="flex justify-center z-10 my-4 flex-shrink">
-              <img src={heroPhone} alt="Interface du Hub Pulse.ai avec 6 modules : Entraînements, Nutrition, Coach Alex, Coach Julie, Paramètres et Aide" className="w-[clamp(130px,30vw,240px)] max-h-[35vh] object-contain drop-shadow-2xl pointer-events-none select-none" />
+              <img
+                src={heroPhone}
+                alt="Interface du Hub Pulse.ai avec 6 modules : Entraînements, Nutrition, Coach Alex, Coach Julie, Paramètres et Aide"
+                className="w-[clamp(130px,30vw,240px)] max-h-[35vh] object-contain drop-shadow-2xl pointer-events-none select-none"
+              />
             </div>
 
             {/* CTA - Bottom */}
             <div className="pb-4 md:pb-6 z-10 flex-shrink-0">
-              {user ? <Link to="/hub">
-                  <Button size="lg" className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold">
+              {user ? (
+                <Link to="/hub">
+                  <Button
+                    size="lg"
+                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                  >
                     Aller au Hub
                   </Button>
-                </Link> : <Link to="/start">
-                  <Button size="lg" className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold">
+                </Link>
+              ) : (
+                <Link to="/start">
+                  <Button
+                    size="lg"
+                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                  >
                     Faire le quiz
                     <span className="ml-2 text-sm opacity-70">~2 min</span>
                   </Button>
-                </Link>}
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -127,7 +174,8 @@ const Landing = () => {
 
           {/* Témoignages */}
           <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => <Card key={i} className="p-6">
+            {testimonials.map((t, i) => (
+              <Card key={i} className="p-6">
                 <div className="flex items-center gap-3 mb-4">
                   <Avatar>
                     <AvatarImage src={t.avatar} />
@@ -140,9 +188,12 @@ const Landing = () => {
                 </div>
                 <p className="text-sm italic text-muted-foreground">"{t.quote}"</p>
                 <div className="flex gap-1 mt-3">
-                  {[...Array(5)].map((_, j) => <Star key={j} className="w-3 h-3 fill-primary text-primary" />)}
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} className="w-3 h-3 fill-primary text-primary" />
+                  ))}
                 </div>
-              </Card>)}
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -321,10 +372,21 @@ const Landing = () => {
             <div>
               <h2 className="mb-6">Ce que tu obtiens</h2>
               <ul className="space-y-4">
-                {["Plans nutrition personnalisés (calories + macros)", "Séances d'entraînement détaillées avec alternatives", "Coach sport IA Alex disponible 24/7", "Nutritionniste IA Julie pour tes repas", "Timer intégré et suivi RPE/RIR", "Check-in hebdomadaire pour ajustements", "Exercices en vidéo avec consignes claires", "Support par email 7j/7"].map((feature, i) => <li key={i} className="flex items-start gap-3">
+                {[
+                  "Plans nutrition personnalisés (calories + macros)",
+                  "Séances d'entraînement détaillées avec alternatives",
+                  "Coach sport IA Alex disponible 24/7",
+                  "Nutritionniste IA Julie pour tes repas",
+                  "Timer intégré et suivi RPE/RIR",
+                  "Check-in hebdomadaire pour ajustements",
+                  "Exercices en vidéo avec consignes claires",
+                  "Support par email 7j/7",
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-start gap-3">
                     <Check className="w-5 h-5 text-accent mt-1 flex-shrink-0" />
                     <span>{feature}</span>
-                  </li>)}
+                  </li>
+                ))}
               </ul>
             </div>
             <Card className="p-8 bg-card">
@@ -364,7 +426,11 @@ const Landing = () => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-6">
-                  <img src={coachAlexAvatar} alt="Alex - Coach Sport IA" className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20" />
+                  <img
+                    src={coachAlexAvatar}
+                    alt="Alex - Coach Sport IA"
+                    className="w-16 h-16 rounded-full object-cover ring-4 ring-primary/20"
+                  />
                   <div>
                     <h3 className="text-2xl font-bold">Alex</h3>
                     <p className="text-muted-foreground">Coach Sport IA</p>
@@ -408,7 +474,11 @@ const Landing = () => {
               <div className="absolute top-0 right-0 w-32 h-32 bg-secondary/10 rounded-full blur-3xl group-hover:bg-secondary/20 transition-all" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-6">
-                  <img src={coachJulieAvatar} alt="Julie - Nutritionniste IA" className="w-16 h-16 rounded-full object-cover ring-4 ring-secondary/20" />
+                  <img
+                    src={coachJulieAvatar}
+                    alt="Julie - Nutritionniste IA"
+                    className="w-16 h-16 rounded-full object-cover ring-4 ring-secondary/20"
+                  />
                   <div>
                     <h3 className="text-2xl font-bold">Julie</h3>
                     <p className="text-muted-foreground">Nutritionniste IA</p>
@@ -484,28 +554,19 @@ const Landing = () => {
                 </div>
               </div>
               <div className="space-y-3">
-                {[{
-                label: "Personnalisation IA",
-                has: true
-              }, {
-                label: "Ajustements automatiques",
-                has: true
-              }, {
-                label: "Disponibilité 24/7",
-                has: true
-              }, {
-                label: "Plans nutrition + sport",
-                has: true
-              }, {
-                label: "Coach IA 24/7",
-                has: true
-              }, {
-                label: "Support 7j/7",
-                has: true
-              }].map((item, i) => <div key={i} className="flex items-center gap-3">
+                {[
+                  { label: "Personnalisation IA", has: true },
+                  { label: "Ajustements automatiques", has: true },
+                  { label: "Disponibilité 24/7", has: true },
+                  { label: "Plans nutrition + sport", has: true },
+                  { label: "Coach IA 24/7", has: true },
+                  { label: "Support 7j/7", has: true },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
                     <Check className="w-5 h-5 text-primary shrink-0" />
                     <span className="text-sm">{item.label}</span>
-                  </div>)}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -519,28 +580,23 @@ const Landing = () => {
                 </div>
               </div>
               <div className="space-y-3">
-                {[{
-                label: "Personnalisation IA",
-                has: true
-              }, {
-                label: "Ajustements automatiques",
-                has: true
-              }, {
-                label: "Disponibilité 24/7",
-                has: false
-              }, {
-                label: "Plans nutrition + sport",
-                has: true
-              }, {
-                label: "Coach IA 24/7",
-                has: false
-              }, {
-                label: "Support 7j/7",
-                has: true
-              }].map((item, i) => <div key={i} className="flex items-center gap-3">
-                    {item.has ? <Check className="w-5 h-5 text-muted-foreground shrink-0" /> : <X className="w-5 h-5 text-muted-foreground/50 shrink-0" />}
-                    <span className={`text-sm ${!item.has ? 'text-muted-foreground/50' : ''}`}>{item.label}</span>
-                  </div>)}
+                {[
+                  { label: "Personnalisation IA", has: true },
+                  { label: "Ajustements automatiques", has: true },
+                  { label: "Disponibilité 24/7", has: false },
+                  { label: "Plans nutrition + sport", has: true },
+                  { label: "Coach IA 24/7", has: false },
+                  { label: "Support 7j/7", has: true },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    {item.has ? (
+                      <Check className="w-5 h-5 text-muted-foreground shrink-0" />
+                    ) : (
+                      <X className="w-5 h-5 text-muted-foreground/50 shrink-0" />
+                    )}
+                    <span className={`text-sm ${!item.has ? "text-muted-foreground/50" : ""}`}>{item.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -554,28 +610,23 @@ const Landing = () => {
                 </div>
               </div>
               <div className="space-y-3">
-                {[{
-                label: "Personnalisation IA",
-                has: false
-              }, {
-                label: "Ajustements automatiques",
-                has: false
-              }, {
-                label: "Disponibilité 24/7",
-                has: true
-              }, {
-                label: "Plans nutrition + sport",
-                has: false
-              }, {
-                label: "Coach IA 24/7",
-                has: false
-              }, {
-                label: "Support 7j/7",
-                has: false
-              }].map((item, i) => <div key={i} className="flex items-center gap-3">
-                    {item.has ? <Check className="w-5 h-5 text-muted-foreground shrink-0" /> : <X className="w-5 h-5 text-muted-foreground/50 shrink-0" />}
-                    <span className={`text-sm ${!item.has ? 'text-muted-foreground/50' : ''}`}>{item.label}</span>
-                  </div>)}
+                {[
+                  { label: "Personnalisation IA", has: false },
+                  { label: "Ajustements automatiques", has: false },
+                  { label: "Disponibilité 24/7", has: true },
+                  { label: "Plans nutrition + sport", has: false },
+                  { label: "Coach IA 24/7", has: false },
+                  { label: "Support 7j/7", has: false },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    {item.has ? (
+                      <Check className="w-5 h-5 text-muted-foreground shrink-0" />
+                    ) : (
+                      <X className="w-5 h-5 text-muted-foreground/50 shrink-0" />
+                    )}
+                    <span className={`text-sm ${!item.has ? "text-muted-foreground/50" : ""}`}>{item.label}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -734,30 +785,32 @@ const Landing = () => {
             <h2 className="mb-4">Questions fréquentes</h2>
             <p className="text-muted-foreground text-lg">Tout ce que tu dois savoir sur Pulse.ai</p>
           </div>
-          
+
           <Accordion type="single" collapsible className="space-y-3">
-            {faqItems.map((faq, i) => <AccordionItem key={i} value={`item-${i}`} className="bg-card border rounded-xl px-6 transition-all duration-300 hover:shadow-md data-[state=open]:border-l-4 data-[state=open]:border-l-primary data-[state=open]:shadow-lg">
+            {faqItems.map((faq, i) => (
+              <AccordionItem
+                key={i}
+                value={`item-${i}`}
+                className="bg-card border rounded-xl px-6 transition-all duration-300 hover:shadow-md data-[state=open]:border-l-4 data-[state=open]:border-l-primary data-[state=open]:shadow-lg"
+              >
                 <AccordionTrigger className="text-left hover:no-underline py-5 group">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                       <HelpCircle className="w-4 h-4 text-primary" />
                     </div>
-                    <span className="font-semibold text-base group-hover:text-primary transition-colors">
-                      {faq.q}
-                    </span>
+                    <span className="font-semibold text-base group-hover:text-primary transition-colors">{faq.q}</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground pb-5 pl-11 text-[15px] leading-relaxed">
                   {faq.a}
                 </AccordionContent>
-              </AccordionItem>)}
+              </AccordionItem>
+            ))}
           </Accordion>
 
           {/* CTA Contact */}
           <div className="mt-12 text-center p-8 bg-card rounded-2xl border shadow-sm">
-            <p className="text-muted-foreground mb-4 text-lg">
-              Tu n'as pas trouvé ta réponse ?
-            </p>
+            <p className="text-muted-foreground mb-4 text-lg">Tu n'as pas trouvé ta réponse ?</p>
             <Link to="/support">
               <Button variant="outline" size="lg" className="group">
                 <MessageSquare className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
@@ -771,7 +824,7 @@ const Landing = () => {
 
       {/* CTA Section - Amélioré */}
       <section className="relative py-20 px-4 overflow-hidden">
-        
+        <div className="absolute inset-0 gradient-hero opacity-90" />
         <div className="absolute inset-0 bg-grid-white/5" />
 
         <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10 text-primary-foreground">
@@ -793,14 +846,21 @@ const Landing = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            
+            <Link to="/preview">
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-lg border-primary-foreground hover:bg-primary-foreground text-zinc-800"
+              >
+                Voir une démo
+              </Button>
+            </Link>
           </div>
 
           <div className="flex flex-wrap justify-center gap-8 pt-8 text-sm opacity-80">
             <div className="flex items-center gap-2">
               Sans engagement
               <Check className="w-4 h-4" />
-              Sans carte bancaire
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4" />
@@ -918,6 +978,7 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
 export default Landing;
