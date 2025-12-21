@@ -59,19 +59,32 @@ serve(async (req) => {
 
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      limit: 10,
     });
-    const hasActiveSub = subscriptions.data.length > 0;
+    
+    // Find active or trialing subscription
+    const validSubscription = subscriptions.data.find(
+      (sub: { status: string }) => sub.status === "active" || sub.status === "trialing"
+    );
+    
+    const hasValidSub = !!validSubscription;
     let productId = null;
     let subscriptionEnd = null;
+    let trialEnd = null;
+    let subscriptionStatus = null;
 
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
+    if (hasValidSub) {
+      const subscription = validSubscription;
+      subscriptionStatus = subscription.status;
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      logStep("Valid subscription found", { subscriptionId: subscription.id, status: subscriptionStatus, endDate: subscriptionEnd });
       productId = subscription.items.data[0].price.product as string;
       logStep("Determined subscription tier", { productId });
+      
+      if (subscription.status === "trialing" && subscription.trial_end) {
+        trialEnd = new Date(subscription.trial_end * 1000).toISOString();
+        logStep("Trial subscription", { trialEnd });
+      }
       
       // Sync avec Supabase
       await supabaseClient
@@ -80,19 +93,21 @@ serve(async (req) => {
           user_id: user.id,
           stripe_customer_id: customerId,
           stripe_subscription_id: subscription.id,
-          status: 'active',
+          status: subscriptionStatus,
           plan_type: subscription.items.data[0].price.recurring?.interval || 'month',
           started_at: new Date(subscription.created * 1000).toISOString(),
           ends_at: subscriptionEnd
         }, { onConflict: 'user_id' });
     } else {
-      logStep("No active subscription found");
+      logStep("No valid subscription found");
     }
 
     return new Response(JSON.stringify({
-      subscribed: hasActiveSub,
+      subscribed: hasValidSub,
+      subscription_status: subscriptionStatus,
       product_id: productId,
-      subscription_end: subscriptionEnd
+      subscription_end: subscriptionEnd,
+      trial_end: trialEnd
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

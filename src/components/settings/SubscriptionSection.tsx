@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, AlertCircle, CreditCard, ExternalLink, RefreshCw } from "lucide-react";
+import { CheckCircle2, AlertCircle, CreditCard, ExternalLink, RefreshCw, Sparkles } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -11,7 +11,7 @@ import { fr } from "date-fns/locale";
 
 export const SubscriptionSection = () => {
   const navigate = useNavigate();
-  const { status, subscriptionEnd, isRefreshing, refreshSubscription, openCustomerPortal } = useSubscription();
+  const { status, subscriptionEnd, trialEnd, isRefreshing, refreshSubscription, openCustomerPortal } = useSubscription();
 
   const handleManageSubscription = async () => {
     try {
@@ -92,7 +92,45 @@ export const SubscriptionSection = () => {
         </Button>
       </div>
 
-      {status === "active" ? (
+      {status === "trialing" && (
+        <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-500" />
+              <span className="font-semibold">Plan All In</span>
+            </div>
+            <Badge className="bg-amber-500 hover:bg-amber-600 text-white">Essai gratuit</Badge>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-2xl font-bold">0€<span className="text-sm font-normal text-muted-foreground"> pendant l'essai</span></p>
+            {trialEnd && (
+              <p className="text-sm text-muted-foreground">
+                Fin de l'essai : {formatDate(trialEnd)}
+              </p>
+            )}
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              Puis 8,99€/mois après la période d'essai
+            </p>
+          </div>
+
+          <Button 
+            onClick={handleManageSubscription} 
+            variant="outline" 
+            className="w-full"
+          >
+            <CreditCard className="w-4 h-4 mr-2" />
+            Gérer mon abonnement
+            <ExternalLink className="w-4 h-4 ml-2" />
+          </Button>
+
+          <p className="text-xs text-muted-foreground text-center">
+            Ajouter un moyen de paiement pour continuer après l'essai
+          </p>
+        </div>
+      )}
+
+      {status === "active" && (
         <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -125,7 +163,9 @@ export const SubscriptionSection = () => {
             Modifier le moyen de paiement, télécharger les factures ou annuler
           </p>
         </div>
-      ) : (
+      )}
+
+      {status === "inactive" && (
         <div className="p-4 bg-muted/50 border border-border rounded-lg space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
