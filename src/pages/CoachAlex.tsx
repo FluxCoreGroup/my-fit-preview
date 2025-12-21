@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Dumbbell } from "lucide-react";
+import { Menu } from "lucide-react";
 import { ChatInterface } from "@/components/coach/ChatInterface";
 import { ConversationList } from "@/components/coach/ConversationList";
+import CoachHeader from "@/components/coach/CoachHeader";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ import { useConversations } from "@/hooks/useConversations";
 import { useAutoDeleteEmptyConversations } from "@/hooks/useAutoDeleteEmptyConversations";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useIsMobile } from "@/hooks/use-mobile";
+import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 
 const CoachAlex = () => {
   const { user } = useAuth();
@@ -22,17 +24,14 @@ const CoachAlex = () => {
   const { conversations, deleteConversation } = useConversations('alex');
   const { messages } = useChatMessages(activeConversationId);
 
-  // Auto-delete empty conversations when switching
   useAutoDeleteEmptyConversations(activeConversationId, 'alex');
 
-  // Auto-select first conversation if exists (don't create automatically)
   useEffect(() => {
     if (conversations.length > 0 && !activeConversationId) {
       setActiveConversationId(conversations[0].id);
     }
   }, [conversations, activeConversationId]);
 
-  // Cleanup: delete empty conversation on unmount
   useEffect(() => {
     return () => {
       if (activeConversationId && messages.length === 0) {
@@ -72,10 +71,12 @@ const CoachAlex = () => {
   const alexContext = {
     goal_type: goals?.goal_type,
     frequency: goals?.frequency,
-    experience_level: trainingPrefs?.experience_level,
+    session_duration: goals?.session_duration,
+    location: goals?.location,
     equipment: goals?.equipment,
-    session_type: trainingPrefs?.session_type,
+    experience_level: trainingPrefs?.experience_level,
     limitations: trainingPrefs?.limitations,
+    priority_zones: trainingPrefs?.priority_zones,
   };
 
   const conversationListComponent = (
@@ -97,17 +98,28 @@ const CoachAlex = () => {
         {/* Mobile: Hamburger menu for conversations */}
         {isMobile ? (
           <Sheet open={isConversationListOpen} onOpenChange={setIsConversationListOpen}>
-            <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center justify-between p-3 border-b bg-card/50 backdrop-blur-sm">
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="w-5 h-5" />
                 </Button>
               </SheetTrigger>
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
-                  A
+                <div className="relative">
+                  <img
+                    src={coachAlexAvatar}
+                    alt="Alex"
+                    className="w-9 h-9 rounded-full object-cover ring-2 ring-border"
+                  />
+                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-card" />
                 </div>
-                <h1 className="text-lg font-semibold">Alex - Coach Sport</h1>
+                <div>
+                  <h1 className="text-sm font-semibold">Alex</h1>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                    En ligne
+                  </p>
+                </div>
               </div>
               <div className="w-10" />
             </div>
@@ -124,17 +136,12 @@ const CoachAlex = () => {
         <div className="flex-1 flex flex-col">
           {/* Desktop Header */}
           {!isMobile && (
-            <div className="p-4 border-b bg-primary/5">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-semibold">
-                  A
-                </div>
-                <div>
-                  <h2 className="font-semibold text-foreground">Alex</h2>
-                  <p className="text-xs text-muted-foreground">Coach Sport</p>
-                </div>
-              </div>
-            </div>
+            <CoachHeader
+              name="Alex"
+              role="Coach Sportif"
+              avatar={coachAlexAvatar}
+              isOnline={true}
+            />
           )}
 
           {/* Chat Interface */}
@@ -148,9 +155,9 @@ const CoachAlex = () => {
               functionName="chat-alex"
               systemPrompt=""
               shortcuts={[
-                "Simplifier ma séance d'aujourd'hui",
-                "Alternative sans douleur",
-                "Adapter à 30 min",
+                "Adapter ma séance",
+                "Remplacer un exercice",
+                "Conseils récupération",
               ]}
               context={alexContext}
               avatarColor="bg-primary"

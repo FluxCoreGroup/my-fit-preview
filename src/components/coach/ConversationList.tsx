@@ -4,12 +4,27 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useConversations } from "@/hooks/useConversations";
 import { ConversationItem } from "./ConversationItem";
+import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
+import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
 
 interface ConversationListProps {
   activeConversationId: string | null;
   onSelectConversation: (conversationId: string) => void;
   coachType: 'alex' | 'julie';
 }
+
+const coachInfo = {
+  alex: {
+    name: "Alex",
+    role: "Coach Sportif",
+    avatar: coachAlexAvatar,
+  },
+  julie: {
+    name: "Julie",
+    role: "Nutritionniste",
+    avatar: coachJulieAvatar,
+  },
+};
 
 export const ConversationList = ({
   activeConversationId,
@@ -27,6 +42,8 @@ export const ConversationList = ({
     deleteConversation,
   } = useConversations(coachType);
 
+  const coach = coachInfo[coachType];
+
   const handleCreateNew = async () => {
     const result = await createConversation.mutateAsync(undefined);
     onSelectConversation(result.id);
@@ -42,7 +59,6 @@ export const ConversationList = ({
 
   const handleArchive = (id: string) => {
     if (id === activeConversationId) {
-      // If archiving active conversation, select the first available one
       const remaining = [...pinnedConversations, ...regularConversations].filter(
         (c) => c.id !== id
       );
@@ -57,7 +73,6 @@ export const ConversationList = ({
 
   const handleDelete = (id: string) => {
     if (id === activeConversationId) {
-      // If deleting active conversation, select the first available one
       const remaining = [...pinnedConversations, ...regularConversations].filter(
         (c) => c.id !== id
       );
@@ -70,19 +85,39 @@ export const ConversationList = ({
     deleteConversation.mutate(id);
   };
 
+  const totalConversations = pinnedConversations.length + regularConversations.length;
+
   if (isLoading) {
     return (
       <div className="w-64 border-r bg-card p-4">
-        <p className="text-sm text-muted-foreground">Chargement...</p>
+        <div className="animate-pulse space-y-3">
+          <div className="h-12 bg-muted rounded-lg" />
+          <div className="h-8 bg-muted rounded" />
+          <div className="h-8 bg-muted rounded" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="w-64 border-r bg-card flex flex-col h-full">
-      {/* Header */}
-      <div className="p-3 space-y-3">
-        <h2 className="text-sm font-semibold text-foreground">Conversations</h2>
+      {/* Coach Header */}
+      <div className="p-4 border-b bg-muted/30">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="relative">
+            <img
+              src={coach.avatar}
+              alt={coach.name}
+              className="w-10 h-10 rounded-full object-cover ring-2 ring-border"
+            />
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground">{coach.name}</h2>
+            <p className="text-xs text-muted-foreground">{coach.role}</p>
+          </div>
+        </div>
+        
         <Button
           onClick={handleCreateNew}
           disabled={createConversation.isPending}
@@ -94,7 +129,12 @@ export const ConversationList = ({
         </Button>
       </div>
 
-      <Separator />
+      {/* Conversations count */}
+      <div className="px-4 py-2 border-b">
+        <p className="text-xs text-muted-foreground">
+          {totalConversations} conversation{totalConversations !== 1 ? 's' : ''}
+        </p>
+      </div>
 
       {/* Conversations list */}
       <ScrollArea className="flex-1 px-2">
@@ -140,7 +180,7 @@ export const ConversationList = ({
           ))}
 
           {/* Empty state */}
-          {pinnedConversations.length === 0 && regularConversations.length === 0 && (
+          {totalConversations === 0 && (
             <div className="px-3 py-8 text-center">
               <p className="text-sm text-muted-foreground">
                 Aucune conversation
