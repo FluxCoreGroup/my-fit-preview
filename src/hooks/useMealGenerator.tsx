@@ -41,8 +41,14 @@ export const useMealGenerator = () => {
 
     setIsGenerating(true);
     try {
+      // Convert "salty" to "savory" for API compatibility
+      const apiParams = {
+        ...params,
+        type: params.type === "salty" ? "savory" : params.type,
+      };
+      
       const { data, error } = await supabase.functions.invoke("generate-meal", {
-        body: params,
+        body: apiParams,
       });
 
       if (error) throw error;
