@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
+import { generateEmailHtml, BRAND, translateGoalType } from '../_shared/email-template.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,139 +35,88 @@ serve(async (req) => {
     // Fetch user goals and training preferences
     const { data: goals } = await supabase
       .from('goals')
-      .select('goal_type, session_duration, location, equipment')
+      .select('goal_type, session_duration, location, equipment, frequency')
       .eq('user_id', user_id)
       .single();
 
     const { data: trainingPrefs } = await supabase
       .from('training_preferences')
-      .select('session_type')
+      .select('experience_level, priority_zones')
       .eq('user_id', user_id)
       .single();
 
-    // Build variables for email template
-    const objectifs = goals?.goal_type === 'lose_weight' 
-      ? 'perdre du poids' 
-      : goals?.goal_type === 'gain_muscle' 
-      ? 'prendre du muscle' 
-      : goals?.goal_type === 'maintain' 
-      ? 'maintenir ta forme' 
-      : 'améliorer ta condition physique';
-
-    const dureeEstimee = goals?.session_duration 
-      ? `${goals.session_duration} min` 
-      : '45-60 min';
-
+    // Build personalized content
+    const objectif = translateGoalType(goals?.goal_type);
+    const dureeEstimee = goals?.session_duration ? `${goals.session_duration} min` : '45-60 min';
+    const frequency = goals?.frequency || 3;
     const materiel = goals?.location === 'home' 
-      ? (goals?.equipment?.length ? goals.equipment.join(', ') : 'poids de corps')
-      : 'salle de sport';
+      ? (goals?.equipment?.length ? goals.equipment.slice(0, 3).join(', ') : 'poids du corps')
+      : 'équipement salle';
 
-    const startUrl = `https://pulse-ai.lovable.app/training-setup`;
+    const experienceEmoji = trainingPrefs?.experience_level === 'beginner' ? '🌱' :
+                           trainingPrefs?.experience_level === 'intermediate' ? '💪' : '🔥';
 
     const resend = new Resend(RESEND_API_KEY);
 
-    // Build email HTML from template
-    const emailHtml = `<!doctype html>
-<html lang="fr" style="margin:0;padding:0;">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bienvenue — Pulse.ai</title>
-    <style>
-      @media (max-width:480px){
-        .container{width:100%!important;border-radius:0!important}
-        .h1{font-size:26px!important;line-height:34px!important}
-        .lead{font-size:15px!important;line-height:22px!important}
-        .btn{display:block!important;width:100%!important}
-      }
-    </style>
-  </head>
-  <body style="margin:0;padding:0;background:#0f172a;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;">
-    <div style="display:none;max-height:0;opacity:0;overflow:hidden">
-      Ta 1ʳᵉ séance (${dureeEstimee}) est prête — on s'adapte à ton matériel ${materiel}.
-    </div>
+    const emailHtml = generateEmailHtml({
+      recipientName: name || 'Champion',
+      recipientEmail: email,
+      subject: `Bienvenue ${name || ''} — ta 1ère séance est prête`,
+      previewText: `Ta 1ère séance (${dureeEstimee}) pour ${objectif} t'attend — on s'adapte à ton matériel.`,
+      title: `Bienvenue ${name || 'Champion'} ! 👋`,
+      subtitle: `Ton objectif : <strong>${objectif}</strong>. On a tout préparé pour toi.`,
+      bodyContent: `
+        <div style="background:#F0FDF4;border-radius:16px;padding:20px;margin:16px 0;border-left:4px solid #10B981">
+          <p style="margin:0 0 12px;font-weight:700;color:#166534">✨ Ce qui t'attend avec Pulse.ai :</p>
+          <ul style="margin:0;padding-left:20px;color:#334155;font-size:14px;line-height:22px">
+            <li style="margin-bottom:6px">🎯 <strong>${frequency} séances/semaine</strong> adaptées à ton niveau ${experienceEmoji}</li>
+            <li style="margin-bottom:6px">🥗 <strong>Plan nutrition personnalisé</strong> avec macros calculés</li>
+            <li style="margin-bottom:6px">🤖 <strong>2 coachs IA</strong> disponibles 24/7 (Alex pour le sport, Julie pour la nutrition)</li>
+            <li>📊 <strong>Suivi hebdomadaire</strong> avec ajustements automatiques</li>
+          </ul>
+        </div>
+        
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
+               style="margin:20px 0;background:#F8FAFC;border-radius:12px">
+          <tr>
+            <td align="center" style="padding:16px">
+              <table role="presentation" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="padding:0 16px;text-align:center">
+                    <div style="font-size:24px">⏱️</div>
+                    <div style="font-size:13px;font-weight:600;color:#0F172A;margin-top:4px">${dureeEstimee}</div>
+                    <div style="font-size:11px;color:#64748B">par séance</div>
+                  </td>
+                  <td style="padding:0 16px;text-align:center;border-left:1px solid #E2E8F0">
+                    <div style="font-size:24px">🏋️</div>
+                    <div style="font-size:13px;font-weight:600;color:#0F172A;margin-top:4px">${materiel}</div>
+                    <div style="font-size:11px;color:#64748B">matériel</div>
+                  </td>
+                  <td style="padding:0 16px;text-align:center;border-left:1px solid #E2E8F0">
+                    <div style="font-size:24px">📅</div>
+                    <div style="font-size:13px;font-weight:600;color:#0F172A;margin-top:4px">${frequency}x/sem</div>
+                    <div style="font-size:11px;color:#64748B">fréquence</div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
 
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"
-           style="background:linear-gradient(135deg,#3B82F6 0%, #1E40AF 100%);">
-      <tr>
-        <td align="center" style="padding:32px 16px;">
-          <table role="presentation" width="600" class="container" cellspacing="0" cellpadding="0" border="0"
-                 style="max-width:600px;width:100%;background:#ffffff;border-radius:20px;overflow:hidden;
-                        box-shadow:0 12px 30px rgba(30,64,175,.25);">
-            <tr>
-              <td style="padding:28px 28px 10px;background:#ffffff;text-align:center">
-                <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-                            font-size:20px;font-weight:800;color:#0f172a;">Pulse.ai</div>
-              </td>
-            </tr>
-            <tr><td style="height:4px;background:linear-gradient(90deg,#60A5FA,#6366F1,#22D3EE)"></td></tr>
+        <p style="margin:16px 0;text-align:center;color:#64748B;font-size:14px">
+          Ta 1ère séance est <strong>prête et offerte</strong>. Lance-toi ! 👇
+        </p>
+      `,
+      ctaText: 'Commencer ma 1ère séance',
+      ctaUrl: `${BRAND.baseUrl}/training`,
+      footerNote: 'Après la séance, un court questionnaire (30s) nous permet d\'ajuster automatiquement la difficulté.'
+    });
 
-            <tr>
-              <td style="padding:28px;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
-                <h1 class="h1" style="margin:0 0 10px;text-align:center;font-size:30px;line-height:38px;font-weight:800">
-                  Bienvenue ${name || 'Champion'} 👋
-                </h1>
-                <p class="lead" style="margin:0 0 18px;text-align:center;color:#334155;font-size:16px;line-height:24px">
-                  Ton objectif&nbsp;: <strong>${objectifs}</strong>. On lance ta 1ʳᵉ séance maintenant.
-                </p>
-
-                <table role="presentation" width="100%" style="margin:8px 0 4px">
-                  <tr><td style="text-align:center;color:#475569;font-size:14px;line-height:22px">
-                    <div>• 1ʳᵉ séance offerte, guidée pas à pas</div>
-                    <div>• Aperçu nutrition simple (calories & macros)</div>
-                    <div>• Suivi & ajustements hebdomadaires</div>
-                  </td></tr>
-                </table>
-
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0"
-                       style="margin:18px auto 8px auto;text-align:center">
-                  <tr>
-                    <td align="center" style="border-radius:14px;background:linear-gradient(135deg,#3B82F6 0%, #1E40AF 100%);">
-                      <a class="btn" href="${startUrl}"
-                         style="display:inline-block;padding:14px 22px;border-radius:14px;
-                                font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-                                font-size:15px;font-weight:700;color:#ffffff;text-decoration:none">
-                        Commencer ma 1ʳᵉ séance
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-
-                <table role="presentation" width="100%" style="margin-top:12px">
-                  <tr>
-                    <td style="text-align:center;color:#64748b;font-size:13px;line-height:20px">
-                      Durée estimée&nbsp;: <strong>${dureeEstimee}</strong> • Matériel&nbsp;: <strong>${materiel}</strong>
-                    </td>
-                  </tr>
-                </table>
-
-                <p style="margin:14px 0 0;text-align:center;color:#94a3b8;font-size:12px;line-height:18px">
-                  Après la séance, un court questionnaire (30&nbsp;s) nous permet d'ajuster la difficulté
-                  et la diète automatiquement.
-                </p>
-              </td>
-            </tr>
-
-            <tr>
-              <td style="background:#F8FAFC;padding:18px 20px 26px;text-align:center;
-                         font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-                         color:#64748b;font-size:12px;line-height:18px">
-                Besoin d'aide ? <a href="mailto:general@pulse-ai.app" style="color:#1E40AF;text-decoration:underline">general@pulse-ai.app</a><br>
-                © 2025 Pulse.ai — E-mail transactionnel (bien-être, pas d'avis médical).
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>`;
-
-    // Send welcome email to new user
+    // Send welcome email
     const { data, error } = await resend.emails.send({
-      from: 'Pulse-AI <bienvenue@notifications.pulse-ai.app>',
+      from: BRAND.from,
       to: [email],
-      subject: `Bienvenue ${name || ''} — ta 1ʳᵉ séance pour ${objectifs} est prête`,
+      subject: `Bienvenue ${name || ''} — ta 1ère séance pour ${objectif} est prête 💪`,
       html: emailHtml,
     });
 

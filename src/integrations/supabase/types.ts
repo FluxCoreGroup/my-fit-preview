@@ -175,6 +175,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_queue: {
+        Row: {
+          created_at: string | null
+          email_type: string
+          id: string
+          metadata: Json | null
+          scheduled_at: string
+          sent_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_type: string
+          id?: string
+          metadata?: Json | null
+          scheduled_at: string
+          sent_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_type?: string
+          id?: string
+          metadata?: Json | null
+          scheduled_at?: string
+          sent_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercise_image_cache: {
         Row: {
           created_at: string | null
@@ -421,6 +454,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          last_activity_at: string | null
           name: string | null
           onboarding_completed: boolean
           onboarding_completed_at: string | null
@@ -430,6 +464,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          last_activity_at?: string | null
           name?: string | null
           onboarding_completed?: boolean
           onboarding_completed_at?: string | null
@@ -439,6 +474,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          last_activity_at?: string | null
           name?: string | null
           onboarding_completed?: boolean
           onboarding_completed_at?: string | null
