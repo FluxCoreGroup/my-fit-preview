@@ -9,9 +9,10 @@ import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/contexts/AuthContext";
 import { DataSourcesPanel } from "./DataSourcesPanel";
 import { useAutoGenerateTitle } from "@/hooks/useAutoGenerateTitle";
-import { useConversations } from "@/hooks/useConversations";
+import { useConversations, Conversation } from "@/hooks/useConversations";
 import CoachWelcome from "./CoachWelcome";
 import TypingIndicator from "./TypingIndicator";
+import DataConsentMessage from "./DataConsentMessage";
 import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
 
@@ -23,6 +24,7 @@ interface Message {
 
 interface ChatInterfaceProps {
   conversationId: string | null;
+  conversation?: Conversation | null;
   functionName: string;
   systemPrompt: string;
   shortcuts: string[];
@@ -50,6 +52,7 @@ const coachConfig = {
 
 export const ChatInterface = ({
   conversationId,
+  conversation,
   functionName,
   shortcuts,
   context,
@@ -63,6 +66,9 @@ export const ChatInterface = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [lastDataSources, setLastDataSources] = useState<any[]>([]);
+  const [awaitingConsent, setAwaitingConsent] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const loadedConversationRef = useRef<string | null>(null);
   const { toast } = useToast();
@@ -70,7 +76,7 @@ export const ChatInterface = ({
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
   
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
-  const { createConversation } = useConversations(coachType);
+  const { createConversation, updateDataConsent } = useConversations(coachType);
   const config = coachConfig[coachType];
   
   // Auto-generate title from first message
@@ -108,50 +114,10 @@ export const ChatInterface = ({
     scrollToBottom();
   }, [messages]);
 
-  const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || isLoading || isCreatingConversation) return;
-
-    if (!session?.user) {
-      toast({
-        title: "Non authentifié",
-        description: "Connecte-toi pour continuer",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    let currentConversationId = conversationId;
-
-    if (!currentConversationId) {
-      setIsCreatingConversation(true);
-      try {
-        const newConversation = await createConversation.mutateAsync(undefined);
-        currentConversationId = newConversation.id;
-        onConversationCreated?.(newConversation.id);
-      } catch (error) {
-        console.error("Failed to create conversation:", error);
-        toast({
-          title: "Erreur",
-          description: `Impossible de créer la conversation`,
-          variant: "destructive",
-        });
-        return;
-      } finally {
-        setIsCreatingConversation(false);
-      }
-    }
-
+  // Call AI with optional data consent
+  const callAI = async (messageText: string, dataConsent: boolean | null, convId: string) => {
     const userMessage: Message = { role: "user", content: messageText };
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-    setIsLoading(true);
-
-    await saveMessage.mutateAsync({
-      conversation_id: currentConversationId,
-      role: "user",
-      content: messageText,
-    });
-
+    
     let assistantContent = "";
     let dataSources: any[] = [];
     const updateAssistant = (chunk: string) => {
@@ -174,7 +140,6 @@ export const ChatInterface = ({
         description: "Reconnecte-toi pour continuer",
         variant: "destructive",
       });
-      setMessages((prev) => prev.slice(0, -1));
       setIsLoading(false);
       return;
     }
@@ -188,8 +153,9 @@ export const ChatInterface = ({
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
+          messages: [...messages.filter(m => m.role !== "assistant" || m.content), userMessage],
           context,
+          dataConsent,
         }),
       });
 
@@ -215,7 +181,6 @@ export const ChatInterface = ({
         } else {
           throw new Error(`HTTP ${resp.status}`);
         }
-        setMessages((prev) => prev.slice(0, -1));
         setIsLoading(false);
         return;
       }
@@ -271,9 +236,9 @@ export const ChatInterface = ({
         }
       }
 
-      if (assistantContent && currentConversationId) {
+      if (assistantContent && convId) {
         await saveMessage.mutateAsync({
-          conversation_id: currentConversationId,
+          conversation_id: convId,
           role: "assistant",
           content: assistantContent,
           data_sources: dataSources.length > 0 ? dataSources : undefined,
@@ -286,8 +251,125 @@ export const ChatInterface = ({
         description: "Impossible de contacter le coach IA",
         variant: "destructive",
       });
-      setMessages((prev) => prev.slice(0, -1));
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim() || isLoading || isCreatingConversation || awaitingConsent) return;
+
+    if (!session?.user) {
+      toast({
+        title: "Non authentifié",
+        description: "Connecte-toi pour continuer",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let activeConversationId = conversationId;
+    let isNewConversation = false;
+
+    // Create conversation if needed
+    if (!activeConversationId) {
+      setIsCreatingConversation(true);
+      isNewConversation = true;
+      try {
+        const newConversation = await createConversation.mutateAsync(undefined);
+        activeConversationId = newConversation.id;
+        setCurrentConversationId(newConversation.id);
+        onConversationCreated?.(newConversation.id);
+      } catch (error) {
+        console.error("Failed to create conversation:", error);
+        toast({
+          title: "Erreur",
+          description: `Impossible de créer la conversation`,
+          variant: "destructive",
+        });
+        return;
+      } finally {
+        setIsCreatingConversation(false);
+      }
+    }
+
+    // Show user message immediately
+    const userMessage: Message = { role: "user", content: messageText };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+
+    // Save user message
+    await saveMessage.mutateAsync({
+      conversation_id: activeConversationId,
+      role: "user",
+      content: messageText,
+    });
+
+    // Check if consent is needed (new conversation or consent is null)
+    const existingConsent = conversation?.data_consent;
+    const needsConsent = isNewConversation || existingConsent === null || existingConsent === undefined;
+
+    if (needsConsent) {
+      // Show consent request
+      setPendingMessage(messageText);
+      setCurrentConversationId(activeConversationId);
+      setAwaitingConsent(true);
+      return;
+    }
+
+    // Existing conversation with consent already given
+    setIsLoading(true);
+    await callAI(messageText, existingConsent ?? false, activeConversationId);
+  };
+
+  // Handle consent acceptance
+  const handleConsentAccept = async () => {
+    if (!currentConversationId && !conversationId) return;
+    
+    const convId = currentConversationId || conversationId!;
+    setIsLoading(true);
+    
+    try {
+      await updateDataConsent.mutateAsync({ id: convId, consent: true });
+      setAwaitingConsent(false);
+      
+      if (pendingMessage) {
+        await callAI(pendingMessage, true, convId);
+        setPendingMessage(null);
+      }
+    } catch (error) {
+      console.error("Failed to update consent:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder ta préférence",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
+  };
+
+  // Handle consent decline
+  const handleConsentDecline = async () => {
+    if (!currentConversationId && !conversationId) return;
+    
+    const convId = currentConversationId || conversationId!;
+    setIsLoading(true);
+    
+    try {
+      await updateDataConsent.mutateAsync({ id: convId, consent: false });
+      setAwaitingConsent(false);
+      
+      if (pendingMessage) {
+        await callAI(pendingMessage, false, convId);
+        setPendingMessage(null);
+      }
+    } catch (error) {
+      console.error("Failed to update consent:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder ta préférence",
+        variant: "destructive",
+      });
       setIsLoading(false);
     }
   };
@@ -397,8 +479,19 @@ export const ChatInterface = ({
             </div>
           ))}
 
+          {/* Data consent request */}
+          {awaitingConsent && (
+            <DataConsentMessage
+              onAccept={handleConsentAccept}
+              onDecline={handleConsentDecline}
+              isLoading={isLoading}
+              coachAvatar={config.avatar}
+              coachName={name}
+            />
+          )}
+
           {/* Typing indicator */}
-          {isLoading && messages[messages.length - 1]?.role === "user" && (
+          {isLoading && !awaitingConsent && messages[messages.length - 1]?.role === "user" && (
             <TypingIndicator avatar={config.avatar} name={name} />
           )}
 

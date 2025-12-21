@@ -144,6 +144,7 @@ export type Database = {
           archived: boolean
           coach_type: string
           created_at: string
+          data_consent: boolean | null
           id: string
           is_pinned: boolean
           title: string
@@ -154,6 +155,7 @@ export type Database = {
           archived?: boolean
           coach_type?: string
           created_at?: string
+          data_consent?: boolean | null
           id?: string
           is_pinned?: boolean
           title?: string
@@ -164,6 +166,7 @@ export type Database = {
           archived?: boolean
           coach_type?: string
           created_at?: string
+          data_consent?: boolean | null
           id?: string
           is_pinned?: boolean
           title?: string

@@ -27,6 +27,7 @@ const contextSchema = z.object({
 const requestSchema = z.object({
   messages: z.array(messageSchema).min(1).max(50),
   context: contextSchema.optional(),
+  dataConsent: z.boolean().nullable().optional(),
 });
 
 // Sanitize context values for prompt injection prevention
@@ -128,13 +129,14 @@ serve(async (req) => {
       );
     }
     
-    const { messages, context } = parseResult.data;
+    const { messages, context, dataConsent } = parseResult.data;
     const sanitizedContext = sanitizeContext(context);
+    const hasDataAccess = dataConsent === true;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `Tu es Julie, nutritionniste diplômée et experte en nutrition sportive.
+    const systemPromptWithAccess = `Tu es Julie, nutritionniste diplômée et experte en nutrition sportive.
 Tu aides les utilisateurs à optimiser leur alimentation pour atteindre leurs objectifs.
 Tu es pédagogue, bienveillante et tu donnes des conseils pratiques et réalistes.
 
@@ -154,6 +156,31 @@ Tu dois :
 - Suggérer des substitutions alimentaires quand demandé
 - Respecter les allergies et restrictions alimentaires
 - Être encourageante sans être moralisatrice`;
+
+    const systemPromptWithoutAccess = `Tu es Julie, nutritionniste diplômée et experte en nutrition sportive.
+
+⚠️ IMPORTANT : L'utilisateur n'a pas autorisé l'accès à ses données personnelles.
+Tu dois donner des conseils GÉNÉRAUX sans données personnalisées.
+
+📌 Commence TOUJOURS ta réponse par :
+"📌 Réponse générale (sans accès à tes données personnelles)"
+
+Puis donne un conseil pertinent basé uniquement sur la question posée.
+
+Tu ne peux PAS :
+- Accéder aux objectifs caloriques, macros ou données de l'utilisateur
+- Donner des chiffres personnalisés (calories, protéines, etc.)
+- Mentionner des données spécifiques à l'utilisateur
+
+Tu PEUX :
+- Donner des conseils nutritionnels généraux
+- Expliquer les principes d'une alimentation équilibrée
+- Proposer des recettes saines et équilibrées
+- Répondre à des questions théoriques sur la nutrition
+
+Ton : Pédagogue, bienveillante, encourageante.`;
+
+    const systemPrompt = hasDataAccess ? systemPromptWithAccess : systemPromptWithoutAccess;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

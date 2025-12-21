@@ -9,6 +9,7 @@ export interface Conversation {
   coach_type: 'alex' | 'julie';
   is_pinned: boolean;
   archived: boolean;
+  data_consent: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -155,6 +156,21 @@ export const useConversations = (coachType: 'alex' | 'julie') => {
     },
   });
 
+  // Update data consent
+  const updateDataConsent = useMutation({
+    mutationFn: async ({ id, consent }: { id: string; consent: boolean }) => {
+      const { error } = await supabase
+        .from("conversations")
+        .update({ data_consent: consent })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["conversations", coachType] });
+    },
+  });
+
   // Separate pinned and regular conversations
   const pinnedConversations = conversations.filter((c) => c.is_pinned);
   const regularConversations = conversations.filter((c) => !c.is_pinned);
@@ -169,5 +185,6 @@ export const useConversations = (coachType: 'alex' | 'julie') => {
     deleteConversation,
     archiveConversation,
     togglePin,
+    updateDataConsent,
   };
 };
