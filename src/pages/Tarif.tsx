@@ -223,7 +223,7 @@ const Tarif = () => {
                   "Ajustements automatiques selon tes feedbacks",
                   "Alternatives d'exercices illimitées",
                   "Vidéos et fiches techniques détaillées",
-                  "Support par email 7j/7",
+                  "Support par email (réponse sous 48h)",
                   "Accès communauté Discord",
                   "Toutes les futures fonctionnalités incluses",
                 ].map((feature, i) => (
