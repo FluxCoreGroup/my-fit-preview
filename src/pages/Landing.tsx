@@ -13,11 +13,12 @@ import programCreationPreview from "@/assets/program-creation-preview.png";
 import sessionPreview from "@/assets/session-preview.png";
 import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
+import davidAvatar from "@/assets/david-avatar.jpeg";
 const testimonials = [{
-  name: "Sophie M.",
-  role: "Perdu 12kg en 3 mois",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
-  quote: "J'ai enfin trouvé un programme qui s'adapte à ma vie de maman. Les résultats sont là !"
+  name: "David",
+  role: "3 mois sans louper une séance",
+  avatar: davidAvatar,
+  quote: "Les recommandations sont claires, adaptées à mon rythme de travail et faciles à suivre. J'ai rapidement repris une routine sportive durable."
 }, {
   name: "Thomas L.",
   role: "Prise de masse réussie",
