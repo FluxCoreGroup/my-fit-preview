@@ -15,6 +15,7 @@ import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
 import davidAvatar from "@/assets/david-avatar.jpeg";
 import sophieAvatar from "@/assets/sophie-avatar.png";
+import thomasAvatar from "@/assets/thomas-avatar.png";
 const testimonials = [{
   name: "David",
   role: "3 mois sans louper une séance",
@@ -26,10 +27,10 @@ const testimonials = [{
   avatar: sophieAvatar,
   quote: "Je pensais que perdre du poids était impossible. L'application a créé un programme sportif et alimentaire qui s'adapte à mes semaines chargées. Pour la première fois, je suis régulière."
 }, {
-  name: "Marie K.",
-  role: "Débutante motivée",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
-  quote: "Je n'avais jamais fait de sport. Les exercices sont clairs et j'adore les alternatives proposées."
+  name: "Thomas K.",
+  role: "A vu son corps changer après 6 semaines",
+  avatar: thomasAvatar,
+  quote: "Je m'entraînais sans vraie structure et je mangeais 'à peu près bien'. L'application m'a donné un plan clair, cohérent entre sport et alimentation, et les progrès sont enfin visibles."
 }];
 const faqItems = [{
   q: "C'est vraiment gratuit pour commencer ?",
