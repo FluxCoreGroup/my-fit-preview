@@ -14,16 +14,17 @@ import sessionPreview from "@/assets/session-preview.png";
 import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
 import davidAvatar from "@/assets/david-avatar.jpeg";
+import sophieAvatar from "@/assets/sophie-avatar.png";
 const testimonials = [{
   name: "David",
   role: "3 mois sans louper une séance",
   avatar: davidAvatar,
   quote: "Les recommandations sont claires, adaptées à mon rythme de travail et faciles à suivre. J'ai rapidement repris une routine sportive durable."
 }, {
-  name: "Thomas L.",
-  role: "Prise de masse réussie",
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Thomas",
-  quote: "Le suivi nutrition est incroyable. J'ai pris 8kg de muscle en gardant mes abdos visibles."
+  name: "Sophie",
+  role: "Maman qui a perdu 4kg en 2 mois",
+  avatar: sophieAvatar,
+  quote: "Je pensais que perdre du poids était impossible. L'application a créé un programme sportif et alimentaire qui s'adapte à mes semaines chargées. Pour la première fois, je suis régulière."
 }, {
   name: "Marie K.",
   role: "Débutante motivée",
