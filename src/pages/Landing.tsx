@@ -20,6 +20,7 @@ const testimonials = [{
   name: "David",
   role: "3 mois sans louper une séance",
   avatar: davidAvatar,
+  stars: 4,
   quote: "Les recommandations sont claires, adaptées à mon rythme de travail et faciles à suivre. J'ai rapidement repris une routine sportive durable."
 }, {
   name: "Sophie",
@@ -147,7 +148,7 @@ const Landing = () => {
                 </div>
                 <p className="text-sm italic text-muted-foreground">"{t.quote}"</p>
                 <div className="flex gap-1 mt-3">
-                  {[...Array(5)].map((_, j) => <Star key={j} className="w-3 h-3 fill-primary text-primary" />)}
+                  {[...Array(t.stars || 5)].map((_, j) => <Star key={j} className="w-3 h-3 fill-primary text-primary" />)}
                 </div>
               </Card>)}
           </div>
