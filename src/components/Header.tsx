@@ -241,35 +241,65 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
               <nav className="flex flex-col gap-4 mt-8">
                 <a 
                   href="#comment" 
-                  onClick={closeMobileMenu}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    closeMobileMenu();
+                    setTimeout(() => {
+                      document.getElementById('comment')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 300);
+                  }}
                   className="text-lg font-medium hover:text-primary transition-colors py-2"
                 >
                   Comment ?
                 </a>
                 <a 
                   href="#pourquoi" 
-                  onClick={closeMobileMenu}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    closeMobileMenu();
+                    setTimeout(() => {
+                      document.getElementById('pourquoi')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 300);
+                  }}
                   className="text-lg font-medium hover:text-primary transition-colors py-2"
                 >
                   Pourquoi ?
                 </a>
                 <a 
                   href="#coachs-ia" 
-                  onClick={closeMobileMenu}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    closeMobileMenu();
+                    setTimeout(() => {
+                      document.getElementById('coachs-ia')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 300);
+                  }}
                   className="text-lg font-medium hover:text-primary transition-colors py-2"
                 >
                   Coach IA
                 </a>
                 <a 
                   href="#features" 
-                  onClick={closeMobileMenu}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    closeMobileMenu();
+                    setTimeout(() => {
+                      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 300);
+                  }}
                   className="text-lg font-medium hover:text-primary transition-colors py-2"
                 >
                   Prix
                 </a>
                 <a 
                   href="#faq" 
-                  onClick={closeMobileMenu}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    closeMobileMenu();
+                    setTimeout(() => {
+                      document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 300);
+                  }}
                   className="text-lg font-medium hover:text-primary transition-colors py-2"
                 >
                   FAQ
