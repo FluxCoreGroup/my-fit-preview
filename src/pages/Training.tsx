@@ -146,8 +146,8 @@ const Training = () => {
 
   const handleFeedbackComplete = async () => {
     setShowFeedbackModal(false);
-    // Auto-generate next week after feedback
-    await generateWeeklyProgram(false);
+    // Refresh data to show newly generated sessions
+    await refreshData();
   };
 
   const CurrentStepIcon = generatingSteps[generatingStep]?.icon || Brain;
@@ -255,7 +255,7 @@ const Training = () => {
             <div className="space-y-2">
               <Progress value={generatingProgress} className="h-2" />
               <p className="text-xs text-muted-foreground">
-                Environ 15 secondes...
+                Quelques secondes...
               </p>
             </div>
           </Card>
