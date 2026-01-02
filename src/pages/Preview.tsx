@@ -435,14 +435,13 @@ const Preview = () => {
                 Continue la création de ton programme personnalisé complet
               </p>
               <Button 
-                size="icon" 
                 onClick={() => {
                   localStorage.setItem("hasSeenPreview", "true");
                   navigate("/tarif");
                 }} 
-                className="w-32 h-14 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all mx-auto"
+                className="w-full h-14 md:h-16 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all flex items-center justify-center"
               >
-                <ArrowRight className="w-8 h-6" />
+                <ArrowRight className="w-1/2 h-8 md:h-10 max-w-24" />
               </Button>
               <p className="text-xs md:text-sm text-muted-foreground">
                 Essai gratuit 7 jours • Sans engagement • Accès immédiat

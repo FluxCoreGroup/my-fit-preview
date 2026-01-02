@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, X } from "lucide-react";
+import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, X, ArrowRight } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -171,11 +171,13 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
                   <Button size="sm">Dashboard</Button>
                 </Link>
               ) : (
-                <Link to="/auth">
-                  <Button variant="ghost" size="sm">
-                    Connexion
-                  </Button>
-                </Link>
+                <Button 
+                  size="icon" 
+                  onClick={() => navigate("/tarif")}
+                  className="w-10 h-10 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all"
+                >
+                  <ArrowRight className="w-5 h-5" />
+                </Button>
               )}
             </div>
           )}
