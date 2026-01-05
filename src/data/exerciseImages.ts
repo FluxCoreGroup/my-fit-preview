@@ -705,6 +705,190 @@ export const exerciseImages: Record<string, ExerciseImageData> = {
     imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-jump-squat-front-0.png",
     muscleGroup: "quadriceps",
     equipment: "poids du corps"
+  },
+
+  // === EXERCICES SUPPLÉMENTAIRES - CARDIO/RAMEUR ===
+  "rameur": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-machine-rowing-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-machine-rowing-front-0.png",
+    muscleGroup: "dos",
+    equipment: "machine"
+  },
+
+  // === EXERCICES SUPPLÉMENTAIRES - JAMBES ===
+  "lunge bulgare": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-dumbbell-bulgarian-split-squat-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-dumbbell-bulgarian-split-squat-front-0.png",
+    muscleGroup: "quadriceps",
+    equipment: "haltères"
+  },
+  "fente bulgare": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-dumbbell-bulgarian-split-squat-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-dumbbell-bulgarian-split-squat-front-0.png",
+    muscleGroup: "quadriceps",
+    equipment: "haltères"
+  },
+  "fentes laterales": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-dumbbell-lateral-lunge-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-dumbbell-lateral-lunge-front-0.png",
+    muscleGroup: "quadriceps",
+    equipment: "haltères"
+  },
+
+  // === EXERCICES SUPPLÉMENTAIRES - DOS ===
+  "rowing machine poulie": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-cables-seated-row-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-cables-seated-row-front-0.png",
+    muscleGroup: "dos",
+    equipment: "poulie"
+  },
+  "tirage nuque": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-cables-lat-pulldown-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-cables-lat-pulldown-front-0.png",
+    muscleGroup: "dos",
+    equipment: "machine"
+  },
+  "tirage vertical prise serree": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-cables-lat-pulldown-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-cables-lat-pulldown-front-0.png",
+    muscleGroup: "dos",
+    equipment: "machine"
+  },
+  "hyperextension": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-machine-back-extension-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-machine-back-extension-front-0.png",
+    muscleGroup: "lombaires",
+    equipment: "machine"
+  },
+  "extension lombaire": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-machine-back-extension-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-machine-back-extension-front-0.png",
+    muscleGroup: "lombaires",
+    equipment: "machine"
+  },
+
+  // === EXERCICES SUPPLÉMENTAIRES - PECTORAUX ===
+  "chest press": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-machine-chest-press-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-machine-chest-press-front-0.png",
+    muscleGroup: "pectoraux",
+    equipment: "machine"
+  },
+
+  // === EXERCICES SUPPLÉMENTAIRES - ÉPAULES ===
+  "arnold press": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-dumbbell-arnold-press-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-dumbbell-arnold-press-front-0.png",
+    muscleGroup: "épaules",
+    equipment: "haltères"
+  },
+  "upright row": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-barbell-upright-row-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-barbell-upright-row-front-0.png",
+    muscleGroup: "épaules",
+    equipment: "barre"
+  },
+  "tirage menton": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-barbell-upright-row-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-barbell-upright-row-front-0.png",
+    muscleGroup: "épaules",
+    equipment: "barre"
+  },
+
+  // === EXERCICES SUPPLÉMENTAIRES - BRAS ===
+  "curl concentration": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-dumbbell-concentration-curl-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-dumbbell-concentration-curl-front-0.png",
+    muscleGroup: "biceps",
+    equipment: "haltères"
+  },
+  "curl poulie": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-cables-curl-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-cables-curl-front-0.png",
+    muscleGroup: "biceps",
+    equipment: "poulie"
+  },
+  "close grip bench press": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-barbell-close-grip-bench-press-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-barbell-close-grip-bench-press-front-0.png",
+    muscleGroup: "triceps",
+    equipment: "barre"
+  },
+
+  // === EXERCICES SUPPLÉMENTAIRES - ABDOMINAUX ===
+  "gainage lateral": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-side-plank-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-side-plank-front-0.png",
+    muscleGroup: "abdominaux",
+    equipment: "poids du corps"
+  },
+  "planche laterale": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-side-plank-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-side-plank-front-0.png",
+    muscleGroup: "abdominaux",
+    equipment: "poids du corps"
+  },
+  "ab wheel": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-machine-ab-wheel-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-machine-ab-wheel-front-0.png",
+    muscleGroup: "abdominaux",
+    equipment: "accessoire"
+  },
+  "v-ups": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-v-up-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-v-up-front-0.png",
+    muscleGroup: "abdominaux",
+    equipment: "poids du corps"
+  },
+  "toe touches": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-toe-touch-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-toe-touch-front-0.png",
+    muscleGroup: "abdominaux",
+    equipment: "poids du corps"
+  },
+  "flutter kicks": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-flutter-kicks-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-flutter-kicks-front-0.png",
+    muscleGroup: "abdominaux",
+    equipment: "poids du corps"
+  },
+
+  // === EXERCICES SUPPLÉMENTAIRES - FESSIERS ===
+  "abduction hanche": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-machine-hip-abduction-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-machine-hip-abduction-front-0.png",
+    muscleGroup: "fessiers",
+    equipment: "machine"
+  },
+  "adduction hanche": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-machine-hip-adduction-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-machine-hip-adduction-front-0.png",
+    muscleGroup: "adducteurs",
+    equipment: "machine"
+  },
+  "frog pumps": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-frog-pump-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-frog-pump-front-0.png",
+    muscleGroup: "fessiers",
+    equipment: "poids du corps"
+  },
+  "clam shell": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-clamshell-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-clamshell-front-0.png",
+    muscleGroup: "fessiers",
+    equipment: "poids du corps"
+  },
+  "donkey kick": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-donkey-kick-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-donkey-kick-front-0.png",
+    muscleGroup: "fessiers",
+    equipment: "poids du corps"
+  },
+  "fire hydrant": {
+    gifUrl: "https://musclewiki.com/media/uploads/videos/branded/male-bodyweight-fire-hydrant-front.mp4#t=0.1",
+    imageUrl: "https://musclewiki.com/media/uploads/male-bodyweight-fire-hydrant-front-0.png",
+    muscleGroup: "fessiers",
+    equipment: "poids du corps"
   }
 };
 
@@ -819,6 +1003,56 @@ const exerciseAliases: Record<string, string> = {
   "leg raise": "releve de jambes",
   "plank": "gainage",
   "planche abdos": "gainage",
+  
+  // Alias supplémentaires pour exercices courants
+  "lunge bulgare": "squat bulgare",
+  "bulgarian lunge": "squat bulgare",
+  "fente arriere": "fentes",
+  "fentes arriere": "fentes",
+  "reverse lunge": "fentes",
+  "rower": "rameur",
+  "rowing machine cardio": "rameur",
+  "ergometre": "rameur",
+  "sumo squat": "squat sumo",
+  "sumo deadlift": "soulevé de terre",
+  "diamond push ups": "pompes diamant",
+  "incline push ups": "pompes inclinees",
+  "decline push ups": "pompes declinees",
+  "machine chest press": "chest press",
+  "press pectoraux machine": "chest press",
+  "back extension": "hyperextension",
+  "extension du dos": "hyperextension",
+  "superman": "hyperextension",
+  "side plank": "gainage lateral",
+  "cable curl": "curl poulie",
+  "rope pushdown": "extension triceps corde",
+  "tricep rope extension": "extension triceps corde",
+  "upright rows": "upright row",
+  "rowing vertical": "upright row",
+  "cable lateral raise": "elevations laterales poulie",
+  "cable rear delt fly": "oiseau poulie",
+  "hip abduction": "abduction hanche",
+  "hip adduction": "adduction hanche",
+  "machine abduction": "abduction hanche",
+  "machine adduction": "adduction hanche",
+  "cable kickback": "kickback fessier",
+  "glute kickback": "kickback fessier",
+  "concentration curl": "curl concentration",
+  "t-bar row": "rowing t-bar",
+  "t bar row": "rowing t-bar",
+  "close grip press": "developpe couche prise serree",
+  "bench press prise serree": "developpe couche prise serree",
+  "flutter kick": "flutter kicks",
+  "scissor kicks": "flutter kicks",
+  "v ups": "v-ups",
+  "v up": "v-ups",
+  "ab rollout": "ab wheel",
+  "wheel rollout": "ab wheel",
+  "step ups": "step up",
+  "step-ups": "step up",
+  "box step up": "step up",
+  "lateral lunge": "fentes laterales",
+  "side lunge": "fentes laterales",
 };
 
 // Words to ignore during matching (equipment/modifiers that shouldn't affect matching)
