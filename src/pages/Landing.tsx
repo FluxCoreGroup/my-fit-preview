@@ -97,7 +97,7 @@ const faqItems = [
 const Landing = () => {
   const { user } = useAuth();
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       <Header />
 
       {/* Hero Section */}
@@ -427,7 +427,7 @@ const Landing = () => {
       </section>
 
       {/* Section Coachs IA */}
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5" id="coachs-ia">
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5 overflow-hidden" id="coachs-ia">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">
