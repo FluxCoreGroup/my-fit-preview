@@ -145,13 +145,13 @@ const Landing = () => {
                   </Button>
                 </Link>
               ) : (
-                <Link to="/start">
+                <Link to="/start" className="w-full xs:w-auto">
                   <Button
                     size="lg"
-                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                    className="w-full xs:w-auto text-sm xs:text-base md:text-lg px-6 xs:px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
                   >
                     Faire le quiz
-                    <span className="ml-2 text-sm opacity-70">~2 min</span>
+                    <span className="ml-2 text-xs xs:text-sm opacity-70 hidden xs:inline">~2 min</span>
                   </Button>
                 </Link>
               )}
@@ -807,12 +807,12 @@ const Landing = () => {
             </table>
           </div>
 
-          <div className="text-center mt-12">
+          <div className="text-center mt-12 px-4 sm:px-0">
             <Link to="/start" className="w-full sm:w-auto inline-block">
-              <Button size="lg" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto text-sm xs:text-base px-4 xs:px-6">
                 Essayer Pulse.ai gratuitement
-                <span className="ml-2 text-sm opacity-70">~2 min</span>
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <span className="ml-1 xs:ml-2 text-xs xs:text-sm opacity-70 hidden xs:inline">~2 min</span>
+                <ArrowRight className="w-4 h-4 xs:w-5 xs:h-5 ml-1 xs:ml-2" />
               </Button>
             </Link>
           </div>
@@ -910,10 +910,10 @@ const Landing = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 w-full px-4 sm:px-0">
             <Link to="/start" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto text-lg">
+              <Button size="lg" className="w-full sm:w-auto text-sm xs:text-base sm:text-lg px-4 xs:px-6 sm:px-8">
                 Commencer gratuitement
-                <span className="ml-2 text-sm opacity-70">~2 min</span>
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <span className="ml-1 xs:ml-2 text-xs xs:text-sm opacity-70 hidden xs:inline">~2 min</span>
+                <ArrowRight className="w-4 h-4 xs:w-5 xs:h-5 ml-1 xs:ml-2" />
               </Button>
             </Link>
           </div>
