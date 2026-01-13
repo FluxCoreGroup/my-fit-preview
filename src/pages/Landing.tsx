@@ -808,8 +808,8 @@ const Landing = () => {
           </div>
 
           <div className="text-center mt-12">
-            <Link to="/start">
-              <Button size="lg">
+            <Link to="/start" className="w-full sm:w-auto inline-block">
+              <Button size="lg" className="w-full sm:w-auto">
                 Essayer Pulse.ai gratuitement
                 <span className="ml-2 text-sm opacity-70">~2 min</span>
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -885,8 +885,8 @@ const Landing = () => {
           {/* CTA Contact */}
           <div className="mt-12 text-center p-8 bg-card rounded-2xl border shadow-sm">
             <p className="text-muted-foreground mb-4 text-lg">Tu n'as pas trouvé ta réponse ?</p>
-            <Link to="/support">
-              <Button variant="outline" size="lg" className="group">
+            <Link to="/support" className="w-full sm:w-auto inline-block">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto group">
                 <MessageSquare className="w-4 h-4 mr-2 group-hover:text-primary transition-colors" />
                 Contacte notre équipe
                 <ArrowRight className="w-4 h-4 ml-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
@@ -908,9 +908,9 @@ const Landing = () => {
             semaines.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-            <Link to="/start">
-              <Button size="lg" className="text-lg">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 w-full px-4 sm:px-0">
+            <Link to="/start" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto text-lg">
                 Commencer gratuitement
                 <span className="ml-2 text-sm opacity-70">~2 min</span>
                 <ArrowRight className="w-5 h-5 ml-2" />
