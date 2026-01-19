@@ -14,12 +14,12 @@ import { useSaveOnboardingData } from "@/hooks/useSaveOnboardingData";
 import { useSessionFeedback } from "@/hooks/useSessionFeedback";
 import { BackButton } from "@/components/BackButton";
 import { SessionFeedbackModal } from "@/components/training/SessionFeedbackModal";
+import { SessionExitModal } from "@/components/training/SessionExitModal";
 import { ExerciseImage } from "@/components/training/ExerciseImage";
 import { ExerciseHelpDrawer } from "@/components/training/ExerciseHelpDrawer";
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -32,7 +32,7 @@ const Session = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   useSaveOnboardingData();
-  const { exerciseLogs, logSet, getSuggestedWeight } = useSessionFeedback();
+  const { exerciseLogs, logSet, getSuggestedWeight, clearLogs } = useSessionFeedback();
   
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -41,7 +41,7 @@ const Session = () => {
   const [timeLeft, setTimeLeft] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [showPauseDialog, setShowPauseDialog] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showHelpDrawer, setShowHelpDrawer] = useState(false);
@@ -217,9 +217,44 @@ const Session = () => {
     });
   };
 
-  const handlePauseSession = () => {
-    setShowPauseDialog(false);
-    navigate("/hub");
+  const handleRestartSession = () => {
+    setCurrentExerciseIndex(0);
+    setCurrentSet(1);
+    setIsResting(false);
+    setTimeLeft(0);
+    setIsPaused(true);
+    setCurrentWeight("");
+    setCurrentRPE(7);
+    clearLogs();
+    setShowExitModal(false);
+    toast({
+      title: "Séance réinitialisée",
+      description: "C'est reparti depuis le début !",
+    });
+  };
+
+  const handleEndSessionEarly = async (reason: string, details?: string) => {
+    if (user && sessionId) {
+      try {
+        await supabase
+          .from('sessions')
+          .update({ completed: true })
+          .eq('id', sessionId);
+        
+        // Store exit reason in feedback
+        await supabase.from('feedback').insert({
+          user_id: user.id,
+          session_id: sessionId,
+          completed: true,
+          comments: `Arrêt anticipé - ${reason}${details ? `: ${details}` : ''}`
+        });
+      } catch (error) {
+        console.error("Error ending session early:", error);
+      }
+    }
+    
+    setShowExitModal(false);
+    setShowFeedbackModal(true);
   };
 
   if (!currentExercise) {
@@ -252,7 +287,7 @@ const Session = () => {
 
   return (
     <div className="min-h-screen bg-background pb-8">
-      <BackButton label="Pause" onClick={() => setShowPauseDialog(true)} />
+      <BackButton label="Quitter" onClick={() => setShowExitModal(true)} />
       
       <div className="pt-20 px-4">
         <div className="max-w-3xl mx-auto space-y-4">
@@ -472,21 +507,13 @@ const Session = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Pause Dialog */}
-      <AlertDialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
-        <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-white/10">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Mettre la séance en pause ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tu peux reprendre ta séance plus tard depuis le hub.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Continuer</AlertDialogCancel>
-            <AlertDialogAction onClick={handlePauseSession}>Mettre en pause</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Exit Modal */}
+      <SessionExitModal
+        open={showExitModal}
+        onClose={() => setShowExitModal(false)}
+        onRestart={handleRestartSession}
+        onEndEarly={handleEndSessionEarly}
+      />
 
       {/* Feedback Modal */}
       {sessionId && (
