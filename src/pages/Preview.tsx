@@ -308,15 +308,15 @@ const Preview = () => {
                   <div className="text-xs text-muted-foreground">Protéines</div>
                 </Card>
                 
-                <Card className="p-3 md:p-4 bg-gradient-to-br from-green-500/10 to-green-600/10 border-green-500/20">
-                  <div className="text-2xl md:text-3xl font-bold text-green-600 dark:text-green-400 mb-1">
+                <Card className="p-3 md:p-4 bg-gradient-to-br from-blue-400/10 to-blue-500/10 border-blue-400/20">
+                  <div className="text-2xl md:text-3xl font-bold text-blue-500 dark:text-blue-300 mb-1">
                     {nutritionPlan.macros.carbs}g
                   </div>
                   <div className="text-xs text-muted-foreground">Glucides</div>
                 </Card>
                 
-                <Card className="p-3 md:p-4 bg-gradient-to-br from-amber-500/10 to-amber-600/10 border-amber-500/20">
-                  <div className="text-2xl md:text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+                <Card className="p-3 md:p-4 bg-gradient-to-br from-blue-300/10 to-blue-400/10 border-blue-300/20">
+                  <div className="text-2xl md:text-3xl font-bold text-blue-400 dark:text-blue-200 mb-1">
                     {nutritionPlan.macros.fat}g
                   </div>
                   <div className="text-xs text-muted-foreground">Lipides</div>
@@ -439,7 +439,7 @@ const Preview = () => {
                   localStorage.setItem("hasSeenPreview", "true");
                   navigate("/tarif");
                 }} 
-                className="w-full h-14 md:h-16 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all flex items-center justify-center px-6"
+                className="w-full h-14 md:h-16 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all flex items-center justify-center px-2 md:px-6"
               >
                 <ArrowRight className="w-full h-8 md:h-10" />
               </Button>
@@ -449,14 +449,6 @@ const Preview = () => {
             </div>
           </Card>
 
-          {/* Exemple de journée */}
-          
-
-          {/* Explication */}
-          
-
-          {/* CTA */}
-          
         </div>
       </div>
     </TooltipProvider>;
