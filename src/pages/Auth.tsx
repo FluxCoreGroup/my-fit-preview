@@ -142,7 +142,7 @@ const Auth = () => {
 
   return (
     <>
-      <Header variant="onboarding" />
+      <Header variant="onboarding" hideAuthButton />
       <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-8 pt-24">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">

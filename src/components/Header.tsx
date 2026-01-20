@@ -173,7 +173,10 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
               ) : (
                 <Button 
                   size="icon" 
-                  onClick={() => navigate("/tarif")}
+                  onClick={() => {
+                    const hasOnboardingData = localStorage.getItem("onboardingData");
+                    navigate(hasOnboardingData ? "/tarif" : "/start");
+                  }}
                   className="w-10 h-10 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all"
                 >
                   <ArrowRight className="w-5 h-5" />
