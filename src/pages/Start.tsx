@@ -239,7 +239,7 @@ const Start = () => {
   const progress = (step / totalSteps) * 100;
   return (
     <>
-      <Header variant="onboarding" showBack={true} backLabel="Quitter" onBack={() => navigate("/")} />
+      <Header variant="onboarding" showBack={true} backLabel="Quitter" onBack={() => navigate("/")} onNext={handleNext} />
       <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
         <div className="max-w-2xl mx-auto">
           {/* Header */}
