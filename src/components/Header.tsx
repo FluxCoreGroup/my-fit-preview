@@ -18,9 +18,10 @@ interface HeaderProps {
   onBack?: () => void;
   hideAuthButton?: boolean;
   disableNavigation?: boolean;
+  onNext?: () => void;
 }
 
-export const Header = ({ variant = "marketing", showBack = false, backLabel = "Retour", onBack, hideAuthButton = false, disableNavigation = false }: HeaderProps) => {
+export const Header = ({ variant = "marketing", showBack = false, backLabel = "Retour", onBack, hideAuthButton = false, disableNavigation = false, onNext }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -174,8 +175,38 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
                 <Button 
                   size="icon" 
                   onClick={() => {
-                    const hasOnboardingData = localStorage.getItem("onboardingData");
-                    navigate(hasOnboardingData ? "/tarif" : "/start");
+                    // Si callback onNext fourni (ex: /start), l'utiliser
+                    if (onNext) {
+                      onNext();
+                      return;
+                    }
+                    
+                    // Sinon, vérifier si données onboarding complètes
+                    const dataStr = localStorage.getItem("onboardingData");
+                    if (!dataStr) {
+                      navigate("/start");
+                      return;
+                    }
+                    
+                    try {
+                      const data = JSON.parse(dataStr);
+                      // Vérifier les champs requis pour /preview
+                      const isComplete = !!(
+                        data.birthDate &&
+                        data.sex &&
+                        data.height &&
+                        data.weight &&
+                        data.goal &&
+                        data.goalHorizon &&
+                        data.activityLevel &&
+                        data.frequency &&
+                        data.sessionDuration &&
+                        data.location
+                      );
+                      navigate(isComplete ? "/preview" : "/start");
+                    } catch {
+                      navigate("/start");
+                    }
                   }}
                   className="w-10 h-10 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all"
                 >
