@@ -165,7 +165,7 @@ const Tarif = () => {
 
       <Header variant="onboarding" showBack onBack={() => navigate("/preview")} />
 
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background py-12 px-4 pt-24">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background py-12 px-4 pt-24 pb-28 md:pb-12">
         <div className="max-w-6xl mx-auto space-y-12">
           {/* Hero Section */}
           <div className="text-center space-y-6 animate-in">
@@ -237,7 +237,7 @@ const Tarif = () => {
               </ul>
 
               {/* CTA */}
-              <Button size="lg" className="w-full text-lg py-6" onClick={handleStartTrial} disabled={loading}>
+              <Button size="lg" className="w-full text-sm sm:text-base md:text-lg py-5 md:py-6" onClick={handleStartTrial} disabled={loading}>
                 Démarrer mon essai gratuit 7 jours
               </Button>
 
@@ -287,12 +287,12 @@ const Tarif = () => {
             </div>
 
             {/* CTA final */}
-            <div className="text-center pt-8 pb-24 md:pb-8">
+            <div className="text-center pt-8 pb-24 md:pb-8 flex flex-col items-center">
               <h3 className="text-2xl font-bold mb-4">Prêt à transformer ton corps ?</h3>
               <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
                 Rejoins des centaines de membres qui ont déjà commencé leur transformation avec Pulse.
               </p>
-              <Button size="lg" className="text-lg px-8 py-6" onClick={handleStartTrial} disabled={loading}>
+              <Button size="lg" className="text-sm sm:text-base md:text-lg px-6 md:px-8 py-5 md:py-6" onClick={handleStartTrial} disabled={loading}>
                 Démarrer mon essai gratuit
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
