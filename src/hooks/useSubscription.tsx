@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 export type SubscriptionStatus = "loading" | "active" | "trialing" | "inactive" | "error";
+export type PlanInterval = "week" | "month" | "year" | null;
 
 interface SubscriptionData {
   status: SubscriptionStatus;
   productId: string | null;
   subscriptionEnd: string | null;
   trialEnd: string | null;
+  planInterval: PlanInterval;
   error: string | null;
 }
 
@@ -19,13 +21,14 @@ export const useSubscription = () => {
     productId: null,
     subscriptionEnd: null,
     trialEnd: null,
+    planInterval: null,
     error: null,
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const checkSubscription = useCallback(async () => {
     if (!user) {
-      setData({ status: "inactive", productId: null, subscriptionEnd: null, trialEnd: null, error: null });
+      setData({ status: "inactive", productId: null, subscriptionEnd: null, trialEnd: null, planInterval: null, error: null });
       return;
     }
 
@@ -36,11 +39,19 @@ export const useSubscription = () => {
 
       if (response?.subscribed) {
         const subStatus: SubscriptionStatus = response.subscription_status === "trialing" ? "trialing" : "active";
+        
+        // Déterminer l'intervalle du plan basé sur le prix
+        let planInterval: PlanInterval = null;
+        if (response.price_interval) {
+          planInterval = response.price_interval as PlanInterval;
+        }
+        
         setData({
           status: subStatus,
           productId: response.product_id,
           subscriptionEnd: response.subscription_end,
           trialEnd: response.trial_end,
+          planInterval,
           error: null,
         });
       } else {
@@ -49,6 +60,7 @@ export const useSubscription = () => {
           productId: null,
           subscriptionEnd: null,
           trialEnd: null,
+          planInterval: null,
           error: null,
         });
       }
@@ -59,6 +71,7 @@ export const useSubscription = () => {
         productId: null,
         subscriptionEnd: null,
         trialEnd: null,
+        planInterval: null,
         error: err instanceof Error ? err.message : "Erreur lors de la vérification",
       });
     }

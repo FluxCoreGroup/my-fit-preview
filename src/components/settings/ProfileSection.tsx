@@ -108,8 +108,10 @@ export const ProfileSection = () => {
           status: "",
         });
       } else {
-        // Prix unique All In
-        const price = 899; // 8,99€
+        // Prix selon le type de plan
+        let price = 1499; // 14,99€ par défaut (mensuel)
+        if (sub.plan_type === "week") price = 699;
+        else if (sub.plan_type === "year") price = 14999;
 
         setSubscriptionInfo({
           hasSubscription: true,
@@ -181,7 +183,21 @@ export const ProfileSection = () => {
   };
 
   const getPlanLabel = (planType: string) => {
-    return planType === "year" ? "Annuel" : "Mensuel";
+    switch (planType) {
+      case "week": return "Hebdomadaire";
+      case "month": return "Mensuel";
+      case "year": return "Annuel";
+      default: return "Mensuel";
+    }
+  };
+
+  const getPlanIntervalLabel = (planType: string) => {
+    switch (planType) {
+      case "week": return "/semaine";
+      case "month": return "/mois";
+      case "year": return "/an";
+      default: return "/mois";
+    }
   };
 
   return (
@@ -273,7 +289,7 @@ export const ProfileSection = () => {
                         <span className="text-muted-foreground">Plan :</span>
                         <span className="font-semibold">
                           {getPlanLabel(subscriptionInfo.plan_type)} - {formatPrice(subscriptionInfo.price)}
-                          {subscriptionInfo.plan_type === "month" ? "/mois" : "/an"}
+                          {getPlanIntervalLabel(subscriptionInfo.plan_type)}
                         </span>
                       </div>
                     </div>
