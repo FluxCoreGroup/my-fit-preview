@@ -63,7 +63,7 @@ const testimonials = [
 const faqItems = [
   {
     q: "C'est vraiment gratuit pour commencer ?",
-    a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, l'abonnement démarre à 8,99€/mois sans engagement.",
+    a: "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, 3 formules s'offrent à toi : Hebdomadaire (6,99€/sem), Mensuel (14,99€/mois avec 7j d'essai) ou Annuel (149,99€/an avec 7j d'essai).",
   },
   {
     q: "Je suis débutant(e), ça marche pour moi ?",
@@ -569,8 +569,8 @@ const Landing = () => {
               <div className="flex justify-between items-start mb-4 mt-2">
                 <h3 className="font-bold text-lg text-primary">Pulse.ai</h3>
                 <div className="text-right">
-                  <span className="text-2xl font-bold text-primary">8,99€</span>
-                  <span className="text-muted-foreground text-sm">/mois</span>
+                  <span className="text-xl font-bold text-primary">dès 6,99€</span>
+                  <span className="text-muted-foreground text-sm">/sem</span>
                 </div>
               </div>
               <div className="space-y-3">
@@ -724,12 +724,12 @@ const Landing = () => {
               </thead>
               <tbody>
                 <tr className="border-b">
-                  <td className="py-4 px-3 lg:px-6 font-medium">Prix mensuel</td>
+                  <td className="py-4 px-3 lg:px-6 font-medium">Prix</td>
                   <td className="text-center py-4 px-3 lg:px-6 bg-primary/5">
-                    <span className="font-bold text-primary">8,99€</span>
+                    <span className="font-bold text-primary">dès 6,99€/sem</span>
                   </td>
-                  <td className="text-center py-4 px-3 lg:px-6 text-muted-foreground">50-150€</td>
-                  <td className="text-center py-4 px-3 lg:px-6 text-muted-foreground">10-50€</td>
+                  <td className="text-center py-4 px-3 lg:px-6 text-muted-foreground">50-150€/mois</td>
+                  <td className="text-center py-4 px-3 lg:px-6 text-muted-foreground">10-50€/mois</td>
                 </tr>
                 <tr className="border-b">
                   <td className="py-4 px-3 lg:px-6 font-medium">Personnalisation IA</td>

@@ -23,6 +23,12 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CancellationFeedbackDialog } from "./CancellationFeedbackDialog";
+import { 
+  formatPriceFromCents, 
+  getPlanLabelFromInterval, 
+  getIntervalLabel, 
+  PlanInterval 
+} from "@/lib/pricing";
 
 interface SubscriptionInfo {
   hasSubscription: boolean;
@@ -109,9 +115,7 @@ export const ProfileSection = () => {
         });
       } else {
         // Prix selon le type de plan
-        let price = 1499; // 14,99€ par défaut (mensuel)
-        if (sub.plan_type === "week") price = 699;
-        else if (sub.plan_type === "year") price = 14999;
+        const price = getPriceFromPlanType(sub.plan_type);
 
         setSubscriptionInfo({
           hasSubscription: true,
@@ -178,25 +182,13 @@ export const ProfileSection = () => {
     }
   };
 
-  const formatPrice = (price: number) => {
-    return (price / 100).toFixed(2).replace(".", ",") + "€";
-  };
-
-  const getPlanLabel = (planType: string) => {
+  // Helper to get the price in cents based on plan type
+  const getPriceFromPlanType = (planType: string): number => {
     switch (planType) {
-      case "week": return "Hebdomadaire";
-      case "month": return "Mensuel";
-      case "year": return "Annuel";
-      default: return "Mensuel";
-    }
-  };
-
-  const getPlanIntervalLabel = (planType: string) => {
-    switch (planType) {
-      case "week": return "/semaine";
-      case "month": return "/mois";
-      case "year": return "/an";
-      default: return "/mois";
+      case "week": return 699;
+      case "month": return 1499;
+      case "year": return 14999;
+      default: return 1499;
     }
   };
 
@@ -288,8 +280,8 @@ export const ProfileSection = () => {
                         <Euro className="w-4 h-4 text-muted-foreground" />
                         <span className="text-muted-foreground">Plan :</span>
                         <span className="font-semibold">
-                          {getPlanLabel(subscriptionInfo.plan_type)} - {formatPrice(subscriptionInfo.price)}
-                          {getPlanIntervalLabel(subscriptionInfo.plan_type)}
+                          {getPlanLabelFromInterval(subscriptionInfo.plan_type as PlanInterval)} - {formatPriceFromCents(subscriptionInfo.price)}
+                          {getIntervalLabel(subscriptionInfo.plan_type as PlanInterval)}
                         </span>
                       </div>
                     </div>

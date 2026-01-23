@@ -8,42 +8,12 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-
-const getPlanLabel = (interval: PlanInterval): string => {
-  switch (interval) {
-    case "week": return "Hebdomadaire";
-    case "month": return "Mensuel";
-    case "year": return "Annuel";
-    default: return "All In";
-  }
-};
-
-const getPlanPrice = (interval: PlanInterval): string => {
-  switch (interval) {
-    case "week": return "6,99€/semaine";
-    case "month": return "14,99€/mois";
-    case "year": return "149,99€/an";
-    default: return "14,99€/mois";
-  }
-};
-
-const getPlanPriceValue = (interval: PlanInterval): string => {
-  switch (interval) {
-    case "week": return "6,99€";
-    case "month": return "14,99€";
-    case "year": return "149,99€";
-    default: return "14,99€";
-  }
-};
-
-const getPlanIntervalLabel = (interval: PlanInterval): string => {
-  switch (interval) {
-    case "week": return "/semaine";
-    case "month": return "/mois";
-    case "year": return "/an";
-    default: return "/mois";
-  }
-};
+import { 
+  getPlanLabelFromInterval, 
+  getPlanPriceFromInterval, 
+  getPlanPriceValue, 
+  getIntervalLabel 
+} from "@/lib/pricing";
 
 export const SubscriptionSection = () => {
   const navigate = useNavigate();
@@ -133,7 +103,7 @@ export const SubscriptionSection = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-500" />
-              <span className="font-semibold">Plan {getPlanLabel(planInterval)}</span>
+              <span className="font-semibold">Plan {getPlanLabelFromInterval(planInterval)}</span>
             </div>
             <Badge className="bg-amber-500 hover:bg-amber-600 text-white">Essai gratuit</Badge>
           </div>
@@ -146,7 +116,7 @@ export const SubscriptionSection = () => {
               </p>
             )}
             <p className="text-sm text-amber-600 dark:text-amber-400">
-              Puis {getPlanPrice(planInterval)} après la période d'essai
+              Puis {getPlanPriceFromInterval(planInterval)} après la période d'essai
             </p>
           </div>
 
@@ -171,7 +141,7 @@ export const SubscriptionSection = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-primary" />
-              <span className="font-semibold">Plan {getPlanLabel(planInterval)}</span>
+              <span className="font-semibold">Plan {getPlanLabelFromInterval(planInterval)}</span>
             </div>
             <Badge variant="default">Actif</Badge>
           </div>
@@ -179,7 +149,7 @@ export const SubscriptionSection = () => {
           <div className="space-y-1">
             <p className="text-2xl font-bold">
               {getPlanPriceValue(planInterval)}
-              <span className="text-sm font-normal text-muted-foreground">{getPlanIntervalLabel(planInterval)}</span>
+              <span className="text-sm font-normal text-muted-foreground">{getIntervalLabel(planInterval)}</span>
             </p>
             {subscriptionEnd && (
               <p className="text-sm text-muted-foreground">
