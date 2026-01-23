@@ -33,7 +33,7 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { plan = "monthly", promoCode = null } = await req.json();
+    const { plan = "monthly", couponId = null, promoCodeId = null } = await req.json();
     
     // Valider le plan
     if (!["weekly", "monthly", "yearly"].includes(plan)) {
@@ -43,7 +43,7 @@ serve(async (req) => {
     const priceId = PRICE_IDS[plan as keyof typeof PRICE_IDS];
     const hasTrial = PLANS_WITH_TRIAL.includes(plan);
     
-    logStep("Plan selected", { plan, priceId, hasTrial, promoCode: promoCode ? "provided" : "none" });
+    logStep("Plan selected", { plan, priceId, hasTrial, couponId, promoCodeId });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
@@ -117,16 +117,20 @@ serve(async (req) => {
       sessionConfig.customer = customerId;
     }
 
-    // Gérer le code promo - on utilise allow_promotion_codes pour laisser l'utilisateur
-    // saisir le code directement dans Stripe Checkout, ce qui évite les erreurs de restriction produit
-    if (promoCode) {
-      logStep("Promo code provided, will be entered in Stripe Checkout", { code: promoCode });
-      // On ne pré-applique pas le coupon car il peut avoir des restrictions de produit
-      // L'utilisateur pourra le saisir dans Stripe Checkout
+    // Gérer le code promo pré-validé
+    if (promoCodeId) {
+      // Priorité au promotion code ID (format promo_xxx)
+      sessionConfig.discounts = [{ promotion_code: promoCodeId }];
+      logStep("Promotion code pre-applied", { promoCodeId });
+    } else if (couponId) {
+      // Sinon utiliser le coupon ID directement
+      sessionConfig.discounts = [{ coupon: couponId }];
+      logStep("Coupon pre-applied", { couponId });
+    } else {
+      // Pas de code fourni = permettre la saisie manuelle dans Checkout
+      sessionConfig.allow_promotion_codes = true;
+      logStep("No promo code, allowing manual entry in Checkout");
     }
-
-    // Toujours permettre la saisie de codes promo dans Checkout
-    sessionConfig.allow_promotion_codes = true;
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
 

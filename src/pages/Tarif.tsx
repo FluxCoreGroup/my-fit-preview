@@ -41,6 +41,8 @@ const Tarif = () => {
   const [promoValidating, setPromoValidating] = useState(false);
   const [promoValid, setPromoValid] = useState<boolean | null>(null);
   const [promoDiscount, setPromoDiscount] = useState<{ percent_off?: number; amount_off?: number; name?: string } | null>(null);
+  const [promoCouponId, setPromoCouponId] = useState<string | null>(null);
+  const [promoCodeId, setPromoCodeId] = useState<string | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | undefined>(undefined);
 
   // Protection de la route - accessible uniquement après /preview
@@ -69,6 +71,8 @@ const Tarif = () => {
       if (data?.valid) {
         setPromoValid(true);
         setPromoDiscount(data.discount);
+        setPromoCouponId(data.couponId || null);
+        setPromoCodeId(data.promoCodeId || null);
         toast({
           title: "Code appliqué !",
           description: data.discount.percent_off 
@@ -100,6 +104,8 @@ const Tarif = () => {
     setPromoCode("");
     setPromoValid(null);
     setPromoDiscount(null);
+    setPromoCouponId(null);
+    setPromoCodeId(null);
   };
 
   const handleStartSubscription = async () => {
@@ -117,7 +123,8 @@ const Tarif = () => {
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { 
           plan: selectedPlan,
-          promoCode: promoValid ? promoCode.trim() : null,
+          couponId: promoValid ? promoCouponId : null,
+          promoCodeId: promoValid ? promoCodeId : null,
         },
       });
       
