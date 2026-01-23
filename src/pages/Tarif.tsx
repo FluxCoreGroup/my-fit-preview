@@ -29,58 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-
-type PlanType = "weekly" | "monthly" | "yearly";
-
-interface Plan {
-  id: PlanType;
-  name: string;
-  price: number;
-  interval: string;
-  intervalShort: string;
-  hasTrial: boolean;
-  badge: string | null;
-  tagline: string;
-  description: string;
-  monthlyEquivalent?: string;
-}
-
-const PLANS: Record<PlanType, Plan> = {
-  weekly: {
-    id: "weekly",
-    name: "Hebdomadaire",
-    price: 6.99,
-    interval: "semaine",
-    intervalShort: "sem",
-    hasTrial: false,
-    badge: null,
-    tagline: "Flexibilité maximale",
-    description: "Pour tester sans s'engager, avancer à ton rythme ou utiliser Pulse sur une période courte.",
-  },
-  monthly: {
-    id: "monthly",
-    name: "Mensuel",
-    price: 14.99,
-    interval: "mois",
-    intervalShort: "mois",
-    hasTrial: true,
-    badge: "Populaire",
-    tagline: "Le meilleur équilibre",
-    description: "Progressez durablement avec un suivi continu et des ajustements hebdomadaires.",
-  },
-  yearly: {
-    id: "yearly",
-    name: "Annuel",
-    price: 149.99,
-    interval: "an",
-    intervalShort: "an",
-    hasTrial: true,
-    badge: "Meilleur prix",
-    tagline: "Économies maximales",
-    description: "L'engagement favorise la régularité. 2 mois offerts par rapport au mensuel.",
-    monthlyEquivalent: "12,49€/mois",
-  },
-};
+import { PRICING, PlanType, PlanDetails, formatPrice } from "@/lib/pricing";
 
 const Tarif = () => {
   const navigate = useNavigate();
@@ -187,7 +136,7 @@ const Tarif = () => {
     }
   };
 
-  const currentPlan = PLANS[selectedPlan];
+  const currentPlan = PRICING[selectedPlan];
   
   const features = [
     { icon: Dumbbell, text: "Programme d'entraînement personnalisé", highlight: true },
@@ -300,7 +249,7 @@ const Tarif = () => {
 
           {/* Plan Selector */}
           <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {(Object.values(PLANS) as Plan[]).map((plan) => (
+            {(Object.values(PRICING) as PlanDetails[]).map((plan) => (
               <Card
                 key={plan.id}
                 className={cn(
