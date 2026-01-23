@@ -117,38 +117,16 @@ serve(async (req) => {
       sessionConfig.customer = customerId;
     }
 
-    // Gérer le code promo
+    // Gérer le code promo - on utilise allow_promotion_codes pour laisser l'utilisateur
+    // saisir le code directement dans Stripe Checkout, ce qui évite les erreurs de restriction produit
     if (promoCode) {
-      // Vérifier si c'est un coupon ID direct ou un promotion code
-      try {
-        // D'abord essayer comme coupon ID
-        const coupon = await stripe.coupons.retrieve(promoCode.toUpperCase());
-        if (coupon.valid) {
-          sessionConfig.discounts = [{ coupon: coupon.id }];
-          logStep("Coupon applied", { couponId: coupon.id });
-        }
-      } catch {
-        // Sinon chercher comme promotion code
-        try {
-          const promoCodes = await stripe.promotionCodes.list({
-            code: promoCode.toUpperCase(),
-            active: true,
-            limit: 1
-          });
-          if (promoCodes.data.length > 0) {
-            sessionConfig.discounts = [{ promotion_code: promoCodes.data[0].id }];
-            logStep("Promotion code applied", { promoId: promoCodes.data[0].id });
-          }
-        } catch (e) {
-          logStep("Promo code not found, continuing without discount", { code: promoCode });
-        }
-      }
+      logStep("Promo code provided, will be entered in Stripe Checkout", { code: promoCode });
+      // On ne pré-applique pas le coupon car il peut avoir des restrictions de produit
+      // L'utilisateur pourra le saisir dans Stripe Checkout
     }
 
-    // Si pas de code promo appliqué, permettre la saisie dans Checkout
-    if (!sessionConfig.discounts) {
-      sessionConfig.allow_promotion_codes = true;
-    }
+    // Toujours permettre la saisie de codes promo dans Checkout
+    sessionConfig.allow_promotion_codes = true;
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
