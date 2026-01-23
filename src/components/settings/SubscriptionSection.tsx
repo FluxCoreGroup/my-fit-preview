@@ -3,15 +3,51 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, AlertCircle, CreditCard, ExternalLink, RefreshCw, Sparkles } from "lucide-react";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription, PlanInterval } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
+const getPlanLabel = (interval: PlanInterval): string => {
+  switch (interval) {
+    case "week": return "Hebdomadaire";
+    case "month": return "Mensuel";
+    case "year": return "Annuel";
+    default: return "All In";
+  }
+};
+
+const getPlanPrice = (interval: PlanInterval): string => {
+  switch (interval) {
+    case "week": return "6,99€/semaine";
+    case "month": return "14,99€/mois";
+    case "year": return "149,99€/an";
+    default: return "14,99€/mois";
+  }
+};
+
+const getPlanPriceValue = (interval: PlanInterval): string => {
+  switch (interval) {
+    case "week": return "6,99€";
+    case "month": return "14,99€";
+    case "year": return "149,99€";
+    default: return "14,99€";
+  }
+};
+
+const getPlanIntervalLabel = (interval: PlanInterval): string => {
+  switch (interval) {
+    case "week": return "/semaine";
+    case "month": return "/mois";
+    case "year": return "/an";
+    default: return "/mois";
+  }
+};
+
 export const SubscriptionSection = () => {
   const navigate = useNavigate();
-  const { status, subscriptionEnd, trialEnd, isRefreshing, refreshSubscription, openCustomerPortal } = useSubscription();
+  const { status, planInterval, subscriptionEnd, trialEnd, isRefreshing, refreshSubscription, openCustomerPortal } = useSubscription();
 
   const handleManageSubscription = async () => {
     try {
@@ -97,7 +133,7 @@ export const SubscriptionSection = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-500" />
-              <span className="font-semibold">Plan All In</span>
+              <span className="font-semibold">Plan {getPlanLabel(planInterval)}</span>
             </div>
             <Badge className="bg-amber-500 hover:bg-amber-600 text-white">Essai gratuit</Badge>
           </div>
@@ -110,7 +146,7 @@ export const SubscriptionSection = () => {
               </p>
             )}
             <p className="text-sm text-amber-600 dark:text-amber-400">
-              Puis 8,99€/mois après la période d'essai
+              Puis {getPlanPrice(planInterval)} après la période d'essai
             </p>
           </div>
 
@@ -135,13 +171,16 @@ export const SubscriptionSection = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-primary" />
-              <span className="font-semibold">Plan All In</span>
+              <span className="font-semibold">Plan {getPlanLabel(planInterval)}</span>
             </div>
             <Badge variant="default">Actif</Badge>
           </div>
 
           <div className="space-y-1">
-            <p className="text-2xl font-bold">8,99€<span className="text-sm font-normal text-muted-foreground">/mois</span></p>
+            <p className="text-2xl font-bold">
+              {getPlanPriceValue(planInterval)}
+              <span className="text-sm font-normal text-muted-foreground">{getPlanIntervalLabel(planInterval)}</span>
+            </p>
             {subscriptionEnd && (
               <p className="text-sm text-muted-foreground">
                 Prochain renouvellement : {formatDate(subscriptionEnd)}

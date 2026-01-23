@@ -12,6 +12,17 @@ const logStep = (step: string, details?: any) => {
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
 };
 
+// Prix IDs pour chaque formule
+const PRICE_IDS = {
+  weekly: "price_1SslhaGmCvXEfWmDnO5NM7eN",   // 6,99€/semaine
+  monthly: "price_1Sslk3GmCvXEfWmDRcWjrwpp",  // 14,99€/mois
+  yearly: "price_1SslmjGmCvXEfWmDP0Md7nfh",   // 149,99€/an
+  legacy: "price_1SgMu4GmCvXEfWmDJlWHfwsS",   // 8,99€/mois (ancien prix)
+};
+
+// Formules avec essai gratuit (7 jours)
+const PLANS_WITH_TRIAL = ["monthly", "yearly"];
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,8 +33,17 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { mode = "subscription" } = await req.json();
-    const priceId = "price_1SgMu4GmCvXEfWmDJlWHfwsS"; // 8,99€/mois Pulse All In
+    const { plan = "monthly", promoCode = null } = await req.json();
+    
+    // Valider le plan
+    if (!["weekly", "monthly", "yearly"].includes(plan)) {
+      throw new Error(`Invalid plan: ${plan}`);
+    }
+
+    const priceId = PRICE_IDS[plan as keyof typeof PRICE_IDS];
+    const hasTrial = PLANS_WITH_TRIAL.includes(plan);
+    
+    logStep("Plan selected", { plan, priceId, hasTrial, promoCode: promoCode ? "provided" : "none" });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
 
@@ -55,13 +75,12 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "http://localhost:5173";
 
     // Always redirect to /payment-success with session_id
-    // is_new flag indicates if this is a new user (needs to create account) or existing user
     const successUrl = `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&is_new=${!isExistingUser}`;
     const cancelUrl = isExistingUser ? `${origin}/paywall?canceled=true` : `${origin}/tarif?canceled=true`;
 
     logStep("Building checkout session", { isExistingUser, successUrl, cancelUrl });
 
-    // Build session config dynamically to avoid passing empty customer
+    // Build session config
     const sessionConfig: any = {
       line_items: [
         {
@@ -70,27 +89,65 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      subscription_data: {
+      payment_method_collection: "always",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        supabase_user_id: user?.id || "PENDING",
+        plan_type: plan,
+        is_new_user: (!isExistingUser).toString(),
+      },
+    };
+
+    // Ajouter essai seulement pour mensuel/annuel
+    if (hasTrial) {
+      sessionConfig.subscription_data = {
         trial_period_days: 7,
         trial_settings: {
           end_behavior: {
             missing_payment_method: "cancel",
           },
         },
-      },
-      payment_method_collection: "always",
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      metadata: {
-        supabase_user_id: user?.id || "PENDING",
-        plan_type: "all_in",
-        is_new_user: (!isExistingUser).toString(),
-      },
-    };
+      };
+      logStep("Trial period added", { days: 7 });
+    }
 
     // Only add customer if we have a valid ID
     if (customerId) {
       sessionConfig.customer = customerId;
+    }
+
+    // Gérer le code promo
+    if (promoCode) {
+      // Vérifier si c'est un coupon ID direct ou un promotion code
+      try {
+        // D'abord essayer comme coupon ID
+        const coupon = await stripe.coupons.retrieve(promoCode.toUpperCase());
+        if (coupon.valid) {
+          sessionConfig.discounts = [{ coupon: coupon.id }];
+          logStep("Coupon applied", { couponId: coupon.id });
+        }
+      } catch {
+        // Sinon chercher comme promotion code
+        try {
+          const promoCodes = await stripe.promotionCodes.list({
+            code: promoCode.toUpperCase(),
+            active: true,
+            limit: 1
+          });
+          if (promoCodes.data.length > 0) {
+            sessionConfig.discounts = [{ promotion_code: promoCodes.data[0].id }];
+            logStep("Promotion code applied", { promoId: promoCodes.data[0].id });
+          }
+        } catch (e) {
+          logStep("Promo code not found, continuing without discount", { code: promoCode });
+        }
+      }
+    }
+
+    // Si pas de code promo appliqué, permettre la saisie dans Checkout
+    if (!sessionConfig.discounts) {
+      sessionConfig.allow_promotion_codes = true;
     }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);

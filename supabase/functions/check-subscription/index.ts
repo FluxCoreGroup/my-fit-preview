@@ -117,12 +117,18 @@ serve(async (req) => {
       logStep("No valid subscription found");
     }
 
+    // Récupérer l'intervalle du prix
+    const priceInterval = hasValidSub 
+      ? validSubscription.items.data[0].price.recurring?.interval 
+      : null;
+
     return new Response(JSON.stringify({
       subscribed: hasValidSub,
       subscription_status: subscriptionStatus,
       product_id: productId,
       subscription_end: subscriptionEnd,
-      trial_end: trialEnd
+      trial_end: trialEnd,
+      price_interval: priceInterval
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

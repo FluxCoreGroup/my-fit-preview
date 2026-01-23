@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Header } from "@/components/Header";
 import {
   Check,
@@ -12,26 +13,85 @@ import {
   RefreshCw,
   CreditCard,
   Users,
-  Gift,
   Dumbbell,
   Utensils,
   TrendingUp,
-  MessageCircle,
   ChevronDown,
   Loader2,
   Bot,
   Salad,
+  Tag,
+  X,
+  CheckCircle2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
+
+type PlanType = "weekly" | "monthly" | "yearly";
+
+interface Plan {
+  id: PlanType;
+  name: string;
+  price: number;
+  interval: string;
+  intervalShort: string;
+  hasTrial: boolean;
+  badge: string | null;
+  tagline: string;
+  description: string;
+  monthlyEquivalent?: string;
+}
+
+const PLANS: Record<PlanType, Plan> = {
+  weekly: {
+    id: "weekly",
+    name: "Hebdomadaire",
+    price: 6.99,
+    interval: "semaine",
+    intervalShort: "sem",
+    hasTrial: false,
+    badge: null,
+    tagline: "Flexibilité maximale",
+    description: "Pour tester sans s'engager, avancer à ton rythme ou utiliser Pulse sur une période courte.",
+  },
+  monthly: {
+    id: "monthly",
+    name: "Mensuel",
+    price: 14.99,
+    interval: "mois",
+    intervalShort: "mois",
+    hasTrial: true,
+    badge: "Populaire",
+    tagline: "Le meilleur équilibre",
+    description: "Progressez durablement avec un suivi continu et des ajustements hebdomadaires.",
+  },
+  yearly: {
+    id: "yearly",
+    name: "Annuel",
+    price: 149.99,
+    interval: "an",
+    intervalShort: "an",
+    hasTrial: true,
+    badge: "Meilleur prix",
+    tagline: "Économies maximales",
+    description: "L'engagement favorise la régularité. 2 mois offerts par rapport au mensuel.",
+    monthlyEquivalent: "12,49€/mois",
+  },
+};
 
 const Tarif = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>("monthly");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoValidating, setPromoValidating] = useState(false);
+  const [promoValid, setPromoValid] = useState<boolean | null>(null);
+  const [promoDiscount, setPromoDiscount] = useState<{ percent_off?: number; amount_off?: number; name?: string } | null>(null);
   const [openAccordion, setOpenAccordion] = useState<string | undefined>(undefined);
 
   // Protection de la route - accessible uniquement après /preview
@@ -43,21 +103,75 @@ const Tarif = () => {
     }
   }, [navigate]);
 
-  const handleStartTrial = async () => {
+  const validatePromoCode = async () => {
+    if (!promoCode.trim()) return;
+    
+    setPromoValidating(true);
+    setPromoValid(null);
+    setPromoDiscount(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke("validate-promo-code", {
+        body: { code: promoCode.trim() },
+      });
+      
+      if (error) throw error;
+      
+      if (data?.valid) {
+        setPromoValid(true);
+        setPromoDiscount(data.discount);
+        toast({
+          title: "Code appliqué !",
+          description: data.discount.percent_off 
+            ? `${data.discount.percent_off}% de réduction sur le premier paiement`
+            : `${(data.discount.amount_off / 100).toFixed(2)}€ de réduction`,
+        });
+      } else {
+        setPromoValid(false);
+        toast({
+          title: "Code invalide",
+          description: data?.error || "Ce code promo n'existe pas ou a expiré.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Promo validation error:", error);
+      setPromoValid(false);
+      toast({
+        title: "Erreur",
+        description: "Impossible de valider le code promo.",
+        variant: "destructive",
+      });
+    } finally {
+      setPromoValidating(false);
+    }
+  };
+
+  const clearPromoCode = () => {
+    setPromoCode("");
+    setPromoValid(null);
+    setPromoDiscount(null);
+  };
+
+  const handleStartSubscription = async () => {
     setLoading(true);
     try {
-      // Sauvegarder le contexte du checkout
       sessionStorage.setItem(
         "checkout_context",
         JSON.stringify({
-          plan: "all_in",
+          plan: selectedPlan,
           timestamp: new Date().toISOString(),
           from: "tarif",
         }),
       );
+      
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { mode: "trial" },
+        body: { 
+          plan: selectedPlan,
+          promoCode: promoValid ? promoCode.trim() : null,
+        },
       });
+      
       if (error) throw error;
       if (data?.url) {
         window.location.href = data.url;
@@ -73,40 +187,17 @@ const Tarif = () => {
     }
   };
 
-  // Prix unique
-  const price = 8.99;
+  const currentPlan = PLANS[selectedPlan];
+  
   const features = [
-    {
-      icon: Dumbbell,
-      text: "Programme d'entraînement personnalisé",
-      highlight: true,
-    },
-    {
-      icon: Utensils,
-      text: "Plan nutrition complet avec macros",
-      highlight: true,
-    },
-    {
-      icon: Bot,
-      text: "Coach sport IA Alex 24/7",
-      highlight: true,
-    },
-    {
-      icon: Salad,
-      text: "Nutritionniste IA Julie personnalisée",
-      highlight: true,
-    },
-    {
-      icon: TrendingUp,
-      text: "Nouvelles séances chaque semaine",
-      highlight: false,
-    },
-    {
-      icon: RefreshCw,
-      text: "Ajustements automatiques selon tes progrès",
-      highlight: false,
-    },
+    { icon: Dumbbell, text: "Programme d'entraînement personnalisé", highlight: true },
+    { icon: Utensils, text: "Plan nutrition complet avec macros", highlight: true },
+    { icon: Bot, text: "Coach sport IA Alex 24/7", highlight: true },
+    { icon: Salad, text: "Nutritionniste IA Julie personnalisée", highlight: true },
+    { icon: TrendingUp, text: "Nouvelles séances chaque semaine", highlight: false },
+    { icon: RefreshCw, text: "Ajustements automatiques selon tes progrès", highlight: false },
   ];
+  
   const allFeatures = [
     "Programme sport personnalisé adapté à ton niveau",
     "Plan nutrition détaillé avec calcul des macros",
@@ -121,32 +212,47 @@ const Tarif = () => {
     "Accès mobile et desktop",
     "Mises à jour et nouvelles fonctionnalités incluses",
   ];
+  
   const faqs = [
     {
       id: "billing",
       question: "Quand serai-je débité ?",
-      answer:
-        "Tu ne seras débité qu'après 7 jours d'essai gratuit. Si tu annules pendant cette période, aucun montant ne sera prélevé.",
+      answer: "Pour l'abonnement hebdomadaire : immédiatement. Pour les formules mensuelles et annuelles : après 7 jours d'essai gratuit. Si tu annules pendant l'essai, aucun montant ne sera prélevé.",
     },
     {
       id: "cancel",
-      question: "Puis-je annuler pendant l'essai ?",
-      answer:
-        "Oui, absolument ! Tu peux annuler à tout moment pendant les 7 jours d'essai sans aucun frais. La résiliation se fait en un clic depuis tes paramètres.",
+      question: "Puis-je annuler à tout moment ?",
+      answer: "Oui, absolument ! Tu peux annuler à tout moment depuis tes paramètres. La résiliation se fait en un clic. Pour les formules avec essai, tu peux annuler pendant les 7 jours sans aucun frais.",
+    },
+    {
+      id: "promo",
+      question: "Comment utiliser un code promo ?",
+      answer: "Entre ton code promo dans le champ dédié avant de valider. La réduction s'appliquera automatiquement sur ton premier paiement (après l'essai gratuit pour les formules éligibles).",
     },
     {
       id: "access",
       question: "Que se passe-t-il après le paiement ?",
-      answer:
-        "Tu auras un accès immédiat et complet à ton programme personnalisé. Tu pourras commencer ta première séance d'entraînement dès maintenant et suivre ton plan nutrition.",
+      answer: "Tu auras un accès immédiat et complet à ton programme personnalisé. Tu pourras commencer ta première séance d'entraînement dès maintenant et suivre ton plan nutrition.",
     },
     {
       id: "refund",
       question: "Et si je ne suis pas satisfait ?",
-      answer:
-        "Nous offrons une garantie satisfait ou remboursé de 14 jours. Si notre programme ne te convient pas, contacte-nous pour un remboursement intégral.",
+      answer: "Nous offrons une garantie satisfait ou remboursé de 14 jours. Si notre programme ne te convient pas, contacte-nous pour un remboursement intégral.",
     },
   ];
+
+  const getDiscountedPrice = (price: number) => {
+    if (!promoDiscount) return null;
+    if (promoDiscount.percent_off) {
+      return price * (1 - promoDiscount.percent_off / 100);
+    }
+    if (promoDiscount.amount_off) {
+      return Math.max(0, price - promoDiscount.amount_off / 100);
+    }
+    return null;
+  };
+
+  const discountedPrice = getDiscountedPrice(currentPlan.price);
 
   return (
     <>
@@ -154,7 +260,6 @@ const Tarif = () => {
       {loading && (
         <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center animate-in fade-in duration-300">
           <div className="relative">
-            {/* Cercle animé */}
             <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
             <Sparkles className="w-8 h-8 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
           </div>
@@ -165,20 +270,19 @@ const Tarif = () => {
 
       <Header variant="onboarding" showBack onBack={() => navigate("/preview")} />
 
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background py-12 px-4 pt-24 pb-28 md:pb-12">
+      <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background py-12 px-4 pt-24 pb-32 md:pb-12">
         <div className="max-w-6xl mx-auto space-y-12">
           {/* Hero Section */}
           <div className="text-center space-y-6 animate-in">
             <Badge variant="outline" className="px-4 py-2 text-sm font-medium">
               <Sparkles className="w-4 h-4 mr-2" />
-              Programme personnalisé
+              Choisis ta formule
             </Badge>
 
-            <h1 className="text-4xl md:text-5xl font-bold">Ton programme personnalisé est prêt !</h1>
+            <h1 className="text-4xl md:text-5xl font-bold">Un coaching qui s'adapte à toi</h1>
 
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Commence ton essai gratuit de <span className="font-bold text-primary">7 jours</span> et accède à ton
-              programme complet sport + nutrition
+              Chaque semaine, ton programme évolue selon tes retours. Choisis la formule qui te correspond.
             </p>
 
             <div className="flex flex-wrap justify-center gap-4 pt-4">
@@ -194,56 +298,181 @@ const Tarif = () => {
             </div>
           </div>
 
-          {/* Pricing Card */}
-          <div className="max-w-lg mx-auto mb-12 animate-in">
-            <Card className="p-10 border-2 border-primary shadow-2xl bg-gradient-to-br from-background to-primary/5 relative overflow-hidden">
-              {/* Badge */}
-              <div className="text-center mb-8">
-                <Badge className="mb-4 text-base px-4 py-1.5">Plan Unique</Badge>
-                <h2 className="text-4xl font-bold mb-2">All In</h2>
-                <p className="text-muted-foreground">Toutes les fonctionnalités incluses</p>
-              </div>
-
-              {/* Prix */}
-              <div className="text-center mb-8">
-                <div className="flex items-baseline justify-center gap-2 mb-2">
-                  <span className="text-6xl font-bold text-primary">{price}€</span>
-                  <span className="text-xl text-muted-foreground">/mois</span>
-                </div>
-                <p className="text-sm text-muted-foreground">Sans engagement • Annulation en 1 clic</p>
-              </div>
-
-              {/* Fonctionnalités */}
-              <ul className="space-y-4 mb-8">
-                {[
-                  "Programme sport + nutrition personnalisé",
-                  "Coach IA Alex pour adapter tes séances",
-                  "Nutritionniste IA Julie pour tes repas",
-                  "Nouvelles séances chaque semaine",
-                  "Ajustements automatiques selon tes feedbacks",
-                  "Alternatives d'exercices illimitées",
-                  "Vidéos et fiches techniques détaillées",
-                  "Support par email (réponse sous 48h)",
-                  "Accès communauté Discord",
-                  "Toutes les futures fonctionnalités incluses",
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Check className="w-4 h-4 text-primary" />
+          {/* Plan Selector */}
+          <div className="grid md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            {(Object.values(PLANS) as Plan[]).map((plan) => (
+              <Card
+                key={plan.id}
+                className={cn(
+                  "p-6 cursor-pointer transition-all duration-200 relative",
+                  selectedPlan === plan.id
+                    ? "border-2 border-primary shadow-lg bg-gradient-to-br from-background to-primary/5"
+                    : "border-border hover:border-primary/50 hover:shadow-md"
+                )}
+                onClick={() => setSelectedPlan(plan.id)}
+              >
+                {plan.badge && (
+                  <Badge 
+                    className={cn(
+                      "absolute -top-3 left-1/2 -translate-x-1/2",
+                      plan.id === "monthly" ? "bg-primary" : "bg-amber-500"
+                    )}
+                  >
+                    {plan.badge}
+                  </Badge>
+                )}
+                
+                <div className="text-center space-y-3">
+                  <h3 className="font-semibold text-lg">{plan.name}</h3>
+                  
+                  <div className="space-y-1">
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-3xl font-bold">{plan.price}€</span>
+                      <span className="text-muted-foreground">/{plan.intervalShort}</span>
                     </div>
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+                    {plan.monthlyEquivalent && (
+                      <p className="text-sm text-primary font-medium">{plan.monthlyEquivalent}</p>
+                    )}
+                  </div>
+                  
+                  <div className={cn(
+                    "text-xs px-3 py-1.5 rounded-full inline-block",
+                    plan.hasTrial 
+                      ? "bg-green-500/10 text-green-600 dark:text-green-400" 
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {plan.hasTrial ? "7 jours d'essai gratuit" : "Facturation immédiate"}
+                  </div>
+                  
+                  <p className="text-sm text-muted-foreground">{plan.tagline}</p>
+                </div>
+                
+                {selectedPlan === plan.id && (
+                  <div className="absolute top-4 right-4">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
 
-              {/* CTA */}
-              <Button size="lg" className="w-full text-sm sm:text-base md:text-lg py-5 md:py-6" onClick={handleStartTrial} disabled={loading}>
-                Démarrer mon essai gratuit 7 jours
-              </Button>
+          {/* Promo Code Section */}
+          <div className="max-w-md mx-auto">
+            <Card className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Tag className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Code promo (optionnel)</span>
+              </div>
+              
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    value={promoCode}
+                    onChange={(e) => {
+                      setPromoCode(e.target.value.toUpperCase());
+                      setPromoValid(null);
+                      setPromoDiscount(null);
+                    }}
+                    placeholder="Entrer un code"
+                    className={cn(
+                      "uppercase",
+                      promoValid === true && "border-green-500 pr-10",
+                      promoValid === false && "border-destructive"
+                    )}
+                    disabled={promoValidating}
+                  />
+                  {promoValid === true && (
+                    <CheckCircle2 className="w-5 h-5 text-green-500 absolute right-3 top-1/2 -translate-y-1/2" />
+                  )}
+                </div>
+                
+                {promoCode && promoValid === true ? (
+                  <Button variant="outline" size="icon" onClick={clearPromoCode}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    onClick={validatePromoCode}
+                    disabled={!promoCode.trim() || promoValidating}
+                  >
+                    {promoValidating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Appliquer"
+                    )}
+                  </Button>
+                )}
+              </div>
+              
+              {promoDiscount && (
+                <p className="text-sm text-green-600 dark:text-green-400 mt-2">
+                  {promoDiscount.percent_off 
+                    ? `${promoDiscount.percent_off}% de réduction appliquée`
+                    : `${(promoDiscount.amount_off! / 100).toFixed(2)}€ de réduction appliquée`
+                  }
+                </p>
+              )}
+            </Card>
+          </div>
 
-              <p className="text-xs text-muted-foreground text-center mt-4">
-                N'attends plus, essaie gratuitement maintenant.
-              </p>
+          {/* Main CTA Card */}
+          <div className="max-w-lg mx-auto">
+            <Card className="p-8 border-2 border-primary shadow-2xl bg-gradient-to-br from-background to-primary/5">
+              <div className="text-center space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">
+                    {currentPlan.name} - All In
+                  </h2>
+                  <p className="text-muted-foreground">{currentPlan.description}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  {discountedPrice !== null ? (
+                    <>
+                      <div className="flex items-baseline justify-center gap-2">
+                        <span className="text-2xl text-muted-foreground line-through">{currentPlan.price}€</span>
+                        <span className="text-4xl font-bold text-primary">{discountedPrice.toFixed(2)}€</span>
+                        <span className="text-muted-foreground">/{currentPlan.intervalShort}</span>
+                      </div>
+                      <p className="text-sm text-green-600 dark:text-green-400">
+                        Réduction appliquée sur le premier paiement
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex items-baseline justify-center gap-2">
+                      <span className="text-4xl font-bold text-primary">{currentPlan.price}€</span>
+                      <span className="text-muted-foreground">/{currentPlan.intervalShort}</span>
+                    </div>
+                  )}
+                  
+                  {currentPlan.hasTrial && (
+                    <p className="text-sm text-muted-foreground">
+                      7 jours d'essai gratuit • Sans engagement
+                    </p>
+                  )}
+                </div>
+                
+                <Button 
+                  size="lg" 
+                  className="w-full text-base py-6" 
+                  onClick={handleStartSubscription} 
+                  disabled={loading}
+                >
+                  {currentPlan.hasTrial 
+                    ? "Démarrer mon essai gratuit 7 jours" 
+                    : "S'abonner maintenant"
+                  }
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+                
+                <p className="text-xs text-muted-foreground">
+                  {currentPlan.hasTrial 
+                    ? "Tu ne seras débité qu'après les 7 jours d'essai"
+                    : "Annulation possible à tout moment"
+                  }
+                </p>
+              </div>
             </Card>
           </div>
 
@@ -287,20 +516,20 @@ const Tarif = () => {
             </div>
 
             {/* CTA final */}
-            <div className="text-center pt-8 pb-24 md:pb-8 flex flex-col items-center">
+            <div className="text-center pt-8 flex flex-col items-center">
               <h3 className="text-2xl font-bold mb-4">Prêt à transformer ton corps ?</h3>
               <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
                 Rejoins des centaines de membres qui ont déjà commencé leur transformation avec Pulse.
               </p>
-              <Button size="lg" className="text-sm sm:text-base md:text-lg px-6 md:px-8 py-5 md:py-6" onClick={handleStartTrial} disabled={loading}>
-                Démarrer mon essai gratuit
+              <Button size="lg" className="text-base px-8 py-6" onClick={handleStartSubscription} disabled={loading}>
+                {currentPlan.hasTrial ? "Démarrer mon essai gratuit" : "S'abonner maintenant"}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </div>
           </Card>
 
           {/* FAQ */}
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="max-w-3xl mx-auto space-y-4 pb-20 md:pb-0">
             <h3 className="text-2xl font-bold text-center mb-6">Questions fréquentes</h3>
 
             {faqs.map((faq) => (
@@ -326,8 +555,11 @@ const Tarif = () => {
 
           {/* CTA fixe mobile */}
           <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t md:hidden z-50">
-            <Button size="lg" className="w-full shadow-glow" onClick={handleStartTrial} disabled={loading}>
-              8,99€/mois • Essai gratuit 7 jours
+            <Button size="lg" className="w-full shadow-glow" onClick={handleStartSubscription} disabled={loading}>
+              {currentPlan.hasTrial 
+                ? `${currentPlan.price}€/${currentPlan.intervalShort} • Essai 7 jours`
+                : `${currentPlan.price}€/${currentPlan.intervalShort} • S'abonner`
+              }
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
