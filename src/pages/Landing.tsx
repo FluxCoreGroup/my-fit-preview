@@ -427,7 +427,10 @@ const Landing = () => {
       </section>
 
       {/* Section Coachs IA */}
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5 overflow-hidden" id="coachs-ia">
+      <section
+        className="py-20 px-4 bg-gradient-to-br from-primary/5 via-background to-secondary/5 overflow-hidden"
+        id="coachs-ia"
+      >
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <Badge variant="outline" className="mb-4 px-4 py-2">
@@ -922,7 +925,6 @@ const Landing = () => {
             <div className="flex items-center gap-2">
               Sans engagement
               <Check className="w-4 h-4" />
-              Sans carte bancaire
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4" />
