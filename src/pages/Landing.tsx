@@ -923,8 +923,8 @@ const Landing = () => {
 
           <div className="flex flex-wrap justify-center gap-8 pt-8 text-sm opacity-80">
             <div className="flex items-center gap-2">
-              Sans engagement
               <Check className="w-4 h-4" />
+              Sans engagement
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4" />
