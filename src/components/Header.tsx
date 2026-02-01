@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, X, ArrowRight } from "lucide-react";
+import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, ArrowRight } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -10,6 +10,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   variant?: "marketing" | "onboarding" | "app";
@@ -220,140 +221,74 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
     );
   }
 
-  // Header Marketing (pour landing)
+  // Header Marketing (pour landing) - Simplifié et transparent
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-          <Dumbbell className="w-6 h-6 text-primary" />
-          <span>Pulse.ai</span>
+    <header className={cn(
+      "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+      scrolled 
+        ? "bg-background/90 backdrop-blur-lg border-b shadow-sm" 
+        : "bg-transparent"
+    )}>
+      <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between relative">
+        {/* Logo gauche */}
+        <Link to="/" className="flex items-center gap-2">
+          <Dumbbell className={cn(
+            "w-7 h-7 transition-colors duration-300",
+            scrolled ? "text-primary" : "text-primary-foreground"
+          )} />
         </Link>
-
-        <nav className="hidden md:flex items-center gap-8">
-          <a href="#comment" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Comment ?
-          </a>
-          <a href="#pourquoi" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Pourquoi ?
-          </a>
-          <a href="#coachs-ia" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Coach IA
-          </a>
-          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Prix
-          </a>
-          <a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            FAQ
-          </a>
-        </nav>
-
-        <div className="flex items-center gap-3">
+        
+        {/* Titre centré */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <span className={cn(
+            "text-xl font-bold transition-colors duration-300",
+            scrolled ? "text-foreground" : "text-primary-foreground"
+          )}>
+            Pulse.ai
+          </span>
+        </div>
+        
+        {/* Bouton connexion droite */}
+        <div className="flex items-center">
           {user ? (
             <Link to="/hub">
-              <Button size="sm">Dashboard</Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className={cn(
+                  "transition-all duration-300",
+                  scrolled 
+                    ? "" 
+                    : "border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                )}
+              >
+                Dashboard
+              </Button>
             </Link>
           ) : (
-            <Link to="/auth" className="hidden sm:block">
-              <Button variant="ghost" size="sm">
+            <Link to="/auth">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={cn(
+                  "transition-all duration-300",
+                  scrolled 
+                    ? "" 
+                    : "text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                )}
+              >
                 Connexion
               </Button>
             </Link>
           )}
-
-          {/* Mobile menu for marketing */}
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="sm">
-                <Menu className="w-5 h-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] sm:w-[320px]">
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <Dumbbell className="w-5 h-5 text-primary" />
-                  Pulse.ai
-                </SheetTitle>
-              </SheetHeader>
-              <nav className="flex flex-col gap-4 mt-8">
-                <a 
-                  href="#comment" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    closeMobileMenu();
-                    setTimeout(() => {
-                      document.getElementById('comment')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 300);
-                  }}
-                  className="text-lg font-medium hover:text-primary transition-colors py-2"
-                >
-                  Comment ?
-                </a>
-                <a 
-                  href="#pourquoi" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    closeMobileMenu();
-                    setTimeout(() => {
-                      document.getElementById('pourquoi')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 300);
-                  }}
-                  className="text-lg font-medium hover:text-primary transition-colors py-2"
-                >
-                  Pourquoi ?
-                </a>
-                <a 
-                  href="#coachs-ia" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    closeMobileMenu();
-                    setTimeout(() => {
-                      document.getElementById('coachs-ia')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 300);
-                  }}
-                  className="text-lg font-medium hover:text-primary transition-colors py-2"
-                >
-                  Coach IA
-                </a>
-                <a 
-                  href="#features" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    closeMobileMenu();
-                    setTimeout(() => {
-                      document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 300);
-                  }}
-                  className="text-lg font-medium hover:text-primary transition-colors py-2"
-                >
-                  Prix
-                </a>
-                <a 
-                  href="#faq" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    closeMobileMenu();
-                    setTimeout(() => {
-                      document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 300);
-                  }}
-                  className="text-lg font-medium hover:text-primary transition-colors py-2"
-                >
-                  FAQ
-                </a>
-                <div className="border-t pt-4 mt-4">
-                  {user ? (
-                    <Link to="/hub" onClick={closeMobileMenu}>
-                      <Button className="w-full">Dashboard</Button>
-                    </Link>
-                  ) : (
-                    <Link to="/auth" onClick={closeMobileMenu}>
-                      <Button className="w-full">Connexion</Button>
-                    </Link>
-                  )}
-                </div>
-              </nav>
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
     </header>
