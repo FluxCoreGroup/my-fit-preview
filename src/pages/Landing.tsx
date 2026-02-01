@@ -27,6 +27,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
+import { SocialProofStats, HeroSocialProof } from "@/components/landing/SocialProofStats";
 import heroPhone from "@/assets/hero-phone.png";
 import questionnairePreview from "@/assets/questionnaire-preview.png";
 import programCreationPreview from "@/assets/program-creation-preview.png";
@@ -118,10 +119,7 @@ const Landing = () => {
               </p>
 
               {/* Social Proof */}
-              <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
-                <Star className="w-5 h-5 fill-accent text-accent" />
-                <span className="text-base md:text-lg font-semibold">4,8/5 sur +1 200 utilisateurs actifs</span>
-              </div>
+              <HeroSocialProof />
             </div>
 
             {/* Phone Mockup - Centered */}
@@ -160,27 +158,11 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Social Proof Section - NOUVEAU */}
+      {/* Social Proof Section */}
       <section className="py-12 border-y bg-muted/20">
         <div className="max-w-6xl mx-auto px-4">
-          {/* Stats clés */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-12">
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">1,247+</div>
-              <div className="text-muted-foreground">Membres actifs</div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">4.8/5</div>
-              <div className="text-muted-foreground flex items-center justify-center gap-1">
-                <Star className="w-4 h-4 fill-primary text-primary" />
-                Note moyenne
-              </div>
-            </div>
-            <div>
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">-8kg</div>
-              <div className="text-muted-foreground">Perte moyenne en 2 mois</div>
-            </div>
-          </div>
+          {/* Stats clés - Dynamiques */}
+          <SocialProofStats />
 
           {/* Témoignages */}
           <div className="grid md:grid-cols-3 gap-6">
@@ -205,6 +187,11 @@ const Landing = () => {
               </Card>
             ))}
           </div>
+          
+          {/* Disclaimer */}
+          <p className="text-xs text-muted-foreground text-center mt-6">
+            *Résultats individuels, peuvent varier selon les profils et l'assiduité.
+          </p>
         </div>
       </section>
 

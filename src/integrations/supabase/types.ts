@@ -482,6 +482,33 @@ export type Database = {
         }
         Relationships: []
       }
+      public_stats_cache: {
+        Row: {
+          average_rating: number | null
+          avg_weight_loss: number | null
+          completed_sessions: number | null
+          id: string
+          total_users: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          average_rating?: number | null
+          avg_weight_loss?: number | null
+          completed_sessions?: number | null
+          id?: string
+          total_users?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          average_rating?: number | null
+          avg_weight_loss?: number | null
+          completed_sessions?: number | null
+          id?: string
+          total_users?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sessions: {
         Row: {
           completed: boolean | null
