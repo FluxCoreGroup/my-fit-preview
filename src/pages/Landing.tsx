@@ -101,12 +101,11 @@ const Landing = () => {
     <div className="min-h-screen overflow-x-hidden">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 md:pt-24 px-4 md:px-6 lg:px-8 pb-8">
-        <div className="max-w-5xl mx-auto">
-          <div className="gradient-hero rounded-[2.5rem] min-h-[85vh] md:min-h-[90vh] flex flex-col items-center justify-between px-6 py-8 md:py-12 relative overflow-hidden">
-            {/* Content - Top */}
-            <div className="text-center text-primary-foreground space-y-6 animate-in pt-8 z-10">
+      {/* Hero Section - Seamless avec header */}
+      <section className="relative overflow-hidden">
+        <div className="gradient-hero rounded-b-[2.5rem] min-h-screen flex flex-col items-center justify-between px-6 pt-28 md:pt-32 pb-8 md:pb-12 relative overflow-hidden">
+          {/* Content - Top */}
+          <div className="text-center text-primary-foreground space-y-6 animate-in z-10 max-w-5xl mx-auto">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
                 Ton coach fitness
                 <br />
@@ -131,29 +130,28 @@ const Landing = () => {
               />
             </div>
 
-            {/* CTA - Bottom */}
-            <div className="pb-4 md:pb-6 z-10 flex-shrink-0">
-              {user ? (
-                <Link to="/hub">
-                  <Button
-                    size="lg"
-                    className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
-                  >
-                    Aller au Hub
-                  </Button>
-                </Link>
-              ) : (
-                <Link to="/start" className="w-full xs:w-auto">
-                  <Button
-                    size="lg"
-                    className="w-full xs:w-auto text-sm xs:text-base md:text-lg px-6 xs:px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
-                  >
-                    Faire le quiz
-                    <span className="ml-2 text-xs xs:text-sm opacity-70 hidden xs:inline">~2 min</span>
-                  </Button>
-                </Link>
-              )}
-            </div>
+          {/* CTA - Bottom */}
+          <div className="pb-4 md:pb-6 z-10 flex-shrink-0">
+            {user ? (
+              <Link to="/hub">
+                <Button
+                  size="lg"
+                  className="text-base md:text-lg px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                >
+                  Aller au Hub
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/start" className="w-full xs:w-auto">
+                <Button
+                  size="lg"
+                  className="w-full xs:w-auto text-sm xs:text-base md:text-lg px-6 xs:px-12 py-6 h-auto rounded-full shadow-glow hover:shadow-2xl hover:scale-105 transition-all duration-300 bg-primary-foreground/90 hover:bg-primary-foreground text-primary font-semibold"
+                >
+                  Faire le quiz
+                  <span className="ml-2 text-xs xs:text-sm opacity-70 hidden xs:inline">~2 min</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </section>
