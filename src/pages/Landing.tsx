@@ -24,7 +24,7 @@ import {
   Bot,
   HelpCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Header } from "@/components/Header";
 import { SocialProofStats, HeroSocialProof } from "@/components/landing/SocialProofStats";
@@ -96,7 +96,13 @@ const faqItems = [
   },
 ];
 const Landing = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  // Redirect authenticated users to hub
+  if (!loading && user) {
+    return <Navigate to="/hub" replace />;
+  }
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Header />
