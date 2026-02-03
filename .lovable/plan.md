@@ -1,215 +1,99 @@
 
 
-## Plan : Moderniser le Header et la Landing Page
+## Plan : Supprimer le temps de chargement du Social Proof
 
-### Objectif
-Creer un design plus moderne et fluide en :
-1. Simplifiant le header (logo gauche, titre centre, connexion droite)
-2. Supprimant la separation visuelle entre header et hero
-3. Integrant le header dans le gradient du hero pour un effet "seamless"
+### Probleme identifie
 
----
+Le composant `HeroSocialProof` affiche un skeleton pendant que la requete `get-public-stats` se charge, alors qu'en Phase 1, le contenu final est toujours statique (badge "Nouveau" + texte).
 
-### Changements prevus
+### Solution
 
-#### 1. Header Marketing simplifie
-
-**Fichier** : `src/components/Header.tsx`
-
-Remplacer le header marketing actuel (lignes 223-360) par une version minimaliste :
-
-```text
-Structure actuelle :
-+--------------------------------------------------+
-| Logo    | Comment? Pourquoi? Coach Prix FAQ | Btn |
-+--------------------------------------------------+
-
-Nouvelle structure :
-+--------------------------------------------------+
-| Logo             Pulse.ai (titre centre)     Btn |
-+--------------------------------------------------+
-```
-
-**Modifications techniques :**
-- Supprimer la navigation (`<nav>`) avec les 5 liens anchor
-- Supprimer le menu mobile Sheet pour la version marketing
-- Ajouter un titre centre "Pulse.ai" ou slogan court
-- Garder le bouton Connexion/Dashboard a droite
-- Rendre le header transparent avec `bg-transparent` et supprimer `border-b`
+Afficher immediatement le contenu Phase 1 sans attendre la requete API, et ne verifier les stats reelles qu'en arriere-plan pour preparer la Phase 2.
 
 ---
 
-#### 2. Header transparent integre au hero
+### Modifications
 
-**Fichier** : `src/components/Header.tsx`
+**Fichier : `src/components/landing/SocialProofStats.tsx`**
 
-Nouvelles classes CSS pour le header marketing :
-```tsx
-// Avant
-<header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
+#### HeroSocialProof (ligne 91-123)
 
-// Apres
-<header className="fixed top-0 left-0 right-0 z-50">
-  {/* Fond transparent, s'integre au gradient hero */}
-```
-
----
-
-#### 3. Hero section ajustee
-
-**Fichier** : `src/pages/Landing.tsx`
-
-Ajuster le hero pour qu'il commence en haut de page sans marge :
+Supprimer le skeleton et afficher directement le contenu :
 
 ```tsx
-// Avant (ligne 105)
-<section className="relative overflow-hidden pt-20 md:pt-24 px-4 md:px-6 lg:px-8 pb-8">
+export const HeroSocialProof = () => {
+  const { data: stats } = usePublicStats();
+  
+  const showRealStats = stats && stats.total_users >= MINIMUM_USERS_FOR_STATS;
 
-// Apres - Hero plein ecran depuis le top
-<section className="relative overflow-hidden px-4 md:px-6 lg:px-8 pt-0">
-  <div className="gradient-hero rounded-b-[2.5rem] min-h-screen ...">
-```
+  // Phase 2+ : Stats reelles (transition fluide une fois les donnees chargees)
+  if (showRealStats && stats.average_rating) {
+    return (
+      <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
+        <Star className="w-5 h-5 fill-accent text-accent" />
+        <span className="text-base md:text-lg font-semibold">
+          {stats.average_rating.toFixed(1)}/5 sur {stats.total_users.toLocaleString('fr-FR')} membres
+        </span>
+      </div>
+    );
+  }
 
-Le gradient hero s'etend maintenant jusqu'en haut de l'ecran, le header "flotte" par-dessus.
-
----
-
-#### 4. Style du nouveau header marketing
-
-**Structure finale :**
-
-```tsx
-// Header Marketing simplifie
-<header className="fixed top-0 left-0 right-0 z-50">
-  <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
-    {/* Logo gauche */}
-    <Link to="/" className="flex items-center gap-2">
-      <Dumbbell className="w-7 h-7 text-primary-foreground" />
-    </Link>
-    
-    {/* Titre centre - nouveau */}
-    <div className="absolute left-1/2 -translate-x-1/2">
-      <span className="text-xl font-bold text-primary-foreground">
-        Pulse.ai
+  // Phase 1 : Affichage immediat sans attendre (plus de skeleton)
+  return (
+    <div className="flex items-center justify-center gap-3 text-primary-foreground/90 py-2 flex-wrap">
+      <Badge variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+        <Sparkles className="w-3 h-3 mr-1" />
+        Nouveau
+      </Badge>
+      <span className="text-base md:text-lg font-medium">
+        Resultats visibles en 4 semaines, garantis
       </span>
     </div>
-    
-    {/* Bouton connexion droite */}
-    <div className="flex items-center">
-      {user ? (
-        <Link to="/hub">
-          <Button variant="outline" size="sm" 
-            className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
-            Dashboard
-          </Button>
-        </Link>
-      ) : (
-        <Link to="/auth">
-          <Button variant="ghost" size="sm" 
-            className="text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10">
-            Connexion
-          </Button>
-        </Link>
-      )}
-    </div>
-  </div>
-</header>
+  );
+};
 ```
 
----
+#### SocialProofStats (ligne 8-88)
 
-#### 5. Effet scroll optionnel (bonus UX)
-
-Ajouter un effet ou le header change de style au scroll :
+Meme logique - afficher les badges de confiance immediatement :
 
 ```tsx
-const [scrolled, setScrolled] = useState(false);
+export const SocialProofStats = () => {
+  const { data: stats } = usePublicStats();
+  
+  const showRealStats = stats && stats.total_users >= MINIMUM_USERS_FOR_STATS;
 
-useEffect(() => {
-  const handleScroll = () => setScrolled(window.scrollY > 50);
-  window.addEventListener('scroll', handleScroll);
-  return () => window.removeEventListener('scroll', handleScroll);
-}, []);
+  // Phase 2+ : Stats reelles
+  if (showRealStats) {
+    return (/* ... stats reelles ... */);
+  }
 
-// Classes conditionnelles
-<header className={cn(
-  "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-  scrolled 
-    ? "bg-background/90 backdrop-blur-lg border-b shadow-sm" 
-    : "bg-transparent"
-)}>
-```
-
-Cela permet au header de devenir opaque quand l'utilisateur scroll vers le bas (pour les autres sections).
-
----
-
-### Ajustements supplementaires
-
-#### Hero avec padding top pour le header
-```tsx
-// Le contenu hero aura un padding-top pour laisser l'espace du header
-<div className="gradient-hero ... pt-24 md:pt-28">
-  {/* Contenu existant */}
-</div>
-```
-
-#### Couleurs du header sur fond gradient
-- Icone Dumbbell : `text-primary-foreground` (blanc sur gradient bleu)
-- Titre : `text-primary-foreground`
-- Bouton Connexion : style ghost avec couleur claire
-- Apres scroll : couleurs standard du theme
-
----
-
-### Resume visuel
-
-```text
-AVANT :
-+------------------HEADER (avec bordure)------------------+
-|  Logo  |  Comment?  Pourquoi?  Coach  Prix  FAQ  | Btn  |
-+---------------------------------------------------------+
-                      [espace blanc]
-        +------ HERO (card avec rounded corners) ------+
-        |               Ton coach fitness...            |
-        +-----------------------------------------------+
-
-APRES :
-+---------------------------------------------------------+
-|    Logo           Pulse.ai              Connexion       |  <- Header transparent
-|                                                         |
-|               Ton coach fitness                         |  <- Hero gradient
-|               dans ta poche.                            |     commence au top
-|                                                         |
-|                    [phone]                              |
-|                                                         |
-|                  [Faire le quiz]                        |
-+---------------------------------------------------------+
-        (rounded-bottom uniquement)
-
+  // Phase 1 : Affichage immediat des badges de confiance
+  return (/* ... badges 2min / 30j / 24-7 ... */);
+};
 ```
 
 ---
 
-### Fichiers modifies
+### Comportement final
 
-1. `src/components/Header.tsx` - Header marketing simplifie + effet scroll
-2. `src/pages/Landing.tsx` - Hero ajuste sans padding-top excessif
+| Scenario | Avant | Apres |
+|----------|-------|-------|
+| Phase 1, premiere visite | Skeleton 200-500ms puis badges | Badges affiches immediatement |
+| Phase 1, visite suivante | Badges (depuis cache) | Badges immediatement |
+| Phase 2 (50+ users) | Skeleton puis stats | Badges puis transition vers stats |
+
+---
+
+### Avantage supplementaire
+
+Quand tu atteindras 50+ utilisateurs, la transition se fera en douceur : les badges s'affichent d'abord, puis les vraies stats apparaissent une fois les donnees chargees. Pas de "flash" de contenu.
 
 ---
 
 ### Section technique
 
-#### Dependencies
-- Aucune nouvelle dependance requise
-
-#### Compatibilite
-- Les variants "app" et "onboarding" du Header restent inchanges
-- Seul le variant "marketing" (defaut) est modifie
-- Le mobile aura aussi le header simplifie (plus de menu burger necessaire pour 5 liens)
-
-#### Points d'attention
-- Tester le contraste du header sur le gradient hero (texte blanc sur bleu)
-- Verifier le comportement au scroll avec l'effet de transition
-- S'assurer que le bouton reste cliquable sur fond transparent
+- Aucune dependance ajoutee
+- Le hook `usePublicStats` continue de fonctionner en arriere-plan pour preparer la Phase 2
+- Le cache client de 30 minutes reste actif
 
