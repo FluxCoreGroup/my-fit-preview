@@ -6,23 +6,10 @@ import { Star, ShieldCheck, Clock, Sparkles, MapPin, Bot } from "lucide-react";
 const MINIMUM_USERS_FOR_STATS = 50;
 
 export const SocialProofStats = () => {
-  const { data: stats, isLoading, isError } = usePublicStats();
+  const { data: stats } = usePublicStats();
 
   // Phase 1: Pre-launch - Show trust badges instead of fake stats
   const showRealStats = stats && stats.total_users >= MINIMUM_USERS_FOR_STATS;
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-12">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex flex-col items-center gap-2">
-            <Skeleton className="h-12 w-24" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        ))}
-      </div>
-    );
-  }
 
   // Phase 2+: Real stats
   if (showRealStats) {
@@ -89,14 +76,11 @@ export const SocialProofStats = () => {
 
 // Hero social proof badge for Phase 1
 export const HeroSocialProof = () => {
-  const { data: stats, isLoading } = usePublicStats();
+  const { data: stats } = usePublicStats();
   
   const showRealStats = stats && stats.total_users >= MINIMUM_USERS_FOR_STATS;
 
-  if (isLoading) {
-    return <Skeleton className="h-8 w-64" />;
-  }
-
+  // Phase 2+: Real stats (smooth transition once data loads)
   if (showRealStats && stats.average_rating) {
     return (
       <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
