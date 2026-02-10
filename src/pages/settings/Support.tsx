@@ -139,8 +139,7 @@ const Support = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
-      <BackButton to="/settings" />
-      
+      <BackButton to="/hub" />
       <div className="pt-20 px-4">
         <div className="max-w-2xl mx-auto space-y-6">
           {/* Header */}

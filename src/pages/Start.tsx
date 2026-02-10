@@ -22,8 +22,14 @@ const Start = () => {
   const [loading, setLoading] = useState(false);
   const totalSteps = 5;
   const [formData, setFormData] = useState<Partial<OnboardingInput>>({
-    age: undefined,
-    birthDate: undefined,
+  age: 31,
+  birthDate: (() => {
+    const date = new Date();
+    const year = date.getFullYear() - 31;
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  })(),
     sex: undefined,
     height: undefined,
     weight: undefined,
@@ -44,8 +50,29 @@ const Start = () => {
     healthConditions: "",
   });
 
+
+  useEffect(() => {
+    if (step === 1 && formData.birthDate) {
+      const age = calculateAgeFromBirthDate(formData.birthDate);
+      if (isNaN(age) || age < 15 || age > 100) {
+        setErrors((prev) => ({
+          ...prev,
+          birthDate: age < 15 ? "Tu dois avoir au moins 15 ans" : age > 100 ? "Âge maximum : 100 ans" : "Date invalide"
+        }));
+      } else {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors.birthDate;
+          return newErrors;
+        });
+      }
+    }
+  }, [formData.birthDate, step]);
+
+
   // Load saved progress on mount
   useEffect(() => {
+    console.log("formData", formData.birthDate);
     if (Object.keys(data).length > 0) {
       setFormData((prev) => ({
         ...prev,
@@ -71,11 +98,9 @@ const Start = () => {
           ...prev,
           [field]: value,
         };
-        // Save immédiatement pour ne pas perdre de données
         saveProgress(updated);
         return updated;
       });
-      // Clear error when field is updated
       if (errors[field]) {
         setErrors((prev) => {
           const newErrors = {
@@ -89,8 +114,6 @@ const Start = () => {
     [errors, saveProgress],
   );
 
-  // Vérifie si l'étape est valide avec useMemo pour éviter recalculs
-  // Fonction pour calculer l'âge depuis la date de naissance
   const calculateAgeFromBirthDate = (birthDateStr: string): number => {
     const birthDate = new Date(birthDateStr);
     const today = new Date();
@@ -153,7 +176,9 @@ const Start = () => {
           newErrors.birthDate = "Date de naissance requise";
         } else {
           const age = calculateAgeFromBirthDate(formData.birthDate);
-          if (age < 15 || age > 100) newErrors.birthDate = "Âge doit être entre 15 et 100 ans";
+          if (isNaN(age) || age < 15 || age > 100) {
+            newErrors.birthDate = age < 15 || age > 100 ? "Âge doit être entre 15 et 100 ans" : "Date invalide";
+          }
         }
         if (!formData.sex) newErrors.sex = "Sexe requis";
         if (!formData.height || formData.height < 120 || formData.height > 250)
@@ -237,6 +262,13 @@ const Start = () => {
     if (step > 1) setStep(step - 1);
   }, [step]);
   const progress = (step / totalSteps) * 100;
+
+  console.log("=== DEBUG ===");
+  console.log("formData complet:", formData);
+  console.log("formData.birthDate:", formData.birthDate);
+  console.log("Type:", typeof formData.birthDate);
+  console.log("step:", step);
+
   return (
     <>
       <Header variant="onboarding" showBack={true} backLabel="Quitter" onBack={() => navigate("/")} onNext={handleNext} />
@@ -266,7 +298,6 @@ const Start = () => {
                       onChange={(e) => {
                         const birthDate = e.target.value;
                         updateField("birthDate", birthDate);
-                        // Calculer et stocker l'âge automatiquement
                         if (birthDate) {
                           const age = calculateAgeFromBirthDate(birthDate);
                           updateField("age", age);
@@ -275,7 +306,7 @@ const Start = () => {
                       max={new Date().toISOString().split('T')[0]}
                       className={`mt-2 ${errors.birthDate ? "border-destructive" : ""}`}
                     />
-                    {formData.birthDate && (
+                    {formData.birthDate && !errors.birthDate && (
                       <p className="text-xs text-muted-foreground mt-1">
                         {calculateAgeFromBirthDate(formData.birthDate)} ans
                       </p>
