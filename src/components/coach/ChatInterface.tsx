@@ -69,6 +69,7 @@ export const ChatInterface = ({
   const [awaitingConsent, setAwaitingConsent] = useState(false);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [shouldShowConsent, setShouldShowConsent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const loadedConversationRef = useRef<string | null>(null);
   const { toast } = useToast();
@@ -78,6 +79,15 @@ export const ChatInterface = ({
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
   const { createConversation, updateDataConsent } = useConversations(coachType);
   const config = coachConfig[coachType];
+
+  // Debug: Log states on every render
+  console.log('🔄 ChatInterface render:', { 
+    awaitingConsent, 
+    shouldShowConsent, 
+    pendingMessage: pendingMessage?.substring(0, 20),
+    currentConversationId,
+    conversationId 
+  });
   
   // Auto-generate title from first message
   useAutoGenerateTitle(conversationId, coachType);
@@ -88,34 +98,73 @@ export const ChatInterface = ({
 
   // Load messages from DB when conversation changes
   useEffect(() => {
-    if (conversationId !== loadedConversationRef.current) {
+    console.log('📥 Load messages effect:', { 
+      conversationId, 
+      loadedRef: loadedConversationRef.current, 
+      dbMessagesLength: dbMessages.length,
+      currentMessagesLength: messages.length,
+      messagesLoading
+    });
+    
+    if (conversationId && conversationId !== loadedConversationRef.current) {
+      // Wait for messages to finish loading before doing anything
+      if (messagesLoading) {
+        console.log('📥 Messages still loading, waiting...');
+        return;
+      }
+      
       if (dbMessages.length > 0) {
         const loadedMessages = dbMessages.map(m => ({ 
           role: m.role, 
           content: m.content,
           data_sources: m.data_sources 
         }));
+        console.log('📥 Loading messages from DB:', loadedMessages.length);
         setMessages(loadedMessages);
         
         const lastAssistant = [...dbMessages].reverse().find(m => m.role === "assistant");
         if (lastAssistant?.data_sources) {
           setLastDataSources(lastAssistant.data_sources);
         }
-      } else {
+        loadedConversationRef.current = conversationId;
+      } else if (messages.length === 0) {
+        // Only reset to empty if we don't have any local messages
+        console.log('📥 No DB messages and no local messages, resetting to empty');
         setMessages([]);
         setLastDataSources([]);
+        loadedConversationRef.current = conversationId;
+      } else {
+        console.log('📥 No DB messages but have local messages - keeping them');
+        loadedConversationRef.current = conversationId;
       }
-      
-      loadedConversationRef.current = conversationId;
     }
-  }, [conversationId, dbMessages.length]);
+  }, [conversationId, dbMessages.length, messagesLoading]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  // Handle showing consent after message is saved
+  useEffect(() => {
+    console.log('🔁 useEffect running, checking conditions:', { 
+      shouldShowConsent, 
+      currentConversationId, 
+      awaitingConsent,
+      allConditionsMet: shouldShowConsent && currentConversationId && pendingMessage
+    });
+    
+    if (shouldShowConsent && currentConversationId && pendingMessage) {
+      console.log('🎯 useEffect triggered - showing consent');
+      console.log('🎯 About to call setAwaitingConsent(true)');
+      setAwaitingConsent(true);
+      setShouldShowConsent(false);
+      console.log('🎯 setAwaitingConsent(true) and setShouldShowConsent(false) called');
+    }
+  }, [shouldShowConsent, currentConversationId, pendingMessage]);
+
   // Call AI with optional data consent
   const callAI = async (messageText: string, dataConsent: boolean | null, convId: string) => {
+    console.log('🤖 callAI started:', { messageText, dataConsent, convId, currentMessagesCount: messages.length });
     const userMessage: Message = { role: "user", content: messageText };
     
     let assistantContent = "";
@@ -144,6 +193,12 @@ export const ChatInterface = ({
       return;
     }
 
+    console.log("Call AI STARRRRT", {
+          messages: [...messages.filter(m => m.role !== "assistant" || m.content)],
+          context,
+          dataConsent,
+    })
+
     try {
       const resp = await fetch(CHAT_URL, {
         method: "POST",
@@ -153,11 +208,12 @@ export const ChatInterface = ({
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
-          messages: [...messages.filter(m => m.role !== "assistant" || m.content), userMessage],
+          messages: [...messages.filter(m => m.role !== "assistant" || m.content)],
           context,
           dataConsent,
         }),
       });
+      console.log('🤖 callAI response:', resp);
 
       const dataSourcesHeader = resp.headers.get("X-Data-Sources");
       if (dataSourcesHeader) {
@@ -269,6 +325,7 @@ export const ChatInterface = ({
   };
 
   const sendMessage = async (messageText: string) => {
+    console.log('🚀 sendMessage called with:', { messageText, conversationId, isLoading, isCreatingConversation, awaitingConsent });
     if (!messageText.trim() || isLoading || isCreatingConversation || awaitingConsent) return;
 
     if (!session?.user) {
@@ -285,11 +342,13 @@ export const ChatInterface = ({
 
     // Create conversation if needed
     if (!activeConversationId) {
+      console.log('📝 Creating new conversation...');
       setIsCreatingConversation(true);
       isNewConversation = true;
       try {
         const newConversation = await createConversation.mutateAsync(undefined);
         activeConversationId = newConversation.id;
+        console.log('✅ Conversation created:', activeConversationId);
         setCurrentConversationId(newConversation.id);
         onConversationCreated?.(newConversation.id);
       } catch (error) {
@@ -306,48 +365,76 @@ export const ChatInterface = ({
     }
 
     // Show user message immediately
+    console.log('💬 Adding user message to UI');
     const userMessage: Message = { role: "user", content: messageText };
-    setMessages((prev) => [...prev, userMessage]);
+    console.log('💬 Current messages before adding:', messages.length);
+    setMessages((prev) => {
+      const updated = [...prev, userMessage];
+      console.log('💬 Messages after adding:', updated.length, updated);
+      return updated;
+    });
     setInput("");
 
     // Save user message
+    console.log('💾 Saving user message to DB...');
     await saveMessage.mutateAsync({
       conversation_id: activeConversationId,
       role: "user",
       content: messageText,
     });
+    console.log('✅ User message saved');
 
     // Check if consent is needed (new conversation or consent is null)
     const existingConsent = conversation?.data_consent;
     const needsConsent = isNewConversation || existingConsent === null || existingConsent === undefined;
+    console.log('🔍 Consent check:', { 
+      isNewConversation, 
+      existingConsent, 
+      needsConsent, 
+      conversationProp: conversation,
+      activeConversationId 
+    });
 
     if (needsConsent) {
-      // Show consent request
+      // Show consent request via useEffect
+      console.log('⏸️ Needs consent - setting up states for useEffect trigger');
+      console.log('⏸️ Setting states:', { 
+        pendingMessage: messageText, 
+        currentConversationId: activeConversationId,
+      });
       setPendingMessage(messageText);
       setCurrentConversationId(activeConversationId);
-      setAwaitingConsent(true);
+      setShouldShowConsent(true);
+      console.log('⏸️ shouldShowConsent set to true, returning from sendMessage');
       return;
     }
 
     // Existing conversation with consent already given
+    console.log('🤖 Calling AI directly (consent already given):', existingConsent);
     setIsLoading(true);
     await callAI(messageText, existingConsent ?? false, activeConversationId);
   };
 
   // Handle consent acceptance
   const handleConsentAccept = async () => {
+    console.log('✅ User accepted consent');
     if (!currentConversationId && !conversationId) return;
     
     const convId = currentConversationId || conversationId!;
+    console.log('📝 Updating consent in DB for conversation:', convId);
     setIsLoading(true);
     
     try {
       await updateDataConsent.mutateAsync({ id: convId, consent: true });
+      console.log('✅ Consent updated');
       setAwaitingConsent(false);
       
       if (pendingMessage) {
+        console.log('🤖 Calling AI with pending message:', pendingMessage);
         await callAI(pendingMessage, true, convId);
         setPendingMessage(null);
+      } else {
+        console.log('⚠️ No pending message found!');
       }
     } catch (error) {
       console.error("Failed to update consent:", error);
@@ -362,18 +449,24 @@ export const ChatInterface = ({
 
   // Handle consent decline
   const handleConsentDecline = async () => {
+    console.log('❌ User declined consent');
     if (!currentConversationId && !conversationId) return;
     
     const convId = currentConversationId || conversationId!;
+    console.log('📝 Updating consent in DB for conversation:', convId);
     setIsLoading(true);
     
     try {
       await updateDataConsent.mutateAsync({ id: convId, consent: false });
+      console.log('✅ Consent updated');
       setAwaitingConsent(false);
       
       if (pendingMessage) {
+        console.log('🤖 Calling AI with pending message:', pendingMessage);
         await callAI(pendingMessage, false, convId);
         setPendingMessage(null);
+      } else {
+        console.log('⚠️ No pending message found!');
       }
     } catch (error) {
       console.error("Failed to update consent:", error);
@@ -408,7 +501,19 @@ export const ChatInterface = ({
   }
 
   // Show welcome if no conversation or no messages
-  const showWelcome = !conversationId || (messages.length === 0 && !isLoading);
+  // Use currentConversationId if set (for newly created conversations), otherwise conversationId
+  const activeConvId = currentConversationId || conversationId;
+  const showWelcome = !activeConvId || (messages.length === 0 && !isLoading && !awaitingConsent);
+  
+  console.log('🎯 showWelcome check:', { 
+    activeConvId, 
+    currentConversationId, 
+    conversationId,
+    messagesLength: messages.length, 
+    isLoading, 
+    awaitingConsent, 
+    showWelcome 
+  });
 
   if (showWelcome) {
     return (
