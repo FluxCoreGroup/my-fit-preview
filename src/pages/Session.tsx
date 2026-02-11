@@ -435,7 +435,7 @@ const Session = () => {
               {/* Actions */}
               <div className="flex gap-2">
                 <Button
-                  size="lg"
+                  size="sm"
                   onClick={handleSetComplete}
                   className="flex-1 bg-gradient-to-r from-primary to-secondary rounded-xl"
                 >
@@ -443,7 +443,7 @@ const Session = () => {
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button
-                  size="lg"
+                  size="sm"
                   variant="outline"
                   onClick={() => setShowHelpDrawer(true)}
                   className="rounded-xl"
@@ -451,7 +451,7 @@ const Session = () => {
                   <Lightbulb className="w-5 h-5" />
                 </Button>
                 <Button
-                  size="lg"
+                  size="sm"
                   variant="outline"
                   onClick={showAlternative}
                   className="rounded-xl"
@@ -475,7 +475,7 @@ const Session = () => {
 
       {/* Tutorial Dialog - Updated with skip rest info */}
       <AlertDialog open={showTutorial} onOpenChange={setShowTutorial}>
-        <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-border/20">
+        <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-border/20 w-[90%] rounded-lg max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Bienvenue ! 🎯</AlertDialogTitle>
             <AlertDialogDescription className="space-y-3 text-left pt-2">

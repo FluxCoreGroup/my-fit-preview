@@ -66,9 +66,8 @@ export const ModuleCard = ({
         >
           <Icon 
             className={cn(
-              "w-9 h-9 transition-transform duration-300",
-              locked ? "text-muted-foreground" : "group-hover:scale-110",
-              spotlight && "animate-pulse"
+              "w-9 h-9 transition-transform duration-300 select-none",
+              locked ? "text-muted-foreground" : "group-hover:scale-110"
             )}
             style={{ 
               color: locked ? undefined : `hsl(${iconColor})`,

@@ -48,7 +48,7 @@ export function HubTour() {
       <div className="absolute inset-0 bg-background/60 backdrop-blur-sm pointer-events-auto transition-all duration-300" />
       
       {/* Tour Card */}
-      <div className={`absolute left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-md pointer-events-auto transition-all duration-500 ease-in-out ${(currentStep.moduleKey === 'settings' || currentStep.moduleKey === 'laststep') ? "top-4" : 'bottom-4'} ${(currentStep.moduleKey === 'settings' || currentStep.moduleKey === 'laststep' || currentStep.moduleKey === 'julie') ? 'md:top-10' : 'md:bottom-10'}`}>
+      <div className={`absolute left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:max-w-md pointer-events-auto transition-all duration-500 ease-in-out ${(currentStep.moduleKey === "alex" || currentStep.moduleKey === "julie" || currentStep.moduleKey === 'settings' || currentStep.moduleKey === 'laststep') ? "top-4" : 'bottom-4'} ${(currentStep.moduleKey === 'settings' || currentStep.moduleKey === 'laststep' || currentStep.moduleKey === 'julie') ? 'md:top-10' : 'md:bottom-10'}`}>
         <Card className="p-5 bg-card/95 backdrop-blur-xl border-primary/30 shadow-2xl shadow-primary/20 animate-fade-in">
           {/* Skip button */}
           <button 

@@ -404,7 +404,7 @@ serve(async (req) => {
         .from("subscriptions")
         .select("status")
         .eq("user_id", userId)
-        .eq("status", ["active", "trialing"])
+        .in("status", ["active", "trialing"])
         .maybeSingle();
 
       if (!subscription) {
@@ -437,6 +437,7 @@ serve(async (req) => {
     const { messages, context, dataConsent } = parseResult.data;
     console.log('✅ Validation passed. Messages:', messages.length, 'DataConsent:', dataConsent);
     const sanitizedContext = sanitizeContext(context);
+    console.log("sanitize context", sanitizeContext)
     const hasDataAccess = dataConsent === true;
     console.log('🔐 Has data access:', hasDataAccess);
     

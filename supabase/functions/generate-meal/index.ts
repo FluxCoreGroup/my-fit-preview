@@ -54,13 +54,15 @@ serve(async (req) => {
       .eq("user_id", user.id);
 
     if (feedbackCount && feedbackCount > 0) {
-      const { data: subscription } = await supabase
+      const { data: subscription, error: subError } = await supabase
         .from("subscriptions")
         .select("status")
         .eq("user_id", user.id)
-        .eq("status", ["active", "trialing"])
+        .in("status", ["active", "trialing"])
         .maybeSingle();
-
+      
+      console.log("Subscription check for user", user.id, "result:", subscription, "error:", subError);
+      
       if (!subscription) {
         console.warn(`Subscription required for user ${user.id} - generate-meal`);
         return new Response(

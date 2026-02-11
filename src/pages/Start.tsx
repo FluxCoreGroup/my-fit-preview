@@ -40,7 +40,7 @@ const Start = () => {
     cardioFrequency: undefined,
     activityLevel: undefined,
     frequency: undefined,
-    sessionDuration: undefined,
+    sessionDuration: 60,
     location: undefined,
     equipment: [],
     allergies: "",
