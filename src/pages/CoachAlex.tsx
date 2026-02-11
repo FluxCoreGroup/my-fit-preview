@@ -21,8 +21,7 @@ const CoachAlex = () => {
   const isMobile = useIsMobile();
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [isConversationListOpen, setIsConversationListOpen] = useState(false);
-  const { conversations, deleteConversation } = useConversations('alex');
-  const { messages } = useChatMessages(activeConversationId);
+  const { conversations } = useConversations('alex');
 
   useAutoDeleteEmptyConversations(activeConversationId, 'alex');
 
@@ -31,14 +30,6 @@ const CoachAlex = () => {
       setActiveConversationId(conversations[0].id);
     }
   }, [conversations, activeConversationId]);
-
-  useEffect(() => {
-    return () => {
-      if (activeConversationId && messages.length === 0) {
-        deleteConversation.mutate(activeConversationId);
-      }
-    };
-  }, []);
 
   const { data: goals, isLoading: goalsLoading } = useQuery({
     queryKey: ["goals", user?.id],

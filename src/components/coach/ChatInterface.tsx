@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
@@ -69,7 +69,7 @@ export const ChatInterface = ({
   const [awaitingConsent, setAwaitingConsent] = useState(false);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [shouldShowConsent, setShouldShowConsent] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const loadedConversationRef = useRef<string | null>(null);
   const { toast } = useToast();
@@ -79,109 +79,85 @@ export const ChatInterface = ({
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
   const { createConversation, updateDataConsent } = useConversations(coachType);
   const config = coachConfig[coachType];
-
-  // Debug: Log states on every render
-  console.log('🔄 ChatInterface render:', { 
-    awaitingConsent, 
-    shouldShowConsent, 
-    pendingMessage: pendingMessage?.substring(0, 20),
-    currentConversationId,
-    conversationId 
-  });
   
-  // Auto-generate title from first message
   useAutoGenerateTitle(conversationId, coachType);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Load messages from DB when conversation changes
-  useEffect(() => {
-    console.log('📥 Load messages effect:', { 
-      conversationId, 
-      loadedRef: loadedConversationRef.current, 
-      dbMessagesLength: dbMessages.length,
-      currentMessagesLength: messages.length,
-      messagesLoading
-    });
-    
-    if (conversationId && conversationId !== loadedConversationRef.current) {
-      // Wait for messages to finish loading before doing anything
-      if (messagesLoading) {
-        console.log('📥 Messages still loading, waiting...');
-        return;
-      }
-      
-      if (dbMessages.length > 0) {
-        const loadedMessages = dbMessages.map(m => ({ 
-          role: m.role, 
-          content: m.content,
-          data_sources: m.data_sources 
-        }));
-        console.log('📥 Loading messages from DB:', loadedMessages.length);
-        setMessages(loadedMessages);
-        
-        const lastAssistant = [...dbMessages].reverse().find(m => m.role === "assistant");
-        if (lastAssistant?.data_sources) {
-          setLastDataSources(lastAssistant.data_sources);
-        }
-        loadedConversationRef.current = conversationId;
-      } else if (messages.length === 0) {
-        // Only reset to empty if we don't have any local messages
-        console.log('📥 No DB messages and no local messages, resetting to empty');
-        setMessages([]);
-        setLastDataSources([]);
-        loadedConversationRef.current = conversationId;
-      } else {
-        console.log('📥 No DB messages but have local messages - keeping them');
-        loadedConversationRef.current = conversationId;
-      }
-    }
-  }, [conversationId, dbMessages.length, messagesLoading]);
+  // On transform les messages pour les faire correspondre à la structure attendue par le composant
+  const transformedMessages = useMemo(() => {
+    if (!dbMessages.length) return [];
+    return dbMessages.map(m => ({ 
+      role: m.role, 
+      content: m.content,
+      data_sources: m.data_sources 
+    }));
+  }, [dbMessages]);
 
+  // On extrait les data sources de la dernière réponse de l'assistant
+  const lastAssistantDataSources = useMemo(() => {
+    const lastAssistant = [...dbMessages].reverse().find(m => m.role === "assistant");
+    return lastAssistant?.data_sources || [];
+  }, [dbMessages]);
+
+  // Quand les messages de la conversation changent, on met à jour les messages locaux
+  useEffect(() => {
+    if (conversationId === loadedConversationRef.current) return;
+    
+    if (messagesLoading) return;
+
+    if (!conversationId) return;
+
+    // On met à jour les messages locaux (vide ou avec contenu)
+    setMessages(transformedMessages);
+    setLastDataSources(lastAssistantDataSources);
+
+    // Mark conversation as loaded
+    loadedConversationRef.current = conversationId;
+  }, [conversationId, transformedMessages, lastAssistantDataSources, messagesLoading]);
+
+  // To do: scroller lorsque l'IA envoie un nouveau message
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Handle showing consent after message is saved
-  useEffect(() => {
-    console.log('🔁 useEffect running, checking conditions:', { 
-      shouldShowConsent, 
-      currentConversationId, 
-      awaitingConsent,
-      allConditionsMet: shouldShowConsent && currentConversationId && pendingMessage
-    });
-    
-    if (shouldShowConsent && currentConversationId && pendingMessage) {
-      console.log('🎯 useEffect triggered - showing consent');
-      console.log('🎯 About to call setAwaitingConsent(true)');
-      setAwaitingConsent(true);
-      setShouldShowConsent(false);
-      console.log('🎯 setAwaitingConsent(true) and setShouldShowConsent(false) called');
-    }
-  }, [shouldShowConsent, currentConversationId, pendingMessage]);
 
-  // Call AI with optional data consent
-  const callAI = async (messageText: string, dataConsent: boolean | null, convId: string) => {
-    console.log('🤖 callAI started:', { messageText, dataConsent, convId, currentMessagesCount: messages.length });
-    const userMessage: Message = { role: "user", content: messageText };
-    
-    let assistantContent = "";
-    let dataSources: any[] = [];
-    const updateAssistant = (chunk: string) => {
-      assistantContent += chunk;
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant") {
-          return prev.map((m, i) =>
-            i === prev.length - 1 ? { ...m, content: assistantContent } : m
-          );
-        }
-        return [...prev, { role: "assistant", content: assistantContent }];
-      });
+  // Transformation du markdown en HTML
+  const formatMarkdown = (text: string): string => {
+    return text
+      // Gras: **texte** -> <strong>texte</strong>
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      // Liste niveau 2 (avec indentation) : *   item -> ◦ item
+      .replace(/^    \*   (.+)$/gm, '    ◦ $1')
+      // Liste niveau 1 : •   item -> • item
+      .replace(/^•   (.+)$/gm, '• $1')
+      // Liste simple : * item -> • item
+      .replace(/^\* (.+)$/gm, '• $1')
+      // Italique: *texte* -> <em>texte</em> (mais pas si c'est une liste)
+      .replace(/(?<!^)(?<!\s)\*([^\s*][^*]*?)\*(?!\*)/g, '<em>$1</em>');
+  };
+
+  // Gestion des erreurs HTTP avec messages appropriés
+  const handleHttpError = (status: number, serverMessage: string) => {
+    const errorMessages: Record<number, { title: string; description: string }> = {
+      401: { title: "Non authentifié", description: "Reconnecte-toi pour continuer" },
+      402: { title: "Crédits épuisés", description: "Contacte le support pour plus d'infos." },
+      403: { title: "Abonnement requis", description: serverMessage || "Un abonnement est nécessaire pour continuer à utiliser le coach IA." },
+      429: { title: "Trop de requêtes", description: "Réessaye dans quelques instants." },
     };
 
+    const error = errorMessages[status];
+    if (error) {
+      toast({ ...error, variant: "destructive" });
+    } else {
+      throw new Error(`HTTP ${status}`);
+    }
+  };
+
+  // Appel à l'IA avec gestion du streaming
+  const callAI = async (messageText: string, dataConsent: boolean | null, convId: string) => {
     const token = session?.access_token;
     if (!token) {
       toast({
@@ -193,25 +169,28 @@ export const ChatInterface = ({
       return;
     }
 
-    console.log("Call AI STARRRRT", {
-          messages: [...messages.filter(m => m.role !== "assistant" || m.content), userMessage],
-          context,
-          dataConsent,
-    })
+    const userMessage: Message = { role: "user", content: messageText };
+    let assistantContent = "";
+    let dataSources: any[] = [];
 
-    const sanitizedContext = context ? {
-      goal_type: context.goal_type || undefined,
-      tdee: context.tdee ? Number(context.tdee) : undefined,
-      target_calories: context.target_calories ? Number(context.target_calories) : undefined,
-      protein: context.protein ? Number(context.protein) : undefined,
-      fat: context.fat ? Number(context.fat) : undefined,
-      carbs: context.carbs ? Number(context.carbs) : undefined,
-      meals_per_day: context.meals_per_day ? Number(context.meals_per_day) : undefined,
-      restrictions: Array.isArray(context.restrictions) ? context.restrictions : [],
-      allergies: Array.isArray(context.allergies) ? context.allergies : [],
-    } : undefined;
+    // Optimisation: mise à jour par batch pour réduire les re-renders
+    const updateAssistant = (chunk: string) => {
+      assistantContent += chunk;
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          const updated = [...prev];
+          updated[prev.length - 1] = { ...last, content: assistantContent };
+          return updated;
+        }
+        return [...prev, { role: "assistant", content: assistantContent }];
+      });
+    };
 
     try {
+      // Filtrer les messages vides pour optimiser la requête
+      const filteredMessages = messages.filter(m => m.content.trim());
+      
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
@@ -220,102 +199,71 @@ export const ChatInterface = ({
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
-          messages: [...messages.filter(m => m.role !== "assistant" || m.content), userMessage],
-          sanitizedContext,
+          messages: [...filteredMessages, userMessage],
+          context,
           dataConsent,
         }),
       });
-      console.log('🤖 callAI response:', resp);
 
-      const dataSourcesHeader = resp.headers.get("X-Data-Sources");
-      if (dataSourcesHeader) {
-        try {
-          dataSources = JSON.parse(dataSourcesHeader);
-          setLastDataSources(dataSources);
-        } catch (e) {
-          console.error("Failed to parse data sources:", e);
-        }
-      } else {
-        setLastDataSources([]);
-      }
-
+      // Gestion des erreurs HTTP
       if (!resp.ok) {
         let serverMessage = "";
         try {
           const errJson = await resp.clone().json();
           serverMessage = typeof errJson?.error === "string" ? errJson.error : "";
         } catch {
-          // ignore
+          // Ignore parsing errors
         }
-
-        if (resp.status === 401) {
-          toast({ title: "Non authentifié", description: "Reconnecte-toi pour continuer", variant: "destructive" });
-        } else if (resp.status === 403) {
-          toast({
-            title: "Abonnement requis",
-            description: serverMessage || "Un abonnement est nécessaire pour continuer à utiliser le coach IA.",
-            variant: "destructive",
-          });
-        } else if (resp.status === 429) {
-          toast({ title: "Trop de requêtes", description: "Réessaye dans quelques instants.", variant: "destructive" });
-        } else if (resp.status === 402) {
-          toast({ title: "Crédits épuisés", description: "Contacte le support pour plus d'infos.", variant: "destructive" });
-        } else {
-          throw new Error(`HTTP ${resp.status}`);
-        }
+        handleHttpError(resp.status, serverMessage);
         setIsLoading(false);
         return;
       }
 
-      const reader = resp.body.getReader();
+      // Streaming optimisé avec gestion du buffer
+      const reader = resp.body?.getReader();
+      if (!reader) throw new Error("No response body");
+
       const decoder = new TextDecoder();
       let textBuffer = "";
-      let streamDone = false;
 
-      while (!streamDone) {
+      const processLine = (line: string) => {
+        if (!line || line.startsWith(":") || !line.startsWith("data: ")) return false;
+        
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === "[DONE]") return true;
+
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content;
+          if (content) updateAssistant(content);
+        } catch {
+          // Ignore malformed JSON
+        }
+        return false;
+      };
+
+      while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        
         textBuffer += decoder.decode(value, { stream: true });
 
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
+        const lines = textBuffer.split("\n");
+        textBuffer = lines.pop() || ""; // Garde la dernière ligne incomplète
 
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") {
-            streamDone = true;
-            break;
-          }
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) updateAssistant(content);
-          } catch {
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
+        for (const line of lines) {
+          const cleanLine = line.endsWith("\r") ? line.slice(0, -1) : line;
+          if (processLine(cleanLine)) break;
         }
       }
 
+      // Traiter le buffer restant
       if (textBuffer.trim()) {
-        for (let raw of textBuffer.split("\n")) {
-          if (!raw || raw.startsWith(":") || !raw.startsWith("data: ")) continue;
-          const jsonStr = raw.slice(6).trim();
-          if (jsonStr === "[DONE]") continue;
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) updateAssistant(content);
-          } catch {}
-        }
+        const cleanLine = textBuffer.endsWith("\r") ? textBuffer.slice(0, -1) : textBuffer;
+        processLine(cleanLine);
       }
 
+      // Sauvegarder la réponse de l'assistant
       if (assistantContent && convId) {
         await saveMessage.mutateAsync({
           conversation_id: convId,
@@ -337,7 +285,6 @@ export const ChatInterface = ({
   };
 
   const sendMessage = async (messageText: string) => {
-    console.log('🚀 sendMessage called with:', { messageText, conversationId, isLoading, isCreatingConversation, awaitingConsent });
     if (!messageText.trim() || isLoading || isCreatingConversation || awaitingConsent) return;
 
     if (!session?.user) {
@@ -352,9 +299,8 @@ export const ChatInterface = ({
     let activeConversationId = conversationId;
     let isNewConversation = false;
 
-    // Create conversation if needed
+    // On créer une nouvelle conversation si nécessaire
     if (!activeConversationId) {
-      console.log('📝 Creating new conversation...');
       setIsCreatingConversation(true);
       isNewConversation = true;
       try {
@@ -376,27 +322,23 @@ export const ChatInterface = ({
       }
     }
 
-    // Show user message immediately
-    console.log('💬 Adding user message to UI');
+    // On récupère le message de l'utilisateur, on l'ajoute dans le state, puis on le sauvegarde dans la base de données
+
     const userMessage: Message = { role: "user", content: messageText };
-    console.log('💬 Current messages before adding:', messages.length);
+
     setMessages((prev) => {
       const updated = [...prev, userMessage];
-      console.log('💬 Messages after adding:', updated.length, updated);
       return updated;
     });
     setInput("");
 
-    // Save user message
-    console.log('💾 Saving user message to DB...');
     await saveMessage.mutateAsync({
       conversation_id: activeConversationId,
       role: "user",
       content: messageText,
     });
-    console.log('✅ User message saved');
 
-    // Check if consent is needed (new conversation or consent is null)
+    // On vérifie si l'utilisateur a partagé ses données personnelles
     const existingConsent = conversation?.data_consent;
     const needsConsent = isNewConversation || existingConsent === null || existingConsent === undefined;
     console.log('🔍 Consent check:', { 
@@ -406,50 +348,37 @@ export const ChatInterface = ({
       conversationProp: conversation,
       activeConversationId 
     });
+    
+    // Si le consentement est nécessaire, on met le message en attente
 
     if (needsConsent) {
-      // Show consent request via useEffect
-      console.log('⏸️ Needs consent - setting up states for useEffect trigger');
-      console.log('⏸️ Setting states:', { 
-        pendingMessage: messageText, 
-        currentConversationId: activeConversationId,
-      });
       setPendingMessage(messageText);
       setCurrentConversationId(activeConversationId);
-      setShouldShowConsent(true);
-      console.log('⏸️ shouldShowConsent set to true, returning from sendMessage');
+      setAwaitingConsent(true);
       return;
     }
-
-    // Existing conversation with consent already given
-    console.log('🤖 Calling AI directly (consent already given):', existingConsent);
+    
+    // Sinon on appelle l'IA directement
     setIsLoading(true);
     await callAI(messageText, existingConsent ?? false, activeConversationId);
   };
 
-  // Handle consent acceptance
   const handleConsentAccept = async () => {
-    console.log('✅ User accepted consent');
     if (!currentConversationId && !conversationId) return;
     
     const convId = currentConversationId || conversationId!;
-    console.log('📝 Updating consent in DB for conversation:', convId);
     setIsLoading(true);
     
     try {
       await updateDataConsent.mutateAsync({ id: convId, consent: true });
-      console.log('✅ Consent updated');
       setAwaitingConsent(false);
       
       if (pendingMessage) {
-        console.log('🤖 Calling AI with pending message:', pendingMessage);
         await callAI(pendingMessage, true, convId);
         setPendingMessage(null);
-      } else {
-        console.log('⚠️ No pending message found!');
       }
+      setIsLoading(false);
     } catch (error) {
-      console.error("Failed to update consent:", error);
       toast({
         title: "Erreur",
         description: "Impossible de sauvegarder ta préférence",
@@ -459,7 +388,6 @@ export const ChatInterface = ({
     }
   };
 
-  // Handle consent decline
   const handleConsentDecline = async () => {
     console.log('❌ User declined consent');
     if (!currentConversationId && !conversationId) return;
@@ -470,11 +398,9 @@ export const ChatInterface = ({
     
     try {
       await updateDataConsent.mutateAsync({ id: convId, consent: false });
-      console.log('✅ Consent updated');
       setAwaitingConsent(false);
       
       if (pendingMessage) {
-        console.log('🤖 Calling AI with pending message:', pendingMessage);
         await callAI(pendingMessage, false, convId);
         setPendingMessage(null);
       } else {
@@ -502,31 +428,19 @@ export const ChatInterface = ({
     sendMessage(shortcut);
   };
 
-  // Loading state
   if (messagesLoading) {
     return (
       <div className="flex flex-col h-[calc(100vh-12rem)] items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground mt-2">Chargement...</p>
+        <p className="text-sm text-muted-foreground mt-2">Chargement de la conversation...</p>
       </div>
     );
   }
 
-  // Show welcome if no conversation or no messages
-  // Use currentConversationId if set (for newly created conversations), otherwise conversationId
   const activeConvId = currentConversationId || conversationId;
   const showWelcome = !activeConvId || (messages.length === 0 && !isLoading && !awaitingConsent);
-  
-  console.log('🎯 showWelcome check:', { 
-    activeConvId, 
-    currentConversationId, 
-    conversationId,
-    messagesLength: messages.length, 
-    isLoading, 
-    awaitingConsent, 
-    showWelcome 
-  });
 
+  // Dans le cas où il n'y a pas de conversationId, de messages et que l'utilisateur n'a pas encore donné son consentement, on affiche la page de bienvenue
   if (showWelcome) {
     return (
       <div className="flex flex-col h-[calc(100vh-12rem)]">
@@ -573,7 +487,6 @@ export const ChatInterface = ({
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)]">
       <div className="flex flex-1 min-h-0">
-        {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-4 p-4">
           {messages.map((message, idx) => (
             <div
@@ -598,7 +511,14 @@ export const ChatInterface = ({
                     : "bg-muted rounded-2xl rounded-tl-sm"
                 )}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                {message.role === "assistant" ? (
+                  <div 
+                    className="text-sm whitespace-pre-wrap prose prose-sm max-w-none dark:prose-invert"
+                    dangerouslySetInnerHTML={{ __html: formatMarkdown(message.content) }}
+                  />
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                )}
               </Card>
               {message.role === "user" && (
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-medium flex-shrink-0">
@@ -608,7 +528,6 @@ export const ChatInterface = ({
             </div>
           ))}
 
-          {/* Data consent request */}
           {awaitingConsent && (
             <DataConsentMessage
               onAccept={handleConsentAccept}
@@ -619,7 +538,6 @@ export const ChatInterface = ({
             />
           )}
 
-          {/* Typing indicator */}
           {isLoading && !awaitingConsent && messages[messages.length - 1]?.role === "user" && (
             <TypingIndicator avatar={config.avatar} name={name} />
           )}
@@ -627,11 +545,9 @@ export const ChatInterface = ({
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Data Sources Panel */}
         <DataSourcesPanel dataSources={lastDataSources} />
       </div>
 
-      {/* Input */}
       <div className="p-4 border-t bg-background/80 backdrop-blur-sm">
         <div className="flex flex-wrap gap-2 mb-3">
           {shortcuts.map((shortcut, idx) => (
@@ -653,7 +569,7 @@ export const ChatInterface = ({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={`Écris à ${name}...`}
-            className="resize-none rounded-xl min-h-[44px] max-h-32"
+            className="resize-none rounded-xl min-h-[44px] max-h-32 text-base"
             rows={1}
             disabled={isLoading}
           />

@@ -14,17 +14,16 @@ const messageSchema = z.object({
 });
 
 const contextSchema = z.object({
- goal_type: z.string().max(100).optional(),
- tdee: z.number().min(0).max(10000).optional(),
- target_calories: z.number().min(0).max(10000).optional(),
- protein: z.number().min(0).max(1000).optional(),
- fat: z.number().min(0).max(1000).optional(),
- carbs: z.number().min(0).max(2000).optional(),
- meals_per_day: z.number().min(1).max(10).optional(),
- restrictions: z.array(z.string().max(100)).max(20).optional(),
- allergies: z.array(z.string().max(100)).max(20).optional(),
+  goal_type: z.string().max(100).optional(),
+  tdee: z.number().min(0).max(10000).optional(),
+  target_calories: z.number().min(0).max(10000).optional(),
+  protein: z.number().min(0).max(1000).optional(),
+  fat: z.number().min(0).max(1000).optional(),
+  carbs: z.number().min(0).max(2000).optional(),
+  meals_per_day: z.number().min(1).max(10).optional(),
+  restrictions: z.array(z.string().max(100)).max(20).optional(),
+  allergies: z.array(z.string().max(100)).max(20).optional(),
 }).passthrough();
-
 
 const requestSchema = z.object({
   messages: z.array(messageSchema).min(1).max(50),
@@ -333,8 +332,8 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
   }
 }
 
-// Sanitize context values for prompt injection prevention
-function sanitizeContext(context: any): any {
+// Format context for system prompt (convert to readable strings)
+function formatContextForPrompt(context: any): any {
   const sanitizeString = (str: string | undefined | null, fallback: string): string => {
     if (!str) return fallback;
     return str.replace(/[<>{}]/g, '').substring(0, 100);
@@ -367,7 +366,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Authentication check
+    // On vérifie les headers de l'utilisateur pour voir s'il possède un token
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       return new Response(
@@ -375,15 +374,17 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
+    // On récupère le token de l'utilisateur
     const token = authHeader.replace("Bearer ", "");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     
+    // On crée une instance de supabase avec le token de l'utilisateur
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
 
+    // On vérifie si l'utilisateur est authentifié côté supabase
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return new Response(
@@ -393,34 +394,61 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    // Check subscription status (allow first use for free)
-    const { count: feedbackCount } = await supabase
-      .from("feedback")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId);
+    // To Do: faire un système de limitation de l'IA en fontion de la période d'essai
 
-    if (feedbackCount && feedbackCount > 0) {
-      const { data: subscription } = await supabase
-        .from("subscriptions")
-        .select("status")
-        .eq("user_id", userId)
-        .in("status", ["active", "trialing"])
-        .maybeSingle();
+    // Pour le moment: on autorise toute les périodes d'essai et actives à utiliser l'IA
+    const { data: subscription } = await supabase
+      .from("subscriptions")
+      .select("status")
+      .eq("user_id", userId)
+      .in("status", ["active", "trialing"])
+      .maybeSingle();
 
-      if (!subscription) {
-        console.warn(`Subscription required for user ${userId} - no active subscription`);
-        return new Response(
-          JSON.stringify({ error: "Abonnement requis pour continuer à utiliser la nutritionniste IA" }),
-          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    if (!subscription) {
+      console.warn(`Subscription required for user ${userId} - no active subscription`);
+      return new Response(
+        JSON.stringify({ error: "Abonnement requis pour continuer à utiliser la nutritionniste IA" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-    console.log(`Subscription check passed for user ${userId}`);
 
+    // On récupère les données envoyées par le client
     const rawBody = await req.json();
-    console.log('📥 Request received:', { messagesCount: rawBody.messages?.length, dataConsent: rawBody.dataConsent });
     
-    // Validate input
+    // On nettoie le contexte pour respecter le schema zod
+    if (rawBody.context) {
+      const ctx = rawBody.context;
+      const sanitized: any = {};
+      
+      // Ajouter seulement les valeurs valides
+      if (ctx.goal_type) sanitized.goal_type = ctx.goal_type;
+      
+      // Convertir les nombres seulement s'ils sont valides
+      const addNumber = (key: string, value: any) => {
+        if (value != null && value !== '' && !isNaN(Number(value))) {
+          sanitized[key] = Number(value);
+        }
+      };
+      
+      addNumber('tdee', ctx.tdee);
+      addNumber('target_calories', ctx.target_calories);
+      addNumber('protein', ctx.protein);
+      addNumber('fat', ctx.fat);
+      addNumber('carbs', ctx.carbs);
+      addNumber('meals_per_day', ctx.meals_per_day);
+      
+      // Ajouter les arrays seulement s'ils sont valides
+      if (Array.isArray(ctx.restrictions) && ctx.restrictions.length > 0) {
+        sanitized.restrictions = ctx.restrictions;
+      }
+      if (Array.isArray(ctx.allergies) && ctx.allergies.length > 0) {
+        sanitized.allergies = ctx.allergies;
+      }
+      
+      rawBody.context = sanitized;
+    }
+    
+    // On valide les données fournis par l'utilisateur
     const parseResult = requestSchema.safeParse(rawBody);
     if (!parseResult.success) {
       console.error("❌ Request validation error:", parseResult.error.errors);
@@ -435,16 +463,20 @@ serve(async (req) => {
     }
     
     const { messages, context, dataConsent } = parseResult.data;
-    console.log('✅ Validation passed. Messages:', messages.length, 'DataConsent:', dataConsent);
-    const sanitizedContext = sanitizeContext(context);
-    console.log("sanitize context", sanitizeContext)
-    const hasDataAccess = dataConsent === true;
-    console.log('🔐 Has data access:', hasDataAccess);
+    console.log('✅ Validation passed. Messages:', messages.length, 'DataConsent:', dataConsent, 'Context:', context);
     
+    const hasDataAccess = dataConsent === true;
+
+    const formattedContext = formatContextForPrompt(context);
+
+    console.log('✅ Context formatted:', formattedContext);
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPromptWithAccess = `Tu es Julie, nutritionniste diplômée et experte en nutrition sportive de l'app PULSE.
+    // On établit les prompts pour Julie
+
+    const juliePromptWithAccess = `Tu es Julie, nutritionniste diplômée et experte en nutrition sportive de l'app PULSE.
 
 ⚠️ RÈGLES CRITIQUES :
 1. TOUJOURS utiliser les tools pour TOUTE question sur les données utilisateur
@@ -469,10 +501,10 @@ QUAND UTILISER LES TOOLS :
 - "Mes restrictions ?" → get_nutrition_targets
 
 Contexte général :
-- Objectif : ${sanitizedContext.goal_type}
-- Repas par jour : ${sanitizedContext.meals_per_day}
-- Restrictions : ${sanitizedContext.restrictions}
-- Allergies : ${sanitizedContext.allergies}
+- Objectif : ${formattedContext.goal_type}
+- Repas par jour : ${formattedContext.meals_per_day}
+- Restrictions : ${formattedContext.restrictions}
+- Allergies : ${formattedContext.allergies}
 
 ⚠️ Ce contexte ne contient PAS de données chiffrées. Utilise les tools!
 
@@ -483,7 +515,7 @@ Tu dois :
 - Respecter les allergies et restrictions alimentaires
 - Être encourageante sans être moralisatrice`;
 
-    const systemPromptWithoutAccess = `Tu es Julie, nutritionniste diplômée et experte en nutrition sportive.
+    const juliePromptWithoutAccessToData = `Tu es Julie, nutritionniste diplômée et experte en nutrition sportive.
 
 ⚠️ IMPORTANT : L'utilisateur n'a pas autorisé l'accès à ses données personnelles.
 Tu dois donner des conseils GÉNÉRAUX sans données personnalisées.
@@ -506,16 +538,15 @@ Tu PEUX :
 
 Ton : Pédagogue, bienveillante, encourageante.`;
 
-    const systemPrompt = hasDataAccess ? systemPromptWithAccess : systemPromptWithoutAccess;
 
-    // Track data sources used
+    const juliePrompt = hasDataAccess ? juliePromptWithAccess : juliePromptWithoutAccessToData;
+
     let dataSources: any[] = [];
 
-    // Build AI messages array
-    let aiMessages: any[] = [{ role: "system", content: systemPrompt }, ...messages];
+    let aiMessages: any[] = [{ role: "system", content: juliePrompt }, ...messages];
     console.log('🤖 AI messages built:', aiMessages.length, 'messages');
 
-    // If no data access, skip tool loop entirely
+    // Si l'utilisateur n'a pas donné son consentement, on envoie les messages sans les informations de l'utilisateur
     if (!hasDataAccess) {
       console.log("⏭️ No data access consent - skipping tools");
       const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -593,7 +624,8 @@ Ton : Pédagogue, bienveillante, encourageante.`;
         },
         body: JSON.stringify(body),
       });
-      console.log('📡 AI API response status:', response.status);
+
+      console.log("response to use tools", response)
 
       if (!response.ok) {
         console.error('❌ AI API error:', response.status, response.statusText);
