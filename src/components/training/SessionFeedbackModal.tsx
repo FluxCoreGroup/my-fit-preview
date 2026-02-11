@@ -103,21 +103,21 @@ export const SessionFeedbackModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 p-0 overflow-hidden">
+      <DialogContent withClose={false} className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 p-0 max-h-screen">
         {/* Header with gradient accent */}
-        <div className="bg-gradient-to-r from-primary/20 to-secondary/20 px-6 pt-6 pb-4">
+        <div className="bg-gradient-to-r from-primary/20 to-secondary/20 px-6 h-24  flex flex-col justify-center items-center">
           <DialogHeader className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              <DialogTitle className="text-2xl">Séance terminée !</DialogTitle>
+            <div className="flex items-center gap-2 mx-auto">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <DialogTitle className="text-lg">Séance terminée !</DialogTitle>
             </div>
-            <DialogDescription className="text-muted-foreground">
+            <DialogDescription className="text-muted-foreground text-sm">
               Bravo, tu as tout donné 💪
             </DialogDescription>
           </DialogHeader>
         </div>
 
-        <div className="px-6 pb-6 space-y-6">
+        <div className="px-6 pb-6 space-y-4">
           {/* RPE Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -127,7 +127,7 @@ export const SessionFeedbackModal = ({
                   <TooltipTrigger asChild>
                     <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help hover:text-primary transition-colors" />
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-xs bg-popover border-border">
+                  <TooltipContent side="top" className="max-w-xs border-border">
                     <p className="font-medium mb-1">Rate of Perceived Exertion</p>
                     <p className="text-xs text-muted-foreground">
                       Échelle de 1 à 10 mesurant l'intensité ressentie.<br />
@@ -230,7 +230,7 @@ export const SessionFeedbackModal = ({
             onClick={handleSubmit}
             disabled={isSubmitting || difficulty === null}
             className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity rounded-xl py-6 text-base font-semibold shadow-lg shadow-primary/20"
-            size="lg"
+            
           >
             {isSubmitting ? "Enregistrement..." : "Enregistrer et retourner au Hub"}
           </Button>

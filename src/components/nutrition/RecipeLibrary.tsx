@@ -79,11 +79,11 @@ const RecipeCard = ({ recipe }: { recipe: Recipe }) => {
             <div className="text-left flex-1">
               <h4 className="font-semibold text-xs">{recipe.name}</h4>
               <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 min-w-fit">
                   <Clock className="h-3 w-3" />
                   {recipe.prepTime}min
                 </span>
-                <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1 min-w-fit">
                   <Flame className="h-3 w-3" />
                   {recipe.kcal}kcal
                 </span>
