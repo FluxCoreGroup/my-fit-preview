@@ -417,11 +417,13 @@ serve(async (req) => {
     console.log(`Subscription check passed for user ${userId}`);
 
     const rawBody = await req.json();
+    console.log('📥 Request received:', { messagesCount: rawBody.messages?.length, dataConsent: rawBody.dataConsent });
     
     // Validate input
     const parseResult = requestSchema.safeParse(rawBody);
     if (!parseResult.success) {
       console.error("❌ Request validation error:", parseResult.error.errors);
+      console.error("❌ Raw body:", JSON.stringify(rawBody, null, 2));
       return new Response(
         JSON.stringify({ 
           error: "Données invalides", 
@@ -432,8 +434,10 @@ serve(async (req) => {
     }
     
     const { messages, context, dataConsent } = parseResult.data;
+    console.log('✅ Validation passed. Messages:', messages.length, 'DataConsent:', dataConsent);
     const sanitizedContext = sanitizeContext(context);
     const hasDataAccess = dataConsent === true;
+    console.log('🔐 Has data access:', hasDataAccess);
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -507,10 +511,11 @@ Ton : Pédagogue, bienveillante, encourageante.`;
 
     // Build AI messages array
     let aiMessages: any[] = [{ role: "system", content: systemPrompt }, ...messages];
+    console.log('🤖 AI messages built:', aiMessages.length, 'messages');
 
     // If no data access, skip tool loop entirely
     if (!hasDataAccess) {
-      console.log("No data access consent - skipping tools");
+      console.log("⏭️ No data access consent - skipping tools");
       const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -554,10 +559,11 @@ Ton : Pédagogue, bienveillante, encourageante.`;
     let needsToolExecution = true;
     let iterationCount = 0;
     const MAX_ITERATIONS = 5;
+    console.log('🔄 Starting tool execution loop with data access');
 
     while (needsToolExecution && iterationCount < MAX_ITERATIONS) {
       iterationCount++;
-      console.log(`AI iteration ${iterationCount}`);
+      console.log(`🔄 AI iteration ${iterationCount}/${MAX_ITERATIONS}`);
 
       // Detect keywords in last user message
       const lastUserMessage = [...messages].reverse().find(m => m.role === "user")?.content?.toLowerCase() || "";
@@ -576,6 +582,7 @@ Ton : Pédagogue, bienveillante, encourageante.`;
         console.log("Forcing tool: get_nutrition_targets");
       }
 
+      console.log('🚀 Calling AI API...');
       const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -584,8 +591,10 @@ Ton : Pédagogue, bienveillante, encourageante.`;
         },
         body: JSON.stringify(body),
       });
+      console.log('📡 AI API response status:', response.status);
 
       if (!response.ok) {
+        console.error('❌ AI API error:', response.status, response.statusText);
         if (response.status === 429) {
           return new Response(JSON.stringify({ error: "Trop de requêtes, réessaye dans quelques instants." }), {
             status: 429,
@@ -607,13 +616,14 @@ Ton : Pédagogue, bienveillante, encourageante.`;
       }
 
       const aiResponse = await response.json();
+      console.log('📦 AI response received');
       const choice = aiResponse.choices?.[0];
 
       if (!choice) {
         throw new Error("No response from AI");
       }
 
-      console.log("AI response:", {
+      console.log("📊 AI response analysis:", {
         hasToolCalls: !!choice.message?.tool_calls,
         toolCallsCount: choice.message?.tool_calls?.length || 0,
         toolNames: choice.message?.tool_calls?.map((tc: any) => tc.function.name) || [],
@@ -621,7 +631,7 @@ Ton : Pédagogue, bienveillante, encourageante.`;
 
       // Check if AI wants to use tools
       if (choice.message?.tool_calls && choice.message.tool_calls.length > 0) {
-        console.log(`AI requested ${choice.message.tool_calls.length} tool calls`);
+        console.log(`🔧 AI requested ${choice.message.tool_calls.length} tool calls`);
 
         aiMessages.push(choice.message);
 
@@ -629,8 +639,9 @@ Ton : Pédagogue, bienveillante, encourageante.`;
           const toolName = toolCall.function.name;
           const toolArgs = JSON.parse(toolCall.function.arguments || "{}");
 
-          console.log(`Executing tool: ${toolName}`, toolArgs);
+          console.log(`⚙️ Executing tool: ${toolName}`, toolArgs);
           const result = await executeToolCall(toolName, toolArgs, userId, supabase);
+          console.log(`✅ Tool ${toolName} executed:`, result.success ? 'success' : 'failed');
 
           dataSources.push({
             tool: toolName,
@@ -649,6 +660,7 @@ Ton : Pédagogue, bienveillante, encourageante.`;
       }
 
       // No more tools needed
+      console.log('✅ No more tools needed, proceeding to final response');
       needsToolExecution = false;
 
       const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

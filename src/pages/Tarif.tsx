@@ -411,7 +411,7 @@ const Tarif = () => {
                 
                 <Button 
                   size="lg" 
-                  className="w-full text-base py-6" 
+                  className="w-full text-base py-6 text-sm md:text-base" 
                   onClick={handleStartSubscription} 
                   disabled={loading}
                 >

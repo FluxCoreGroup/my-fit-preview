@@ -23,7 +23,7 @@ export function WelcomeModal({ open, userName, onComplete, onStartTour, onSkipTo
 
   return (
     <Dialog open={open} onOpenChange={handleSkip}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md w-[90%] md:w-full rounded-lg">
         {/* Close button */}
         <button
           onClick={handleSkip}

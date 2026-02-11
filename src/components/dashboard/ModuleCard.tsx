@@ -40,15 +40,15 @@ export const ModuleCard = ({
       >
         {/* Locked overlay */}
         {locked && (
-          <div className="absolute inset-0 rounded-xl bg-background/60 backdrop-blur-[2px] flex items-center justify-center z-10">
-            <Lock className="w-6 h-6 text-muted-foreground" />
+          <div className="absolute inset-0 rounded-xl bg-background/60 backdrop-blur-[2px] flex items-center justify-center z-10 transition-all duration-300">
+            <Lock className="w-6 h-6 text-muted-foreground transition-transform duration-300" />
           </div>
         )}
 
         {/* Badge optionnel */}
         {badge && !locked && (
           <Badge
-            className="absolute top-2 right-2 text-xs px-2 py-0.5 bg-blue-600 text-white border-blue-400"
+            className="absolute top-2 right-2 text-xs px-2 py-0.5 bg-blue-600 text-white border-blue-400 transition-all duration-200 animate-in fade-in slide-in-from-top-2"
           >
             {badge}
           </Badge>
@@ -57,7 +57,7 @@ export const ModuleCard = ({
         {/* Icône avec fond semi-transparent et glow */}
         <div
           className={cn(
-            "w-16 h-16 rounded-2xl flex items-center justify-center mb-3 backdrop-blur-sm transition-colors",
+            "w-16 h-16 rounded-2xl flex items-center justify-center mb-3 backdrop-blur-sm transition-all duration-300",
             locked ? "bg-muted/20" : "bg-blue-500/5 group-hover:bg-blue-500/10"
           )}
           style={{ 
@@ -66,16 +66,20 @@ export const ModuleCard = ({
         >
           <Icon 
             className={cn(
-              "w-9 h-9 transition-transform",
-              locked ? "text-muted-foreground" : "group-hover:scale-110"
+              "w-9 h-9 transition-transform duration-300",
+              locked ? "text-muted-foreground" : "group-hover:scale-110",
+              spotlight && "animate-pulse"
             )}
-            style={{ color: locked ? undefined : `hsl(${iconColor})` }} 
+            style={{ 
+              color: locked ? undefined : `hsl(${iconColor})`,
+              animationDuration: spotlight ? '2s' : undefined
+            }} 
           />
         </div>
 
         {/* Titre */}
         <h3 className={cn(
-          "text-sm font-semibold text-center",
+          "text-sm font-semibold text-center transition-colors duration-200",
           locked ? "text-muted-foreground" : "text-foreground"
         )}>
           {title}
@@ -83,7 +87,7 @@ export const ModuleCard = ({
         
         {/* Subtitle optionnel */}
         {subtitle && (
-          <p className="text-xs text-muted-foreground text-center mt-1">
+          <p className="text-xs text-muted-foreground text-center mt-1 transition-colors duration-200">
             {subtitle}
           </p>
         )}
@@ -96,5 +100,5 @@ export const ModuleCard = ({
     return CardContent;
   }
 
-  return <Link to={to}>{CardContent}</Link>;
+  return <Link to={to} className={cn(spotlight && "z-50", "transition-all duration-200")}>{CardContent}</Link>;
 };

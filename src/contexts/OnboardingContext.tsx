@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell, Utensils, Target, Apple, Settings, LucideIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface OnboardingState {
   phase: 'intro' | 'touring' | 'complete';
@@ -71,7 +72,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     title: "Dernière étape !",
     description: "Crée maintenant ta première séance d'entraînement personnalisée. Clique sur 'Terminer' pour commencer !",
-    moduleKey: "none",
+    moduleKey: "laststep",
     icon: Dumbbell,
   },
 ];
@@ -89,7 +90,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : initialState;
   });
   const [isLoading, setIsLoading] = useState(true);
-
+  const navigate = useNavigate();
   const isOnboardingActive = state.phase === 'touring';
 
   // Check DB status on mount
@@ -204,6 +205,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const completeTour = async () => {
     await markOnboardingComplete();
+    navigate('/training');
   };
 
   const getCurrentStep = (): TourStep | null => {

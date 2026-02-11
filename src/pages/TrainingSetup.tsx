@@ -322,30 +322,36 @@ const TrainingSetup = () => {
       <div className="min-h-screen bg-background">
         <Header variant="onboarding" disableNavigation={true} />
       
-      <div className="container mx-auto px-4 py-8 pt-24 max-w-2xl">
+      <div className="container mx-auto px-4 py-8 pt-24">
         {/* Stepper visuel */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            {stepLabels.map((label, index) => {
-              const stepNumber = index + 1;
-              const isActive = step === stepNumber;
-              const isCompleted = step > stepNumber;
-              
-              return (
-                <div key={stepNumber} className="flex flex-col items-center flex-1">
-                  <div className="flex items-center w-full">
-                    {/* Ligne gauche */}
-                    {index > 0 && (
-                      <div 
-                        className={`flex-1 h-0.5 ${
-                          isCompleted || isActive ? 'bg-primary' : 'bg-muted'
-                        }`}
-                      />
-                    )}
-                    
-                    {/* Cercle */}
+          <div className="mb-4 relative max-w-xs mx-auto md:max-w-xl">
+            {/* Ligne de base continue */}
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-muted" />
+            <div 
+              className="absolute top-4 left-0 h-0.5 bg-primary transition-all duration-600"
+              style={{ width: `${((step - 1) / (totalSteps - 1)) * 100}%` }}
+            />
+            
+            {/* Cercles et labels positionnés en absolu */}
+            <div className="relative flex justify-between">
+              {stepLabels.map((label, index) => {
+                const stepNumber = index + 1;
+                const isActive = step === stepNumber;
+                const isCompleted = step > stepNumber;
+
+                return (
+                  <div 
+                    key={stepNumber} 
+                    className="flex flex-col items-center top-1"
+                    style={{ 
+                      position: 'absolute',
+                      left: `${(index / (stepLabels.length - 1)) * 100}%`,
+                      transform: 'translateX(-50%)'
+                    }}
+                  >
                     <div 
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
+                      className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                         isCompleted 
                           ? 'bg-primary text-primary-foreground' 
                           : isActive 
@@ -356,27 +362,21 @@ const TrainingSetup = () => {
                       {isCompleted ? '✓' : stepNumber}
                     </div>
                     
-                    {/* Ligne droite */}
-                    {index < stepLabels.length - 1 && (
-                      <div 
-                        className={`flex-1 h-0.5 ${
-                          isCompleted ? 'bg-primary' : 'bg-muted'
-                        }`}
-                      />
-                    )}
+                    <span 
+                      className={`mt-2 text-xs text-center hidden sm:block ${
+                        isActive ? 'text-primary font-medium' : 'text-muted-foreground'
+                      }`}
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      {label}
+                    </span>
                   </div>
-                  
-                  {/* Label (visible seulement sur desktop ou pour l'étape active) */}
-                  <span 
-                    className={`mt-2 text-xs text-center hidden sm:block ${
-                      isActive ? 'text-primary font-medium' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {label}
-                  </span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+            
+            {/* Spacer pour la hauteur */}
+            <div className="h-16" />
           </div>
           
           {/* Titre et description */}
