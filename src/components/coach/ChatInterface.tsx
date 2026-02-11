@@ -194,10 +194,22 @@ export const ChatInterface = ({
     }
 
     console.log("Call AI STARRRRT", {
-          messages: [...messages.filter(m => m.role !== "assistant" || m.content)],
+          messages: [...messages.filter(m => m.role !== "assistant" || m.content), userMessage],
           context,
           dataConsent,
     })
+
+    const sanitizedContext = context ? {
+      goal_type: context.goal_type || undefined,
+      tdee: context.tdee ? Number(context.tdee) : undefined,
+      target_calories: context.target_calories ? Number(context.target_calories) : undefined,
+      protein: context.protein ? Number(context.protein) : undefined,
+      fat: context.fat ? Number(context.fat) : undefined,
+      carbs: context.carbs ? Number(context.carbs) : undefined,
+      meals_per_day: context.meals_per_day ? Number(context.meals_per_day) : undefined,
+      restrictions: Array.isArray(context.restrictions) ? context.restrictions : [],
+      allergies: Array.isArray(context.allergies) ? context.allergies : [],
+    } : undefined;
 
     try {
       const resp = await fetch(CHAT_URL, {
@@ -208,8 +220,8 @@ export const ChatInterface = ({
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
-          messages: [...messages.filter(m => m.role !== "assistant" || m.content)],
-          context,
+          messages: [...messages.filter(m => m.role !== "assistant" || m.content), userMessage],
+          sanitizedContext,
           dataConsent,
         }),
       });

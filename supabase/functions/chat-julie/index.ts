@@ -14,16 +14,17 @@ const messageSchema = z.object({
 });
 
 const contextSchema = z.object({
-  goal_type: z.string().max(100).optional(),
-  tdee: z.number().min(0).max(10000).optional(),
-  target_calories: z.number().min(0).max(10000).optional(),
-  protein: z.number().min(0).max(1000).optional(),
-  fat: z.number().min(0).max(1000).optional(),
-  carbs: z.number().min(0).max(2000).optional(),
-  meals_per_day: z.number().min(1).max(10).optional(),
-  restrictions: z.array(z.string().max(100)).max(20).optional(),
-  allergies: z.array(z.string().max(100)).max(20).optional(),
+ goal_type: z.string().max(100).optional(),
+ tdee: z.number().min(0).max(10000).optional(),
+ target_calories: z.number().min(0).max(10000).optional(),
+ protein: z.number().min(0).max(1000).optional(),
+ fat: z.number().min(0).max(1000).optional(),
+ carbs: z.number().min(0).max(2000).optional(),
+ meals_per_day: z.number().min(1).max(10).optional(),
+ restrictions: z.array(z.string().max(100)).max(20).optional(),
+ allergies: z.array(z.string().max(100)).max(20).optional(),
 }).passthrough();
+
 
 const requestSchema = z.object({
   messages: z.array(messageSchema).min(1).max(50),
@@ -403,7 +404,7 @@ serve(async (req) => {
         .from("subscriptions")
         .select("status")
         .eq("user_id", userId)
-        .eq("status", "active")
+        .eq("status", ["active", "trialing"])
         .maybeSingle();
 
       if (!subscription) {
