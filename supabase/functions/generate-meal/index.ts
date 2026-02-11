@@ -58,7 +58,7 @@ serve(async (req) => {
         .from("subscriptions")
         .select("status")
         .eq("user_id", user.id)
-        .eq("status", "active")
+        .eq("status", ["active", "trialing"])
         .maybeSingle();
 
       if (!subscription) {
