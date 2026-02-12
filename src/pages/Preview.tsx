@@ -219,7 +219,7 @@ const Preview = () => {
   }
   return <TooltipProvider>
       <Header variant="onboarding" showBack onBack={() => navigate("/start")} />
-      <div className="min-h-screen bg-muted/30 py-4 md:py-6 lg:py-8 px-4 pt-20 md:pt-24">
+      <div className="min-h-screen bg-muted/30 py-4 md:py-6 lg:py-30 px-4 pt-20 md:pt-24">
         <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 lg:space-y-8">
           {/* Header */}
           <div className="text-center animate-in">

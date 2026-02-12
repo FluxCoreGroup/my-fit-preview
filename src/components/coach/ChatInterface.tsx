@@ -118,11 +118,13 @@ export const ChatInterface = ({
     loadedConversationRef.current = conversationId;
   }, [conversationId, transformedMessages, lastAssistantDataSources, messagesLoading]);
 
-  // To do: scroller lorsque l'IA envoie un nouveau message
+  // Scroll uniquement pour les messages utilisateur
   useEffect(() => {
-    scrollToBottom();
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage?.role === "user") {
+      scrollToBottom();
+    }
   }, [messages]);
-
 
   // Transformation du markdown en HTML
   const formatMarkdown = (text: string): string => {
@@ -272,6 +274,9 @@ export const ChatInterface = ({
           data_sources: dataSources.length > 0 ? dataSources : undefined,
         });
       }
+
+      // Scroll final après la fin du streaming
+      setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
       console.error("Chat error:", error);
       toast({
@@ -341,13 +346,6 @@ export const ChatInterface = ({
     // On vérifie si l'utilisateur a partagé ses données personnelles
     const existingConsent = conversation?.data_consent;
     const needsConsent = isNewConversation || existingConsent === null || existingConsent === undefined;
-    console.log('🔍 Consent check:', { 
-      isNewConversation, 
-      existingConsent, 
-      needsConsent, 
-      conversationProp: conversation,
-      activeConversationId 
-    });
     
     // Si le consentement est nécessaire, on met le message en attente
 
