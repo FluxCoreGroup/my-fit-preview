@@ -1,10 +1,22 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, RotateCcw, CheckCircle, Play, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  RotateCcw,
+  CheckCircle,
+  Play,
+  ChevronRight,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SessionExitModalProps {
@@ -20,14 +32,14 @@ const exitReasons = [
   { value: "difficulty", label: "Séance trop difficile" },
   { value: "technical", label: "Problème technique" },
   { value: "interruption", label: "Interruption externe" },
-  { value: "other", label: "Autre" }
+  { value: "other", label: "Autre" },
 ];
 
 export const SessionExitModal = ({
   open,
   onClose,
   onRestart,
-  onEndEarly
+  onEndEarly,
 }: SessionExitModalProps) => {
   const [step, setStep] = useState<"choice" | "reason">("choice");
   const [selectedReason, setSelectedReason] = useState("");
@@ -67,14 +79,12 @@ export const SessionExitModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20">
+      <DialogContent className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 w-[90%] max-w-md rounded-2xl py-4 px-2">
         {step === "choice" ? (
           <>
             <DialogHeader className="space-y-2">
               <DialogTitle className="text-xl">Quitter la séance ?</DialogTitle>
-              <DialogDescription>
-                Que souhaites-tu faire ?
-              </DialogDescription>
+              <DialogDescription>Que souhaites-tu faire ?</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-3 py-4">
@@ -89,7 +99,9 @@ export const SessionExitModal = ({
                 </div>
                 <div className="text-left">
                   <p className="font-semibold">Continuer la séance</p>
-                  <p className="text-xs text-muted-foreground">Reprendre là où tu en étais</p>
+                  <p className="text-xs text-muted-foreground">
+                    Reprendre là où tu en étais
+                  </p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground ml-auto" />
               </Button>
@@ -105,7 +117,9 @@ export const SessionExitModal = ({
                 </div>
                 <div className="text-left">
                   <p className="font-semibold">Recommencer depuis le début</p>
-                  <p className="text-xs text-muted-foreground">La séance sera réinitialisée</p>
+                  <p className="text-xs text-muted-foreground">
+                    La séance sera réinitialisée
+                  </p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground ml-auto" />
               </Button>
@@ -121,7 +135,9 @@ export const SessionExitModal = ({
                 </div>
                 <div className="text-left">
                   <p className="font-semibold">Terminer et sauvegarder</p>
-                  <p className="text-xs text-muted-foreground">Enregistrer ta progression actuelle</p>
+                  <p className="text-xs text-muted-foreground">
+                    Enregistrer ta progression actuelle
+                  </p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-muted-foreground ml-auto" />
               </Button>
@@ -139,7 +155,9 @@ export const SessionExitModal = ({
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
-                <DialogTitle className="text-xl">Pourquoi terminer ?</DialogTitle>
+                <DialogTitle className="text-xl">
+                  Pourquoi terminer ?
+                </DialogTitle>
               </div>
               <DialogDescription>
                 Aide-nous à mieux comprendre pour améliorer tes séances
@@ -159,12 +177,15 @@ export const SessionExitModal = ({
                       "flex items-center space-x-3 p-3 rounded-xl border-2 transition-all cursor-pointer",
                       selectedReason === reason.value
                         ? "border-primary bg-primary/5"
-                        : "border-border/50 hover:border-border hover:bg-muted/30"
+                        : "border-border/50 hover:border-border hover:bg-muted/30",
                     )}
                     onClick={() => setSelectedReason(reason.value)}
                   >
                     <RadioGroupItem value={reason.value} id={reason.value} />
-                    <Label htmlFor={reason.value} className="flex-1 cursor-pointer font-medium">
+                    <Label
+                      htmlFor={reason.value}
+                      className="flex-1 cursor-pointer font-medium"
+                    >
                       {reason.label}
                     </Label>
                   </div>
@@ -183,7 +204,10 @@ export const SessionExitModal = ({
 
               <Button
                 onClick={handleConfirmEnd}
-                disabled={!selectedReason || (selectedReason === "other" && !otherDetails.trim())}
+                disabled={
+                  !selectedReason ||
+                  (selectedReason === "other" && !otherDetails.trim())
+                }
                 className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity rounded-xl py-5"
                 size="lg"
               >
