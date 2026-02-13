@@ -12,6 +12,22 @@ import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion, Ale
 import { toast } from "sonner";
 import { useSubscriptionContext } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Bonjour";
+  if (hour < 18) return "Bon après-midi";
+  return "Bonsoir";
+};
+
+const getSubtitle = (completed?: number, total?: number) => {
+  if (!total || total === 0) return "Prêt à commencer ta semaine ?";
+  const remaining = total - (completed || 0);
+  if (remaining <= 0) return "🎉 Bravo, semaine complète !";
+  if (remaining === 1) return "💪 Plus qu'une séance !";
+  return `🔥 Plus que ${remaining} séances cette semaine`;
+};
 
 const Hub = () => {
   const navigate = useNavigate();
@@ -148,13 +164,24 @@ const Hub = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 pb-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 border-b border-blue-200/50 px-4 py-6">
-          <h1 className="text-2xl font-bold text-blue-900">
-            Salut {userName} 👋
-          </h1>
-          <p className="text-sm text-blue-700/70">
-            Prêt à progresser aujourd'hui ?
+        <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 px-4 py-8 text-white">
+          <p className="text-sm text-white/70">{getGreeting()}</p>
+          <h1 className="text-2xl font-bold mt-0.5">{userName} 👋</h1>
+          <p className="text-sm text-white/80 mt-1">
+            {getSubtitle(sessionsData?.completed, sessionsData?.total)}
           </p>
+          {sessionsData?.total && sessionsData.total > 0 ? (
+            <div className="mt-4">
+              <div className="flex justify-between text-xs text-white/70 mb-1.5">
+                <span>{sessionsData.completed}/{sessionsData.total} séances</span>
+                <span>{Math.round(((sessionsData.completed || 0) / sessionsData.total) * 100)}%</span>
+              </div>
+              <Progress
+                value={((sessionsData.completed || 0) / sessionsData.total) * 100}
+                className="h-2 bg-white/20 [&>div]:bg-white"
+              />
+            </div>
+          ) : null}
         </div>
 
         {/* Subscription expired banner */}
