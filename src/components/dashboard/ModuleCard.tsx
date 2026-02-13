@@ -33,10 +33,13 @@ export const ModuleCard = ({
             ? "border-muted/50 bg-muted/20 cursor-not-allowed" 
             : spotlight
               ? "border-primary/50 bg-primary/5 ring-2 ring-primary/30 ring-offset-2 ring-offset-background shadow-lg shadow-primary/20"
-              : "border-blue-100 bg-white/80 hover:shadow-xl hover:shadow-blue-200/50 hover:border-blue-300 hover:scale-105 active:scale-95",
+              : "border-blue-100/80 hover:shadow-2xl hover:shadow-blue-200/40 hover:border-blue-300 hover:-translate-y-1 active:scale-95",
           "backdrop-blur-sm shadow-sm transition-all duration-300",
           "flex flex-col items-center justify-center p-4"
         )}
+        style={{
+          background: locked ? undefined : `linear-gradient(135deg, rgba(255,255,255,0.9), hsl(${iconColor} / 0.06))`,
+        }}
       >
         {/* Locked overlay */}
         {locked && (
@@ -57,10 +60,11 @@ export const ModuleCard = ({
         {/* Icône avec fond semi-transparent et glow */}
         <div
           className={cn(
-            "w-16 h-16 rounded-2xl flex items-center justify-center mb-3 backdrop-blur-sm transition-all duration-300",
-            locked ? "bg-muted/20" : "bg-blue-500/5 group-hover:bg-blue-500/10"
+            "w-[4.5rem] h-[4.5rem] rounded-2xl flex items-center justify-center mb-3 backdrop-blur-sm transition-all duration-300",
+            locked ? "bg-muted/20" : "group-hover:scale-105"
           )}
           style={{ 
+            backgroundColor: locked ? undefined : `hsl(${iconColor} / 0.12)`,
             boxShadow: locked ? 'none' : `0 0 20px hsl(${iconColor} / 0.15)` 
           }}
         >
