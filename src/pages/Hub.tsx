@@ -164,26 +164,35 @@ const Hub = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 pb-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 px-4 py-5 text-white">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-sm text-white/60">{getGreeting()},</span>
-            <h1 className="text-xl font-bold">{userName} 👋</h1>
-          </div>
-          <p className="text-xs text-white/70 mt-1">
-            {getSubtitle(sessionsData?.completed, sessionsData?.total)}
-          </p>
-          {sessionsData?.total && sessionsData.total > 0 ? (
-            <div className="mt-2.5">
-              <div className="flex justify-between text-[11px] text-white/50 mb-1">
-                <span>{sessionsData.completed}/{sessionsData.total} séances</span>
-                <span>{Math.round(((sessionsData.completed || 0) / sessionsData.total) * 100)}%</span>
-              </div>
-              <Progress
-                value={((sessionsData.completed || 0) / sessionsData.total) * 100}
-                className="h-1.5 bg-white/15 [&>div]:bg-white"
-              />
+        <div className="relative overflow-hidden shadow-lg bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 px-4 py-5 text-white">
+          {/* Decorative depth layers */}
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-indigo-400/15 rounded-full blur-2xl" />
+
+          <div className="relative z-10">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm text-white/80">{getGreeting()},</span>
+              <h1 className="text-2xl font-bold">{userName} 👋</h1>
             </div>
-          ) : null}
+            <p className="text-xs text-white/70 mt-1">
+              {getSubtitle(sessionsData?.completed, sessionsData?.total)}
+            </p>
+            {sessionsData?.total && sessionsData.total > 0 ? (
+              <div className="mt-3 bg-white/10 backdrop-blur-sm rounded-xl p-2.5">
+                <div className="flex justify-between text-[11px] text-white/60 mb-1">
+                  <span>{sessionsData.completed}/{sessionsData.total} séances</span>
+                  <span>{Math.round(((sessionsData.completed || 0) / sessionsData.total) * 100)}%</span>
+                </div>
+                <Progress
+                  value={((sessionsData.completed || 0) / sessionsData.total) * 100}
+                  className="h-1.5 bg-white/15 [&>div]:bg-white"
+                />
+              </div>
+            ) : null}
+          </div>
+
+          {/* Bottom luminous line */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
         </div>
 
         {/* Subscription expired banner */}
