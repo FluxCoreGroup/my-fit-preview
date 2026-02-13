@@ -83,20 +83,25 @@ export const useSubscription = () => {
     setIsRefreshing(false);
   }, [checkSubscription]);
 
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
+
   const openCustomerPortal = useCallback(async () => {
+    if (isPortalLoading) return;
+    setIsPortalLoading(true);
     try {
       const { data: response, error } = await supabase.functions.invoke("customer-portal");
 
       if (error) throw error;
 
       if (response?.url) {
-        window.open(response.url, "_blank");
+        window.location.href = response.url;
       }
     } catch (err) {
       console.error("Error opening customer portal:", err);
+      setIsPortalLoading(false);
       throw err;
     }
-  }, []);
+  }, [isPortalLoading]);
 
   useEffect(() => {
     checkSubscription();
@@ -105,6 +110,7 @@ export const useSubscription = () => {
   return {
     ...data,
     isRefreshing,
+    isPortalLoading,
     refreshSubscription,
     openCustomerPortal,
   };
