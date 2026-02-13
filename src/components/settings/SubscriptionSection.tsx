@@ -17,7 +17,7 @@ import {
 
 export const SubscriptionSection = () => {
   const navigate = useNavigate();
-  const { status, planInterval, subscriptionEnd, trialEnd, isRefreshing, refreshSubscription, openCustomerPortal } = useSubscription();
+  const { status, planInterval, subscriptionEnd, trialEnd, isRefreshing, isPortalLoading, refreshSubscription, openCustomerPortal } = useSubscription();
 
   const handleManageSubscription = async () => {
     try {
@@ -124,10 +124,10 @@ export const SubscriptionSection = () => {
             onClick={handleManageSubscription} 
             variant="outline" 
             className="w-full"
+            disabled={isPortalLoading}
           >
             <CreditCard className="w-4 h-4 mr-2" />
-            Gérer mon abonnement
-            <ExternalLink className="w-4 h-4 ml-2" />
+            {isPortalLoading ? "Redirection..." : "Gérer mon abonnement"}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
@@ -162,10 +162,10 @@ export const SubscriptionSection = () => {
             onClick={handleManageSubscription} 
             variant="outline" 
             className="w-full"
+            disabled={isPortalLoading}
           >
             <CreditCard className="w-4 h-4 mr-2" />
-            Gérer mon abonnement
-            <ExternalLink className="w-4 h-4 ml-2" />
+            {isPortalLoading ? "Redirection..." : "Gérer mon abonnement"}
           </Button>
 
           <p className="text-xs text-muted-foreground text-center">
