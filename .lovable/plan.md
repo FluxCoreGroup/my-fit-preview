@@ -1,53 +1,53 @@
-## Redesign du Hub -- Header + Grille de modules
 
-### Constat actuel
 
-Le Hub est visuellement fade : header degrade bleu clair tres pale, cards carrees uniformes avec bordures fines bleu clair, pas de hierarchie visuelle, pas de contenu dynamique dans le header.
+## Header Hub : version minimaliste et compacte
 
----
+### Constat
 
-### Ameliorations proposees
+Le header actuel prend trop de place verticalement (~180px) avec un padding genereux (`py-8`), des lignes de texte espacees, et la barre de progression. L'objectif est de le rendre plus compact tout en gardant un rendu premium.
 
-#### 1. Header repense
+### Changements proposes
 
-- **Fond gradient plus affirme** : passer de `from-blue-50 to-blue-100/50` a un vrai gradient sombre `from-blue-600 via-blue-500 to-indigo-500` avec texte blanc
-- **Salutation contextuelle** selon l'heure : "Bonjour", "Bon apres-midi", "Bonsoir"
-- **Barre de progression hebdomadaire** : afficher "X/Y seances cette semaine" avec une Progress bar fine integree dans le header
-- **Sous-titre dynamique** : adapter le message selon l'avancement ("Plus que 2 seances !", "Semaine complete !", etc.)
+#### Reduire l'encombrement vertical
 
-#### 2. Cards modules plus visuelles
+- Passer le padding de `py-8` a `py-5`
+- Mettre la salutation et le nom sur une seule ligne : "Bonsoir, **Bryan** 👋"
+- Reduire le sous-titre dynamique en `text-xs`
+- Remonter la barre de progression avec un `mt-2.5` au lieu de `mt-4`
+- Reduire les marges entre chaque element (`mt-0.5` vers `mt-0`)
 
-- **Fond degrade subtil par carte** : chaque carte a un leger gradient de fond base sur sa couleur d'icone (au lieu du blanc uniforme)
-- **Icones plus grandes** dans un cercle colore plus marque
-- **Effet hover ameliore** : translation Y + ombre portee plus prononcee
-- **Distinction visuelle** entre modules principaux (Entrainements, Nutrition) et secondaires (Parametres, Aide) via une taille ou un style different
+#### Layout plus structure
 
----
+- Afficher salutation + nom en une ligne avec `flex items-baseline gap-1.5`
+- Le sous-titre passe juste en dessous, plus discret
+- La barre de progression reste mais plus compacte : `h-1.5` au lieu de `h-2`, labels en `text-[11px]`
 
 ### Section technique
 
-**Fichiers modifies** :
+**Fichier modifie** : `src/pages/Hub.tsx` (bloc header, lignes 167-187)
 
+Remplacement du header par :
 
-| Fichier                                   | Changement                                                                                                                              |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/pages/Hub.tsx`                       | Header avec gradient sombre, texte blanc, salutation contextuelle, barre de progression, sous-titre dynamique                           |
-| `src/components/dashboard/ModuleCard.tsx` | Fond degrade subtil par carte base sur `iconColor`, icone dans un cercle colore plus visible, hover avec translateY et shadow plus fort |
+```text
+<div className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 px-4 py-5 text-white">
+  <div className="flex items-baseline gap-1.5">
+    <span className="text-sm text-white/60">{getGreeting()},</span>
+    <h1 className="text-xl font-bold">{userName} 👋</h1>
+  </div>
+  <p className="text-xs text-white/70 mt-1">
+    {getSubtitle(sessionsData?.completed, sessionsData?.total)}
+  </p>
+  {sessionsData?.total && sessionsData.total > 0 ? (
+    <div className="mt-2.5">
+      <div className="flex justify-between text-[11px] text-white/50 mb-1">
+        <span>{sessionsData.completed}/{sessionsData.total} seances</span>
+        <span>{Math.round(...)}</span>
+      </div>
+      <Progress value={...} className="h-1.5 bg-white/15 [&>div]:bg-white" />
+    </div>
+  ) : null}
+</div>
+```
 
+Resultat : header ~40% plus compact, meme information, rendu plus clean et aerien.
 
-**Detail des changements dans Hub.tsx** :
-
-- Ajouter une fonction `getGreeting()` qui retourne "Bonjour"/"Bon apres-midi"/"Bonsoir" selon `new Date().getHours()`
-- Ajouter une fonction `getSubtitle()` qui utilise `sessionsData` pour generer un message contextuel
-- Importer `Progress` depuis `@/components/ui/progress`
-- Remplacer le bloc header (lignes ~119-127) par :
-  - `bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500` avec `text-white`
-  - Salutation en `text-sm text-white/70` + nom en `text-2xl font-bold`
-  - Si `sessionsData?.total > 0` : afficher compteur + Progress bar avec `className="h-2 bg-white/20"` et indicateur en `[&>div]:bg-white`
-
-**Detail des changements dans ModuleCard.tsx** :
-
-- Remplacer le fond blanc uniforme `bg-white/80` par un gradient subtil : `bg-gradient-to-br from-white to-[hsl(${iconColor}/0.06)]`
-- Augmenter le cercle d'icone : passer de `w-16 h-16` a `w-18 h-18` avec un fond colore plus opaque `bg-[hsl(${iconColor}/0.12)]`
-- Ajouter `hover:-translate-y-1` pour un effet de levitation au hover
-- Augmenter le shadow hover : `hover:shadow-xl` vers `hover:shadow-2xl`
