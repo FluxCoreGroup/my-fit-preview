@@ -12,14 +12,21 @@ export function SubscriptionRoute({ children }: SubscriptionRouteProps) {
   const { user, loading } = useAuth();
   const { status } = useSubscriptionContext();
   const hasToasted = useRef(false);
+  const wasLoading = useRef(true);
 
   useEffect(() => {
-    if (status === "inactive" && !hasToasted.current) {
+    // Don't toast on the initial loading→inactive transition
+    if (status === "loading") {
+      wasLoading.current = true;
+      return;
+    }
+    if (status === "inactive" && !wasLoading.current && !hasToasted.current) {
       hasToasted.current = true;
       toast.error("Ton abonnement a expiré", {
         description: "Réabonne-toi pour accéder à cette fonctionnalité.",
       });
     }
+    wasLoading.current = false;
   }, [status]);
 
   if (loading || status === "loading") {
