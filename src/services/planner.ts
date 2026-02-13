@@ -60,6 +60,7 @@ export interface NutritionPreview {
 export interface Exercise {
   id: string;
   name: string;
+  englishName?: string;
   imageUrl?: string;
   sets: number;
   reps: string; // "8-12" ou "30s"
