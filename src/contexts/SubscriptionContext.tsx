@@ -29,7 +29,7 @@ export const useSubscriptionContext = () => {
 };
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [status, setStatus] = useState<SubscriptionStatus>("loading");
   const [productId, setProductId] = useState<string | null>(null);
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
@@ -100,6 +100,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   // Initial check + polling every 60s
   useEffect(() => {
+    if (loading) return; // Wait for auth to finish before deciding
     if (!user) {
       setStatus("inactive");
       return;
@@ -107,7 +108,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     checkSubscription();
     const interval = setInterval(checkSubscription, 60_000);
     return () => clearInterval(interval);
-  }, [user, checkSubscription]);
+  }, [user, loading, checkSubscription]);
 
   return (
     <SubscriptionContext.Provider
