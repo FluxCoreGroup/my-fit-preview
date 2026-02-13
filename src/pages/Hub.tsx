@@ -164,21 +164,23 @@ const Hub = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 pb-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 px-4 py-8 text-white">
-          <p className="text-sm text-white/70">{getGreeting()}</p>
-          <h1 className="text-2xl font-bold mt-0.5">{userName} 👋</h1>
-          <p className="text-sm text-white/80 mt-1">
+        <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 px-4 py-5 text-white">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-sm text-white/60">{getGreeting()},</span>
+            <h1 className="text-xl font-bold">{userName} 👋</h1>
+          </div>
+          <p className="text-xs text-white/70 mt-1">
             {getSubtitle(sessionsData?.completed, sessionsData?.total)}
           </p>
           {sessionsData?.total && sessionsData.total > 0 ? (
-            <div className="mt-4">
-              <div className="flex justify-between text-xs text-white/70 mb-1.5">
+            <div className="mt-2.5">
+              <div className="flex justify-between text-[11px] text-white/50 mb-1">
                 <span>{sessionsData.completed}/{sessionsData.total} séances</span>
                 <span>{Math.round(((sessionsData.completed || 0) / sessionsData.total) * 100)}%</span>
               </div>
               <Progress
                 value={((sessionsData.completed || 0) / sessionsData.total) * 100}
-                className="h-2 bg-white/20 [&>div]:bg-white"
+                className="h-1.5 bg-white/15 [&>div]:bg-white"
               />
             </div>
           ) : null}
