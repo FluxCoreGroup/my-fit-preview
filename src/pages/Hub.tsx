@@ -8,14 +8,17 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOnboarding, TOUR_STEPS } from "@/contexts/OnboardingContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion } from "lucide-react";
+import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { useSubscriptionContext } from "@/contexts/SubscriptionContext";
+import { Button } from "@/components/ui/button";
 
 const Hub = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { state, isOnboardingActive, isLoading: onboardingLoading, startTour, skipTour, checkOnboardingStatus, getCurrentStep } = useOnboarding();
+  const { status: subscriptionStatus } = useSubscriptionContext();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [initDone, setInitDone] = useState(false);
@@ -153,6 +156,26 @@ const Hub = () => {
             Prêt à progresser aujourd'hui ?
           </p>
         </div>
+
+        {/* Subscription expired banner */}
+        {subscriptionStatus === "inactive" && (
+          <div className="mx-4 mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-semibold text-destructive">Ton abonnement a expiré</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Réabonne-toi pour accéder à tes entraînements et coachs IA.
+              </p>
+              <Button
+                size="sm"
+                className="mt-3"
+                onClick={() => navigate("/tarif")}
+              >
+                Se réabonner
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Grid de modules */}
         <div className="p-4 max-w-4xl mx-auto">

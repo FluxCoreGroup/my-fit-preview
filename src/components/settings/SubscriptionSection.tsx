@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, AlertCircle, CreditCard, ExternalLink, RefreshCw, Sparkles } from "lucide-react";
-import { useSubscription, PlanInterval } from "@/hooks/useSubscription";
+import { useSubscriptionContext, PlanInterval } from "@/contexts/SubscriptionContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -17,7 +17,7 @@ import {
 
 export const SubscriptionSection = () => {
   const navigate = useNavigate();
-  const { status, planInterval, subscriptionEnd, trialEnd, isRefreshing, isPortalLoading, refreshSubscription, openCustomerPortal } = useSubscription();
+  const { status, planInterval, subscriptionEnd, trialEnd, isRefreshing, isPortalLoading, refreshSubscription, openCustomerPortal } = useSubscriptionContext();
 
   const handleManageSubscription = async () => {
     try {
