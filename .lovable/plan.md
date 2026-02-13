@@ -1,26 +1,26 @@
-## Todolist : Ameliorer la gestion d'abonnement
+## Redesign du Hub -- Header + Grille de modules
 
-### Bug critique : Faux message "abonnement expire" au chargement
+### Constat actuel
 
-**Cause racine** : Dans `SubscriptionContext`, quand `user` est `null` (pendant le chargement de l'auth), le `useEffect` met immediatement le status a `"inactive"`. L'auth se charge en ~200ms, mais pendant ce laps de temps, le Hub affiche deja le bandeau "Ton abonnement a expire" et le toast se declenche.
-
-**Correction** :
-
-1. **Ne pas setter "inactive" tant que l'auth n'a pas fini de charger**
-  - Fichier : `src/contexts/SubscriptionContext.tsx`
-  - Importer `loading` depuis `useAuth()` en plus de `user`
-  - Dans le `useEffect` : si `loading` est `true`, ne rien faire (garder le status `"loading"`)
-  - Mettre `"inactive"` uniquement quand `loading === false && !user`
-2. **Ne pas afficher le bandeau tant que le status est "loading"**
-  - Fichier : `src/pages/Hub.tsx`
-  - Le bandeau "abonnement expire" ne s'affiche deja que pour `"inactive"`, mais la correction du contexte garantit que `"inactive"` ne sera set que quand on est sur que l'utilisateur n'a pas d'abonnement
-3. **Proteger le toast dans SubscriptionRoute**
-  - Fichier : `src/components/SubscriptionRoute.tsx`
-  - Le toast "Ton abonnement a expire" ne doit pas se declencher si le status vient juste de passer de `"loading"` a `"inactive"` au premier rendu
+Le Hub est visuellement fade : header degrade bleu clair tres pale, cards carrees uniformes avec bordures fines bleu clair, pas de hierarchie visuelle, pas de contenu dynamique dans le header.
 
 ---
 
-Amélioration, faire une page si l'utilisateur est "inactive" ou qu'il n'a pas payé pour qu'il puisse directement repayer sans passer par /tarif
+### Ameliorations proposees
+
+#### 1. Header repense
+
+- **Fond gradient plus affirme** : passer de `from-blue-50 to-blue-100/50` a un vrai gradient sombre `from-blue-600 via-blue-500 to-indigo-500` avec texte blanc
+- **Salutation contextuelle** selon l'heure : "Bonjour", "Bon apres-midi", "Bonsoir"
+- **Barre de progression hebdomadaire** : afficher "X/Y seances cette semaine" avec une Progress bar fine integree dans le header
+- **Sous-titre dynamique** : adapter le message selon l'avancement ("Plus que 2 seances !", "Semaine complete !", etc.)
+
+#### 2. Cards modules plus visuelles
+
+- **Fond degrade subtil par carte** : chaque carte a un leger gradient de fond base sur sa couleur d'icone (au lieu du blanc uniforme)
+- **Icones plus grandes** dans un cercle colore plus marque
+- **Effet hover ameliore** : translation Y + ombre portee plus prononcee
+- **Distinction visuelle** entre modules principaux (Entrainements, Nutrition) et secondaires (Parametres, Aide) via une taille ou un style different
 
 ---
 
@@ -29,40 +29,25 @@ Amélioration, faire une page si l'utilisateur est "inactive" ou qu'il n'a pas p
 **Fichiers modifies** :
 
 
-| Fichier                                | Changement                                                                                       |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `src/contexts/SubscriptionContext.tsx` | Importer `loading` de `useAuth()`, ne setter `"inactive"` que quand `loading === false && !user` |
-| `src/components/SubscriptionRoute.tsx` | Ajouter un guard pour ne pas toast/rediriger pendant le chargement initial                       |
-| &nbsp;                                 | &nbsp;                                                                                           |
+| Fichier                                   | Changement                                                                                                                              |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/pages/Hub.tsx`                       | Header avec gradient sombre, texte blanc, salutation contextuelle, barre de progression, sous-titre dynamique                           |
+| `src/components/dashboard/ModuleCard.tsx` | Fond degrade subtil par carte base sur `iconColor`, icone dans un cercle colore plus visible, hover avec translateY et shadow plus fort |
 
 
-**Changement principal dans SubscriptionContext** :
+**Detail des changements dans Hub.tsx** :
 
-```text
-// AVANT (bug)
-useEffect(() => {
-  if (!user) {
-    setStatus("inactive");  // <-- se declenche avant que l'auth ait charge
-    return;
-  }
-  checkSubscription();
-  ...
-}, [user, checkSubscription]);
+- Ajouter une fonction `getGreeting()` qui retourne "Bonjour"/"Bon apres-midi"/"Bonsoir" selon `new Date().getHours()`
+- Ajouter une fonction `getSubtitle()` qui utilise `sessionsData` pour generer un message contextuel
+- Importer `Progress` depuis `@/components/ui/progress`
+- Remplacer le bloc header (lignes ~119-127) par :
+  - `bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500` avec `text-white`
+  - Salutation en `text-sm text-white/70` + nom en `text-2xl font-bold`
+  - Si `sessionsData?.total > 0` : afficher compteur + Progress bar avec `className="h-2 bg-white/20"` et indicateur en `[&>div]:bg-white`
 
-// APRES (correction)
-useEffect(() => {
-  if (loading) return;  // attend que l'auth finisse
-  if (!user) {
-    setStatus("inactive");
-    return;
-  }
-  checkSubscription();
-  ...
-}, [user, loading, checkSubscription]);
-```
+**Detail des changements dans ModuleCard.tsx** :
 
-**Priorite** :
-
-- Items 1-3 : correction du bug critique (faux "expire") -- a faire maintenant
-- Items 4-5 : robustesse reseau -- recommande
-- Items 6-7 : ameliorations UX -- nice to have
+- Remplacer le fond blanc uniforme `bg-white/80` par un gradient subtil : `bg-gradient-to-br from-white to-[hsl(${iconColor}/0.06)]`
+- Augmenter le cercle d'icone : passer de `w-16 h-16` a `w-18 h-18` avec un fond colore plus opaque `bg-[hsl(${iconColor}/0.12)]`
+- Ajouter `hover:-translate-y-1` pour un effet de levitation au hover
+- Augmenter le shadow hover : `hover:shadow-xl` vers `hover:shadow-2xl`
