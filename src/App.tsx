@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { SubscriptionRoute } from "./components/SubscriptionRoute";
 import { useSaveOnboardingData } from "./hooks/useSaveOnboardingData";
 import { AppLayout } from "./components/layouts/AppLayout";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
@@ -71,13 +72,13 @@ const App = () => (
               
               {/* Protected routes with AppLayout */}
             
-            <Route path="/session" element={<ProtectedRoute><AppLayout><Session /></AppLayout></ProtectedRoute>} />
+            <Route path="/session" element={<SubscriptionRoute><AppLayout><Session /></AppLayout></SubscriptionRoute>} />
             <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
             <Route path="/hub" element={<ProtectedRoute><AppLayout><Hub /></AppLayout></ProtectedRoute>} />
-            <Route path="/training" element={<ProtectedRoute><AppLayout><Training /></AppLayout></ProtectedRoute>} />
-            <Route path="/nutrition" element={<ProtectedRoute><AppLayout><Nutrition /></AppLayout></ProtectedRoute>} />
-            <Route path="/coach/alex" element={<ProtectedRoute><AppLayout><CoachAlex /></AppLayout></ProtectedRoute>} />
-            <Route path="/coach/julie" element={<ProtectedRoute><AppLayout><CoachJulie /></AppLayout></ProtectedRoute>} />
+            <Route path="/training" element={<SubscriptionRoute><AppLayout><Training /></AppLayout></SubscriptionRoute>} />
+            <Route path="/nutrition" element={<SubscriptionRoute><AppLayout><Nutrition /></AppLayout></SubscriptionRoute>} />
+            <Route path="/coach/alex" element={<SubscriptionRoute><AppLayout><CoachAlex /></AppLayout></SubscriptionRoute>} />
+            <Route path="/coach/julie" element={<SubscriptionRoute><AppLayout><CoachJulie /></AppLayout></SubscriptionRoute>} />
             <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
             <Route path="/settings/profile" element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
             <Route path="/settings/physical-info" element={<ProtectedRoute><AppLayout><PhysicalInfo /></AppLayout></ProtectedRoute>} />
