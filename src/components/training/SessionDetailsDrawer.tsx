@@ -7,18 +7,19 @@ import {
   DrawerDescription,
 } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Timer, 
-  Dumbbell, 
-  CheckCircle2, 
+import {
+  Timer,
+  Dumbbell,
+  CheckCircle2,
   AlertCircle,
-  Clock
+  Clock,
 } from "lucide-react";
 import { ExerciseImage } from "./ExerciseImage";
 import { ExerciseImageModal } from "./ExerciseImageModal";
 
 interface Exercise {
   name: string;
+  englishName?: string;
   sets: number;
   reps: string;
   rest: number;
@@ -49,7 +50,9 @@ export const SessionDetailsDrawer = ({
   checklist,
   coachNotes,
 }: SessionDetailsDrawerProps) => {
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
+    null,
+  );
 
   return (
     <>
@@ -59,8 +62,7 @@ export const SessionDetailsDrawer = ({
             <DrawerTitle className="text-xl">{sessionName}</DrawerTitle>
             <DrawerDescription className="flex items-center gap-3">
               <span className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                ~{estimatedTime}min
+                <Clock className="w-4 h-4" />~{estimatedTime}min
               </span>
               <span className="flex items-center gap-1">
                 <Dumbbell className="w-4 h-4" />
@@ -96,14 +98,20 @@ export const SessionDetailsDrawer = ({
               </h4>
               <div className="space-y-2">
                 {exercises.map((exercise, i) => (
-                  <div 
-                    key={i} 
+                  <div
+                    key={i}
                     className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors"
                     onClick={() => setSelectedExercise(exercise)}
                   >
-                    <ExerciseImage exerciseName={exercise.name} size="sm" />
+                    <ExerciseImage
+                      exerciseName={exercise.name}
+                      englishName={exercise.englishName}
+                      size="sm"
+                    />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{exercise.name}</p>
+                      <p className="font-medium text-sm truncate">
+                        {exercise.name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {exercise.sets}×{exercise.reps} • {exercise.rest}s repos
                       </p>
@@ -152,6 +160,7 @@ export const SessionDetailsDrawer = ({
       {selectedExercise && (
         <ExerciseImageModal
           exerciseName={selectedExercise.name}
+          englishName={selectedExercise.englishName}
           open={!!selectedExercise}
           onOpenChange={(open) => !open && setSelectedExercise(null)}
           tips={selectedExercise.tips}

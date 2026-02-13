@@ -11,6 +11,7 @@ import { Dumbbell } from "lucide-react";
 
 interface ExerciseImageModalProps {
   exerciseName: string;
+  englishName?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   tips?: string[];
@@ -19,13 +20,17 @@ interface ExerciseImageModalProps {
 
 export const ExerciseImageModal = ({
   exerciseName,
+  englishName,
   open,
   onOpenChange,
   tips = [],
-  commonMistakes = []
+  commonMistakes = [],
 }: ExerciseImageModalProps) => {
-  const { gifUrl, imageUrl, muscleGroup, isLoading, source } = useExerciseImage(exerciseName);
-  
+  const { gifUrl, imageUrl, muscleGroup, isLoading, source } = useExerciseImage(
+    exerciseName,
+    englishName,
+  );
+
   const displayUrl = gifUrl || imageUrl;
   const isVideo = displayUrl?.includes(".mp4");
 
@@ -69,7 +74,10 @@ export const ExerciseImageModal = ({
                 {muscleGroup}
               </Badge>
               {source === "local" && (
-                <Badge variant="outline" className="text-xs text-muted-foreground">
+                <Badge
+                  variant="outline"
+                  className="text-xs text-muted-foreground"
+                >
                   Bibliothèque locale
                 </Badge>
               )}

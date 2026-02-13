@@ -79,10 +79,10 @@ export const SessionExitModal = ({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 w-[90%] max-w-md rounded-2xl py-4 px-2">
+      <DialogContent className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 w-[90%] max-w-md rounded-2xl py-4 px-2 md:px-4">
         {step === "choice" ? (
           <>
-            <DialogHeader className="space-y-2">
+            <DialogHeader className="space-y-2 text-center mx-auto">
               <DialogTitle className="text-xl">Quitter la séance ?</DialogTitle>
               <DialogDescription>Que souhaites-tu faire ?</DialogDescription>
             </DialogHeader>

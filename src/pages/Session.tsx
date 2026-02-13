@@ -6,7 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { type Exercise } from "@/services/planner";
 import { useNavigate } from "react-router-dom";
-import { Play, Pause, ChevronRight, RefreshCw, Lightbulb, SkipForward } from "lucide-react";
+import {
+  Play,
+  Pause,
+  ChevronRight,
+  RefreshCw,
+  Lightbulb,
+  SkipForward,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,8 +39,9 @@ const Session = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   useSaveOnboardingData();
-  const { exerciseLogs, logSet, getSuggestedWeight, clearLogs } = useSessionFeedback();
-  
+  const { exerciseLogs, logSet, getSuggestedWeight, clearLogs } =
+    useSessionFeedback();
+
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
@@ -51,14 +59,14 @@ const Session = () => {
 
   // Check for first-time tutorial
   useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem('firstSessionTutorial');
+    const hasSeenTutorial = localStorage.getItem("firstSessionTutorial");
     if (!hasSeenTutorial) {
       setShowTutorial(true);
     }
     // Load tracking preference
-    const trackingPref = localStorage.getItem('advancedTracking');
+    const trackingPref = localStorage.getItem("advancedTracking");
     if (trackingPref) {
-      setAdvancedTracking(trackingPref === 'true');
+      setAdvancedTracking(trackingPref === "true");
     }
   }, []);
 
@@ -70,22 +78,22 @@ const Session = () => {
       }
 
       const currentSessionId = localStorage.getItem("currentSessionId");
-      
+
       if (currentSessionId) {
         const { data: session } = await supabase
-          .from('sessions')
-          .select('*')
-          .eq('id', currentSessionId)
-          .eq('user_id', user.id)
+          .from("sessions")
+          .select("*")
+          .eq("id", currentSessionId)
+          .eq("user_id", user.id)
           .single();
-        
+
         if (session?.exercises) {
           // Handle both array format and object format { exercises: [], warmup: [] }
           const sessionData = session.exercises as any;
-          const exercisesArray = Array.isArray(sessionData) 
-            ? sessionData 
-            : (sessionData.exercises || []);
-          
+          const exercisesArray = Array.isArray(sessionData)
+            ? sessionData
+            : sessionData.exercises || [];
+
           if (exercisesArray.length > 0) {
             setExercises(exercisesArray);
             setSessionId(session.id);
@@ -95,20 +103,20 @@ const Session = () => {
       }
 
       const { data: lastSession } = await supabase
-        .from('sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+        .from("sessions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
         .limit(1)
         .single();
-      
+
       if (lastSession?.exercises) {
         // Handle both array format and object format { exercises: [], warmup: [] }
         const sessionData = lastSession.exercises as any;
-        const exercisesArray = Array.isArray(sessionData) 
-          ? sessionData 
-          : (sessionData.exercises || []);
-        
+        const exercisesArray = Array.isArray(sessionData)
+          ? sessionData
+          : sessionData.exercises || [];
+
         if (exercisesArray.length > 0) {
           setExercises(exercisesArray);
           setSessionId(lastSession.id);
@@ -144,7 +152,7 @@ const Session = () => {
     for (let i = 0; i < currentExerciseIndex; i++) {
       completed += exercises[i].sets;
     }
-    completed += (currentSet - 1);
+    completed += currentSet - 1;
     return completed;
   };
   const totalSetsAll = getTotalSets();
@@ -180,13 +188,13 @@ const Session = () => {
         setCurrentSet(1);
         setCurrentWeight("");
         setCurrentRPE(7);
-        
+
         const nextExercise = exercises[currentExerciseIndex + 1];
         const suggested = getSuggestedWeight(nextExercise.name);
         if (suggested && advancedTracking) {
           setCurrentWeight(suggested.toString());
         }
-        
+
         toast({
           title: "Exercice terminé !",
           description: "Prends une petite pause et passe au suivant.",
@@ -194,11 +202,11 @@ const Session = () => {
       } else {
         if (user && sessionId) {
           await supabase
-            .from('sessions')
+            .from("sessions")
             .update({ completed: true })
-            .eq('id', sessionId);
+            .eq("id", sessionId);
         }
-        
+
         setShowFeedbackModal(true);
       }
     }
@@ -206,7 +214,7 @@ const Session = () => {
 
   const handleTrackingToggle = (enabled: boolean) => {
     setAdvancedTracking(enabled);
-    localStorage.setItem('advancedTracking', enabled.toString());
+    localStorage.setItem("advancedTracking", enabled.toString());
   };
 
   const showAlternative = () => {
@@ -237,22 +245,22 @@ const Session = () => {
     if (user && sessionId) {
       try {
         await supabase
-          .from('sessions')
+          .from("sessions")
           .update({ completed: true })
-          .eq('id', sessionId);
-        
+          .eq("id", sessionId);
+
         // Store exit reason in feedback
-        await supabase.from('feedback').insert({
+        await supabase.from("feedback").insert({
           user_id: user.id,
           session_id: sessionId,
           completed: true,
-          comments: `Arrêt anticipé - ${reason}${details ? `: ${details}` : ''}`
+          comments: `Arrêt anticipé - ${reason}${details ? `: ${details}` : ""}`,
         });
       } catch (error) {
         console.error("Error ending session early:", error);
       }
     }
-    
+
     setShowExitModal(false);
     setShowFeedbackModal(true);
   };
@@ -266,8 +274,8 @@ const Session = () => {
           <p className="text-sm text-muted-foreground/60">
             Si le chargement persiste, retourne à l'entraînement.
           </p>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => navigate("/training")}
             className="mt-2"
           >
@@ -278,24 +286,29 @@ const Session = () => {
     );
   }
 
-  const progress = totalSetsAll > 0 ? (completedSetsAll / totalSetsAll) * 100 : 0;
+  const progress =
+    totalSetsAll > 0 ? (completedSetsAll / totalSetsAll) * 100 : 0;
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   return (
     <div className="min-h-screen bg-background pb-8">
       <BackButton label="Quitter" onClick={() => setShowExitModal(true)} />
-      
+
       <div className="pt-20 px-4">
         <div className="max-w-3xl mx-auto space-y-4">
           {/* Progress Bar - Simplified */}
           <Card className="bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl p-3">
             <div className="flex justify-between text-sm mb-2">
-              <span className="font-medium">Série {completedSetsAll + 1}/{totalSetsAll}</span>
-              <span className="text-muted-foreground">{Math.round(progress)}%</span>
+              <span className="font-medium">
+                Série {completedSetsAll + 1}/{totalSetsAll}
+              </span>
+              <span className="text-muted-foreground">
+                {Math.round(progress)}%
+              </span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
               <div
@@ -309,8 +322,12 @@ const Session = () => {
           {isResting && (
             <Card className="p-8 bg-gradient-to-br from-secondary/20 to-secondary/5 backdrop-blur-xl border-secondary/20 rounded-2xl animate-fade-in">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">Temps de repos</p>
-                <p className="text-xs text-muted-foreground/60 mb-4">Tu peux passer dès que tu es prêt(e)</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Temps de repos
+                </p>
+                <p className="text-xs text-muted-foreground/60 mb-4">
+                  Tu peux passer dès que tu es prêt(e)
+                </p>
                 <div className="relative w-48 h-48 mx-auto mb-6">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle
@@ -336,7 +353,9 @@ const Session = () => {
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-6xl font-bold text-secondary">{formatTime(timeLeft)}</span>
+                    <span className="text-6xl font-bold text-secondary">
+                      {formatTime(timeLeft)}
+                    </span>
                   </div>
                 </div>
                 {/* Skip button - Most prominent */}
@@ -355,7 +374,11 @@ const Session = () => {
                   size="sm"
                   className="text-muted-foreground"
                 >
-                  {isPaused ? <Play className="w-4 h-4 mr-1" /> : <Pause className="w-4 h-4 mr-1" />}
+                  {isPaused ? (
+                    <Play className="w-4 h-4 mr-1" />
+                  ) : (
+                    <Pause className="w-4 h-4 mr-1" />
+                  )}
                   {isPaused ? "Reprendre" : "Pause"}
                 </Button>
               </div>
@@ -367,15 +390,18 @@ const Session = () => {
             <Card className="p-6 bg-card/50 backdrop-blur-xl border-white/10 rounded-2xl">
               {/* Exercise Image */}
               <div className="mb-4">
-                <ExerciseImage 
-                  exerciseName={currentExercise.name} 
+                <ExerciseImage
+                  exerciseName={currentExercise.name}
+                  englishName={currentExercise.englishName}
                   size="lg"
                   showGif={true}
                 />
               </div>
 
               {/* Exercise Name & Stats */}
-              <h2 className="text-2xl font-bold mb-2">{currentExercise.name}</h2>
+              <h2 className="text-2xl font-bold mb-2">
+                {currentExercise.name}
+              </h2>
               <div className="flex gap-2 mb-6">
                 <span className="px-3 py-1 bg-primary/10 text-primary text-sm rounded-full font-medium">
                   Série {currentSet}/{totalSets}
@@ -425,7 +451,9 @@ const Session = () => {
                       min="1"
                       max="10"
                       value={currentRPE}
-                      onChange={(e) => setCurrentRPE(parseInt(e.target.value) || 7)}
+                      onChange={(e) =>
+                        setCurrentRPE(parseInt(e.target.value) || 7)
+                      }
                       className="text-center font-bold"
                     />
                   </div>
@@ -481,22 +509,30 @@ const Session = () => {
             <AlertDialogDescription className="space-y-3 text-left pt-2">
               <p className="flex items-start gap-2">
                 <span className="text-primary font-bold">1.</span>
-                <span>Clique sur <strong>"Série terminée"</strong> après chaque série</span>
+                <span>
+                  Clique sur <strong>"Série terminée"</strong> après chaque
+                  série
+                </span>
               </p>
               <p className="flex items-start gap-2">
                 <span className="text-primary font-bold">2.</span>
-                <span>Tu peux <strong>passer le repos</strong> à tout moment</span>
+                <span>
+                  Tu peux <strong>passer le repos</strong> à tout moment
+                </span>
               </p>
               <p className="flex items-start gap-2">
                 <span className="text-primary font-bold">3.</span>
-                <span>Utilise <Lightbulb className="w-4 h-4 inline text-primary" /> pour voir les conseils</span>
+                <span>
+                  Utilise <Lightbulb className="w-4 h-4 inline text-primary" />{" "}
+                  pour voir les conseils
+                </span>
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => {
-                localStorage.setItem('firstSessionTutorial', 'seen');
+                localStorage.setItem("firstSessionTutorial", "seen");
                 setShowTutorial(false);
               }}
               className="bg-gradient-to-r from-primary to-secondary w-full"
