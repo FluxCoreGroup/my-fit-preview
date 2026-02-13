@@ -3,7 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // Normalize exercise name for lookup
@@ -15,48 +16,54 @@ const normalizeExerciseName = (name: string): string => {
     .trim();
 };
 
-// Translate common French exercise names to English for API lookup
+// Translate common French exercise names to English for ExerciseDB API
 const frenchToEnglishMap: Record<string, string> = {
   "developpe couche": "bench press",
   "developpe incline": "incline bench press",
-  "squat": "squat",
-  "soulevé de terre": "deadlift",
-  "tractions": "pull up",
-  "rowing": "row",
-  "curl": "bicep curl",
-  "extension triceps": "tricep extension",
-  "presse a cuisses": "leg press",
-  "fentes": "lunge",
-  "elevations laterales": "lateral raise",
+  "developpe decline": "decline bench press",
   "developpe militaire": "overhead press",
+  "developpe epaules": "shoulder press",
+  "developpe halteres": "dumbbell press",
+  "souleve de terre": "deadlift",
+  squat: "squat",
+  tractions: "pull up",
+  rowing: "row",
   "tirage vertical": "lat pulldown",
   "tirage horizontal": "seated row",
-  "hip thrust": "hip thrust",
+  curl: "curl",
+  "extension triceps": "tricep extension",
+  "extensions triceps": "tricep extension",
+  "presse a cuisses": "leg press",
+  fentes: "lunge",
+  "elevations laterales": "lateral raise",
   "leg curl": "leg curl",
   "leg extension": "leg extension",
-  "crunch": "crunch",
-  "gainage": "plank",
-  "pompes": "push up",
-  "dips": "dips"
+  "hip thrust": "hip thrust",
+  crunch: "crunch",
+  gainage: "plank",
+  planche: "plank",
+  pompes: "push up",
+  dips: "dips",
+  mollets: "calf raise",
 };
 
-// Get English term for API search
-const getEnglishTerm = (frenchName: string): string => {
+// Translate French to English for better API results
+const translateToEnglish = (frenchName: string): string => {
   const normalized = normalizeExerciseName(frenchName);
-  
+
   // Direct match
   if (frenchToEnglishMap[normalized]) {
     return frenchToEnglishMap[normalized];
   }
-  
+
   // Partial match
   for (const [french, english] of Object.entries(frenchToEnglishMap)) {
-    if (normalized.includes(french) || french.includes(normalized)) {
+    if (normalized.includes(french)) {
       return english;
     }
   }
-  
-  // Return original if no translation found (might work for English names)
+
+  // Return original (might already be in English)
   return frenchName;
 };
 
@@ -66,16 +73,21 @@ serve(async (req) => {
   }
 
   try {
-    const { exerciseName } = await req.json();
-    
+    const { exerciseName, englishName } = await req.json();
+
     if (!exerciseName) {
       return new Response(
         JSON.stringify({ error: "Exercise name is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
-    console.log(`Looking up exercise image for: ${exerciseName}`);
+    console.log(
+      `Looking up exercise image for: ${exerciseName}${englishName ? ` (${englishName})` : ""}`,
+    );
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -84,98 +96,103 @@ serve(async (req) => {
     const normalizedName = normalizeExerciseName(exerciseName);
 
     // 1. Check cache first
-    const { data: cached } = await supabase
-      .from("exercise_image_cache")
-      .select("*")
-      .eq("exercise_name_normalized", normalizedName)
-      .single();
+    // const { data: cached } = await supabase
+    //   .from("exercise_image_cache")
+    //   .select("*")
+    //   .eq("exercise_name_normalized", normalizedName)
+    //   .single();
 
-    if (cached) {
-      console.log(`Cache hit for: ${exerciseName}`);
-      return new Response(
-        JSON.stringify({
-          imageUrl: cached.image_url,
-          gifUrl: cached.gif_url,
-          muscleGroup: cached.muscle_group,
-          source: "cache"
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // if (cached) {
+    //   console.log(`✅ Cache hit for: ${exerciseName}`);
+    //   return new Response(
+    //     JSON.stringify({
+    //       imageUrl: cached.image_url,
+    //       gifUrl: cached.gif_url,
+    //       source: "cache",
+    //     }),
+    //     { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    //   );
+    // }
 
-    // 2. Try Wger API (free, no API key needed)
-    const englishTerm = getEnglishTerm(exerciseName);
-    console.log(`Searching Wger API for: ${englishTerm}`);
+    // 2. Search ExerciseDB API with fuzzy matching
+    // Use englishName if provided, otherwise translate from French
+    const searchTerm = englishName || translateToEnglish(exerciseName);
+    console.log(
+      `🔍 Searching ExerciseDB for: "${exerciseName}" -> "${searchTerm}"${englishName ? " (direct)" : " (translated)"}`,
+    );
 
     try {
-      const wgerResponse = await fetch(
-        `https://wger.de/api/v2/exercise/?language=2&limit=5&name=${encodeURIComponent(englishTerm)}`,
-        { headers: { "Accept": "application/json" } }
-      );
+      const exerciseDbUrl = `https://exercisedb.dev/api/v1/exercises/search?q=${encodeURIComponent(searchTerm)}&limit=1&threshold=0.3`;
+      console.log(`API URL: ${exerciseDbUrl}`);
 
-      if (wgerResponse.ok) {
-        const wgerData = await wgerResponse.json();
-        
-        if (wgerData.results && wgerData.results.length > 0) {
-          const exercise = wgerData.results[0];
-          
-          // Get images for this exercise
-          const imagesResponse = await fetch(
-            `https://wger.de/api/v2/exerciseimage/?exercise_base=${exercise.exercise_base}&limit=1`,
-            { headers: { "Accept": "application/json" } }
-          );
+      const response = await fetch(exerciseDbUrl, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
 
-          let imageUrl = null;
-          if (imagesResponse.ok) {
-            const imagesData = await imagesResponse.json();
-            if (imagesData.results && imagesData.results.length > 0) {
-              imageUrl = imagesData.results[0].image;
-            }
-          }
-
-          if (imageUrl) {
-            // Cache the result
-            await supabase.from("exercise_image_cache").insert({
-              exercise_name: exerciseName,
-              exercise_name_normalized: normalizedName,
-              image_url: imageUrl,
-              muscle_group: exercise.category?.name || null,
-              source: "wger"
-            });
-
-            console.log(`Found and cached image from Wger for: ${exerciseName}`);
-
-            return new Response(
-              JSON.stringify({
-                imageUrl,
-                muscleGroup: exercise.category?.name,
-                source: "wger"
-              }),
-              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-            );
-          }
-        }
+      if (!response.ok) {
+        console.error(
+          `ExerciseDB API error: ${response.status} ${response.statusText}`,
+        );
+        throw new Error(`API returned ${response.status}`);
       }
-    } catch (wgerError) {
-      console.error("Wger API error:", wgerError);
+
+      const data = await response.json();
+      console.log(`Found ${data.data?.length || 0} exercises`);
+
+      if (data.success && data.data && data.data.length > 0) {
+        const exercise = data.data[0];
+        console.log(`✅ Match found: ${exercise.name}`);
+        console.log(`GIF URL: ${exercise.gifUrl}`);
+
+        // Cache the result
+        const cacheData = {
+          exercise_name: exerciseName,
+          exercise_name_normalized: normalizedName,
+          image_url: exercise.gifUrl, // ExerciseDB provides GIF as main image
+          gif_url: exercise.gifUrl,
+          source: "exercisedb",
+        };
+
+        const { error: cacheError } = await supabase
+          .from("exercise_image_cache")
+          .insert(cacheData);
+
+        return new Response(
+          JSON.stringify({
+            imageUrl: exercise.gifUrl,
+            gifUrl: exercise.gifUrl,
+            source: "exercisedb",
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+
+      console.log(`❌ No exercises found for: ${exerciseName}`);
+    } catch (apiError) {
+      console.error("ExerciseDB API error:", apiError);
     }
 
     // 3. Fallback - return null (frontend will use default)
-    console.log(`No image found for: ${exerciseName}`);
+    console.log(`⚠️ Returning fallback for: ${exerciseName}`);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         imageUrl: null,
-        source: "not_found"
+        gifUrl: null,
+        source: "not_found",
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
-
   } catch (error) {
     console.error("Error in get-exercise-image:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

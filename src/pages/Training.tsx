@@ -225,7 +225,7 @@ const Training = () => {
               </div>
             </div>
 
-            <h3 className="text-2xl font-bold max-w-fit text-center mb-">
+            <h3 className="text-2xl text-center font-bold max-w-fit text-center mb-2 mx-auto">
               Création de ton programme
             </h3>
 
