@@ -469,7 +469,7 @@ const buildSessionPrompt = (
     improve_endurance: "Amélioration endurance",
     general_fitness: "Forme générale",
   };
-  const goalLabel = goalTypeLabels[goals.goal_type] || goals.goal_type;
+  const goalLabel = Array.isArray(goals.goal_type) ? goals.goal_type.map((g: string) => goalTypeLabels[g] || g).join(' + ') : (goalTypeLabels[goals.goal_type] || goals.goal_type);
 
   const levelConfig = {
     beginner: {
@@ -548,10 +548,10 @@ const buildSessionPrompt = (
 ## ADAPTATIONS SPÉCIFIQUES
 
 ### Selon l'objectif "${goalLabel}":
-${goals.goal_type === "lose_weight" ? "- Tempo élevé, repos courts, circuits possibles\n- Privilégier exercices polyarticulaires" : ""}
-${goals.goal_type === "gain_muscle" ? "- Volume élevé, tempo contrôlé (3-1-2)\n- Isolation en fin de séance" : ""}
-${goals.goal_type === "improve_strength" ? "- Charges lourdes, repos longs\n- Focus sur les 3 mouvements principaux" : ""}
-${goals.goal_type === "improve_endurance" ? "- Séries longues, peu de repos\n- Supersets et circuits" : ""}
+${(Array.isArray(goals.goal_type) ? goals.goal_type : [goals.goal_type]).some((g: string) => g === "lose_weight" || g === "weight-loss") ? "- Tempo élevé, repos courts, circuits possibles\n- Privilégier exercices polyarticulaires" : ""}
+${(Array.isArray(goals.goal_type) ? goals.goal_type : [goals.goal_type]).some((g: string) => g === "gain_muscle" || g === "muscle-gain") ? "- Volume élevé, tempo contrôlé (3-1-2)\n- Isolation en fin de séance" : ""}
+${(Array.isArray(goals.goal_type) ? goals.goal_type : [goals.goal_type]).some((g: string) => g === "improve_strength" || g === "strength") ? "- Charges lourdes, repos longs\n- Focus sur les 3 mouvements principaux" : ""}
+${(Array.isArray(goals.goal_type) ? goals.goal_type : [goals.goal_type]).some((g: string) => g === "improve_endurance" || g === "endurance") ? "- Séries longues, peu de repos\n- Supersets et circuits" : ""}
 
 ### Selon la progression "${progressionFocus}":
 ${progressionFocus === "strength" ? "- Privilégier les charges lourdes et le travail en force (1-6 reps)" : ""}

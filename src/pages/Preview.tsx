@@ -293,7 +293,7 @@ const Preview = () => {
                 {nutritionPlan.calories} kcal
               </div>
               <p className="text-sm text-muted-foreground">
-                Ajusté selon ton objectif : {input.goal === "weight-loss" ? "Perte de poids" : input.goal === "muscle-gain" ? "Prise de muscle" : "Maintien"}
+                Ajusté selon ton objectif : {input.goal?.includes("weight-loss") ? "Perte de poids" : input.goal?.includes("muscle-gain") ? "Prise de muscle" : "Maintien"}
               </p>
             </div>
 

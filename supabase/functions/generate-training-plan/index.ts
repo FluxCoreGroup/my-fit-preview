@@ -10,7 +10,7 @@ const corsHeaders = {
 
 // Validation schema for goals data from database
 const goalsSchema = z.object({
-  goal_type: z.string().max(100),
+  goal_type: z.union([z.string().max(100), z.array(z.string().max(100))]),
   frequency: z.number().min(1).max(7).nullable(),
   session_duration: z.number().min(15).max(180).nullable(),
   location: z.string().max(100).nullable(),
@@ -133,7 +133,7 @@ serve(async (req) => {
     const systemPrompt = `Tu es un coach sportif expert. Génère un plan d'entraînement global personnalisé.
 
 INFORMATIONS UTILISATEUR:
-- Objectif: ${sanitizeString(goals.goal_type, 'non défini')}
+- Objectif: ${Array.isArray(goals.goal_type) ? goals.goal_type.join(', ') : sanitizeString(goals.goal_type, 'non défini')}
 - Fréquence: ${goals.frequency || 3} séances/semaine
 - Durée par séance: ${goals.session_duration || 60} minutes
 - Lieu: ${sanitizeString(goals.location, 'non défini')}

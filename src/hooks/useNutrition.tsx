@@ -85,14 +85,15 @@ export const useNutrition = () => {
     let result: number;
     let adjustmentType: string;
 
-    if (goals.goal_type === "weight-loss") {
-      result = Math.round(tdee - 500); // Deficit of 500kcal
+    const goalTypes = Array.isArray(goals.goal_type) ? goals.goal_type : [goals.goal_type];
+    if (goalTypes.includes("weight-loss")) {
+      result = Math.round(tdee - 500);
       adjustmentType = "Deficit -500kcal";
-    } else if (goals.goal_type === "muscle-gain") {
-      result = Math.round(tdee + 300); // Surplus of 300kcal
+    } else if (goalTypes.includes("muscle-gain")) {
+      result = Math.round(tdee + 300);
       adjustmentType = "Surplus +300kcal";
     } else {
-      result = tdee; // Maintenance (endurance, strength, general-fitness)
+      result = tdee;
       adjustmentType = "Maintenance";
     }
     

@@ -70,7 +70,7 @@ serve(async (req) => {
     const systemPrompt = `Tu es un expert en nutrition sportive. Génère un plan nutritionnel personnalisé sur 7 JOURS COMPLETS.
 
 INFORMATIONS UTILISATEUR:
-- Objectif: ${goals.goal_type}
+- Objectif: ${Array.isArray(goals.goal_type) ? goals.goal_type.join(', ') : goals.goal_type}
 - Âge: ${goals.age} ans
 - Sexe: ${goals.sex}
 - Poids: ${goals.weight} kg

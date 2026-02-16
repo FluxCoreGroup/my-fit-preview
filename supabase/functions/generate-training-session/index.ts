@@ -127,7 +127,7 @@ DONNÉES UTILISATEUR :
 - Sexe : ${goals.sex}
 - Taille : ${goals.height} cm
 - Poids : ${goals.weight} kg
-- Objectif : ${goals.goal_type}
+- Objectif : ${Array.isArray(goals.goal_type) ? goals.goal_type.join(', ') : goals.goal_type}
 - Niveau : ${prefs.experience_level}
 - Type de séance : ${prefs.session_type}
 - Split : ${prefs.split_preference || 'non défini'}

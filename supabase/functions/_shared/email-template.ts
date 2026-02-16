@@ -226,14 +226,20 @@ export function generateEmailHtml(data: EmailData): string {
 }
 
 // Goal type translation helper
-export function translateGoalType(goalType: string | null): string {
-  switch (goalType) {
-    case 'lose_weight': return 'perdre du poids';
-    case 'gain_muscle': return 'prendre du muscle';
-    case 'maintain': return 'maintenir ta forme';
-    case 'improve_endurance': return 'améliorer ton endurance';
-    default: return 'atteindre tes objectifs';
-  }
+export function translateGoalType(goalType: string | string[] | null): string {
+  const translateOne = (g: string): string => {
+    switch (g) {
+      case 'lose_weight': case 'weight-loss': return 'perdre du poids';
+      case 'gain_muscle': case 'muscle-gain': return 'prendre du muscle';
+      case 'maintain': case 'general-fitness': case 'wellness': return 'maintenir ta forme';
+      case 'improve_endurance': case 'endurance': return 'améliorer ton endurance';
+      case 'improve_strength': case 'strength': return 'gagner en force';
+      default: return 'atteindre tes objectifs';
+    }
+  };
+  if (!goalType) return 'atteindre tes objectifs';
+  if (Array.isArray(goalType)) return goalType.map(translateOne).join(' et ');
+  return translateOne(goalType);
 }
 
 // Experience level translation

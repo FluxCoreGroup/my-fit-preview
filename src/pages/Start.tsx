@@ -33,7 +33,7 @@ const Start = () => {
     sex: undefined,
     height: undefined,
     weight: undefined,
-    goal: undefined,
+    goal: [],
     goalHorizon: undefined,
     targetWeightLoss: undefined,
     hasCardio: undefined,
@@ -143,9 +143,9 @@ const Start = () => {
         );
       case 2:
         return !!(
-          formData.goal &&
+          formData.goal && formData.goal.length > 0 &&
           formData.goalHorizon &&
-          (formData.goal !== "weight-loss" ||
+          (!formData.goal.includes("weight-loss") ||
             !formData.targetWeightLoss ||
             (formData.targetWeightLoss >= 1 && formData.targetWeightLoss <= 50)) &&
           (formData.hasCardio === false || (formData.hasCardio === true && formData.cardioFrequency))
@@ -187,10 +187,10 @@ const Start = () => {
           newErrors.weight = "Poids requis (30-300kg)";
         break;
       case 2:
-        if (!formData.goal) newErrors.goal = "Objectif requis";
+        if (!formData.goal || formData.goal.length === 0) newErrors.goal = "Sélectionne au moins un objectif";
         if (!formData.goalHorizon) newErrors.goalHorizon = "Période requise";
         if (
-          formData.goal === "weight-loss" &&
+          formData.goal?.includes("weight-loss") &&
           formData.targetWeightLoss &&
           (formData.targetWeightLoss < 1 || formData.targetWeightLoss > 50)
         ) {
@@ -362,38 +362,36 @@ const Start = () => {
           {/* Step 2: Objectif */}
           {step === 2 && (
             <Card className="p-8 animate-in">
-              <h2 className="text-2xl font-bold mb-6">Quel est ton objectif principal ?</h2>
+              <h2 className="text-2xl font-bold mb-2">Quels sont tes objectifs ?</h2>
+              <p className="text-sm text-muted-foreground mb-6">Sélectionne 1 ou 2 objectifs maximum</p>
               <div className="space-y-4">
                 {[
-                  {
-                    value: "weight-loss",
-                    label: "Perte de poids",
-                  },
-                  {
-                    value: "muscle-gain",
-                    label: "Prise de muscle",
-                  },
-                  {
-                    value: "endurance",
-                    label: "Endurance",
-                  },
-                  {
-                    value: "strength",
-                    label: "Force",
-                  },
-                  {
-                    value: "wellness",
-                    label: "Bien-être général",
-                  },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => updateField("goal", option.value)}
-                    className={`w-full p-4 rounded-lg border-2 text-left transition-all hover:border-primary ${formData.goal === option.value ? "border-primary bg-primary/5" : "border-border"} ${errors.goal ? "border-destructive" : ""}`}
-                  >
-                    <div className="font-semibold">{option.label}</div>
-                  </button>
-                ))}
+                  { value: "weight-loss", label: "Perte de poids" },
+                  { value: "muscle-gain", label: "Prise de muscle" },
+                  { value: "endurance", label: "Endurance" },
+                  { value: "strength", label: "Force" },
+                  { value: "wellness", label: "Bien-être général" },
+                ].map((option) => {
+                  const isSelected = formData.goal?.includes(option.value as any) || false;
+                  const isDisabled = !isSelected && (formData.goal?.length || 0) >= 2;
+                  return (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        const current = formData.goal || [];
+                        if (isSelected) {
+                          updateField("goal", current.filter((g) => g !== option.value));
+                        } else if (current.length < 2) {
+                          updateField("goal", [...current, option.value]);
+                        }
+                      }}
+                      disabled={isDisabled}
+                      className={`w-full p-4 rounded-lg border-2 text-left transition-all ${isSelected ? "border-primary bg-primary/5" : isDisabled ? "border-border opacity-50 cursor-not-allowed" : "border-border hover:border-primary"} ${errors.goal ? "border-destructive" : ""}`}
+                    >
+                      <div className="font-semibold">{option.label}</div>
+                    </button>
+                  );
+                })}
                 {errors.goal && <p className="text-xs text-destructive">{errors.goal}</p>}
               </div>
 
@@ -412,7 +410,7 @@ const Start = () => {
                 {errors.goalHorizon && <p className="text-xs text-destructive mt-1">{errors.goalHorizon}</p>}
               </div>
 
-              {formData.goal === "weight-loss" && (
+              {formData.goal?.includes("weight-loss") && (
                 <div className="mt-6">
                   <Label htmlFor="targetWeightLoss">Combien de kg veux-tu perdre ? (optionnel)</Label>
                   <div className="mt-4">
