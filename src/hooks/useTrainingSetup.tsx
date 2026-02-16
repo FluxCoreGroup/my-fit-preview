@@ -9,6 +9,7 @@ export interface TrainingSetupData {
   cardioIntensity?: "liss" | "miss" | "hiit" | "mixed";
   priorityZones?: string[];
   limitations?: string[];
+  limitationsOther?: string;
   favoriteExercises?: string;
   exercisesToAvoid?: string;
   progressionFocus?: "strength" | "reps" | "rest" | "technique" | "auto";

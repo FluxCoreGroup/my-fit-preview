@@ -98,6 +98,7 @@ const TrainingSetup = () => {
     cardioIntensity: trainingData.cardioIntensity || undefined,
     priorityZones: trainingData.priorityZones || [],
     limitations: trainingData.limitations || [],
+    limitationsOther: trainingData.limitationsOther || "",
     favoriteExercises: trainingData.favoriteExercises || "",
     exercisesToAvoid: trainingData.exercisesToAvoid || "",
     progressionFocus: trainingData.progressionFocus || undefined,
@@ -170,7 +171,9 @@ const TrainingSetup = () => {
         split_preference: formData.splitPreference,
         cardio_intensity: formData.cardioIntensity,
         priority_zones: formData.priorityZones,
-        limitations: formData.limitations,
+        limitations: formData.limitations.includes("other") && formData.limitationsOther
+          ? [...formData.limitations.filter(l => l !== "other"), `other:${formData.limitationsOther}`]
+          : formData.limitations,
         favorite_exercises: formData.favoriteExercises || null,
         exercises_to_avoid: formData.exercisesToAvoid || null,
         progression_focus: formData.progressionFocus!,
@@ -273,6 +276,7 @@ const TrainingSetup = () => {
     { value: "back", label: "Problèmes de dos (lombaires)" },
     { value: "wrists", label: "Problèmes de poignets" },
     { value: "ankles", label: "Problèmes de chevilles" },
+    { value: "other", label: "Autres" },
   ];
 
   const progressionFocusOptions = [
@@ -595,7 +599,7 @@ const TrainingSetup = () => {
                 <p className="text-sm text-muted-foreground">Sélection multiple possible</p>
               </div>
               <div className="space-y-3">
-                {limitationOptions.map((option) => (
+              {limitationOptions.map((option) => (
                   <div
                     key={option.value}
                     className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
@@ -614,6 +618,20 @@ const TrainingSetup = () => {
                     </Label>
                   </div>
                 ))}
+
+                {formData.limitations.includes("other") && (
+                  <div className="mt-3">
+                    <Label htmlFor="limitationsOther">Précise ta limitation</Label>
+                    <Textarea
+                      id="limitationsOther"
+                      placeholder="Ex: Tendinite au coude, prothèse de hanche..."
+                      value={formData.limitationsOther}
+                      onChange={(e) => updateField("limitationsOther", e.target.value)}
+                      rows={2}
+                      className="mt-1"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-4 pt-4">
