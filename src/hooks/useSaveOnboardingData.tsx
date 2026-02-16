@@ -66,7 +66,7 @@ export const useSaveOnboardingData = () => {
           height: data.height || null,
           weight: data.weight || null,
           // Étape 2 : Objectif
-          goal_type: data.goal || null,
+          goal_type: Array.isArray(data.goal) ? data.goal : data.goal ? [data.goal] : ["general-fitness"],
           horizon: data.goalHorizon || null,
           target_weight_loss: data.targetWeightLoss || null,
           has_cardio: data.hasCardio !== undefined ? data.hasCardio : null,

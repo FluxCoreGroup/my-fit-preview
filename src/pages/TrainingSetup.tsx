@@ -80,7 +80,7 @@ const TrainingSetup = () => {
       return;
     }
 
-    if (!userData?.goals?.goal_type) {
+    if (!userData?.goals?.goal_type || userData.goals.goal_type.length === 0) {
       navigate("/start");
       return;
     }
@@ -216,12 +216,12 @@ const TrainingSetup = () => {
     }
   };
 
-  const recommendedSessionTypes = onboardingData.goal 
+  const recommendedSessionTypes = onboardingData.goal && onboardingData.goal.length > 0
     ? getRecommendedSessionType(onboardingData.goal) 
     : [];
 
   const recommendedCardioIntensities = 
-    onboardingData.goal && formData.experienceLevel
+    onboardingData.goal && onboardingData.goal.length > 0 && formData.experienceLevel
       ? getRecommendedCardioIntensity(onboardingData.goal, formData.experienceLevel)
       : [];
 

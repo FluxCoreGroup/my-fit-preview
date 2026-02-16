@@ -14,7 +14,7 @@ const messageSchema = z.object({
 });
 
 const contextSchema = z.object({
-  goal_type: z.string().max(100).optional(),
+  goal_type: z.union([z.string().max(100), z.array(z.string().max(100))]).optional(),
   frequency: z.number().min(1).max(7).optional(),
   experience_level: z.string().max(50).optional(),
   equipment: z.array(z.string().max(100)).max(20).optional(),

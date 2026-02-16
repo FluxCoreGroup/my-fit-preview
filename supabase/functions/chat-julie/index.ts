@@ -14,7 +14,7 @@ const messageSchema = z.object({
 });
 
 const contextSchema = z.object({
-  goal_type: z.string().max(100).optional(),
+  goal_type: z.union([z.string().max(100), z.array(z.string().max(100))]).optional(),
   tdee: z.number().min(0).max(10000).optional(),
   target_calories: z.number().min(0).max(10000).optional(),
   protein: z.number().min(0).max(1000).optional(),
@@ -173,9 +173,10 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
           goals.activity_level === "active" ? 1.725 : 1.9;
 
         const tdee = Math.round(bmr * activityMultiplier);
+        const goalTypes = Array.isArray(goals.goal_type) ? goals.goal_type : [goals.goal_type];
         const targetCalories =
-          goals.goal_type === "lose_weight" ? tdee - 500 :
-          goals.goal_type === "gain_muscle" ? tdee + 300 : tdee;
+          goalTypes.includes("lose_weight") || goalTypes.includes("weight-loss") ? tdee - 500 :
+          goalTypes.includes("gain_muscle") || goalTypes.includes("muscle-gain") ? tdee + 300 : tdee;
 
         const protein = goals.weight ? Math.round(goals.weight * 2) : 150;
         const fat = goals.weight ? Math.round(goals.weight * 1) : 70;
@@ -203,7 +204,7 @@ async function executeToolCall(toolName: string, args: any, userId: string, supa
             fat,
             carbs,
           },
-          summary: `Poids: ${goals.weight}kg, Objectif: ${goals.goal_type}, ${targetCalories} kcal/jour, P:${protein}g F:${fat}g G:${carbs}g`,
+          summary: `Poids: ${goals.weight}kg, Objectif: ${Array.isArray(goals.goal_type) ? goals.goal_type.join(', ') : goals.goal_type}, ${targetCalories} kcal/jour, P:${protein}g F:${fat}g G:${carbs}g`,
         };
       }
 

@@ -197,7 +197,7 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
                         data.sex &&
                         data.height &&
                         data.weight &&
-                        data.goal &&
+                        data.goal && data.goal.length > 0 &&
                         data.goalHorizon &&
                         data.activityLevel &&
                         data.frequency &&

@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +16,7 @@ export const TrainingProgramSection = () => {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [goalsData, setGoalsData] = useState({
-    goal_type: "",
+    goal_type: [] as string[],
     frequency: "",
     session_duration: "",
     equipment: [] as string[],
@@ -46,8 +47,9 @@ export const TrainingProgramSection = () => {
       ]);
 
       if (goalsRes.data) {
+        const gt = goalsRes.data.goal_type;
         setGoalsData({
-          goal_type: goalsRes.data.goal_type || "",
+          goal_type: Array.isArray(gt) ? gt : gt ? [gt] : [],
           frequency: goalsRes.data.frequency?.toString() || "",
           session_duration: goalsRes.data.session_duration?.toString() || "",
           equipment: goalsRes.data.equipment || [],
@@ -89,7 +91,7 @@ export const TrainingProgramSection = () => {
         supabase.from("goals").upsert({
           ...goalsRes.data,
           user_id: user.id,
-          goal_type: goalsData.goal_type || goalsRes.data?.goal_type || "general-fitness",
+          goal_type: goalsData.goal_type.length > 0 ? goalsData.goal_type : (goalsRes.data?.goal_type || ["general-fitness"]),
           frequency: goalsData.frequency ? parseInt(goalsData.frequency) : null,
           session_duration: goalsData.session_duration ? parseInt(goalsData.session_duration) : null,
           equipment: goalsData.equipment,
@@ -137,19 +139,35 @@ export const TrainingProgramSection = () => {
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="goal">Objectif principal</Label>
-          <Select value={goalsData.goal_type} onValueChange={(value) => setGoalsData({ ...goalsData, goal_type: value })}>
-            <SelectTrigger id="goal">
-              <SelectValue placeholder="Sélectionne" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="muscle-gain">Prise de masse</SelectItem>
-              <SelectItem value="weight-loss">Perte de poids</SelectItem>
-              <SelectItem value="strength">Force</SelectItem>
-              <SelectItem value="endurance">Endurance</SelectItem>
-              <SelectItem value="general-fitness">Forme générale</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="goal">Objectifs (2 max)</Label>
+          <div className="space-y-2 mt-1">
+            {[
+              { value: "muscle-gain", label: "Prise de masse" },
+              { value: "weight-loss", label: "Perte de poids" },
+              { value: "strength", label: "Force" },
+              { value: "endurance", label: "Endurance" },
+              { value: "general-fitness", label: "Forme générale" },
+            ].map((option) => {
+              const isSelected = goalsData.goal_type.includes(option.value);
+              const isDisabled = !isSelected && goalsData.goal_type.length >= 2;
+              return (
+                <label key={option.value} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${isSelected ? "border-primary bg-primary/5" : isDisabled ? "opacity-50 cursor-not-allowed border-border" : "border-border hover:border-primary"}`}>
+                  <Checkbox
+                    checked={isSelected}
+                    disabled={isDisabled}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setGoalsData({ ...goalsData, goal_type: [...goalsData.goal_type, option.value] });
+                      } else {
+                        setGoalsData({ ...goalsData, goal_type: goalsData.goal_type.filter(g => g !== option.value) });
+                      }
+                    }}
+                  />
+                  <span className="text-sm">{option.label}</span>
+                </label>
+              );
+            })}
+          </div>
         </div>
 
         <div className="space-y-2">

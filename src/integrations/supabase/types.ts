@@ -342,7 +342,7 @@ export type Database = {
           created_at: string
           equipment: string[] | null
           frequency: number | null
-          goal_type: string
+          goal_type: string[]
           has_breakfast: boolean | null
           has_cardio: boolean | null
           health_conditions: string[] | null
@@ -367,7 +367,7 @@ export type Database = {
           created_at?: string
           equipment?: string[] | null
           frequency?: number | null
-          goal_type: string
+          goal_type?: string[]
           has_breakfast?: boolean | null
           has_cardio?: boolean | null
           health_conditions?: string[] | null
@@ -392,7 +392,7 @@ export type Database = {
           created_at?: string
           equipment?: string[] | null
           frequency?: number | null
-          goal_type?: string
+          goal_type?: string[]
           has_breakfast?: boolean | null
           has_cardio?: boolean | null
           health_conditions?: string[] | null

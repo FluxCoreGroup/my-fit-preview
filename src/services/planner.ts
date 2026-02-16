@@ -17,7 +17,7 @@ export interface OnboardingInput {
   sex: 'male' | 'female';
   height: number; // cm
   weight: number; // kg
-  goal: 'weight-loss' | 'muscle-gain' | 'endurance' | 'strength' | 'wellness';
+  goal: ('weight-loss' | 'muscle-gain' | 'endurance' | 'strength' | 'wellness')[];
   goalHorizon: 'short' | 'medium' | 'long';
   hasCardio?: boolean;
   cardioFrequency?: number;
@@ -94,30 +94,31 @@ export interface TrainingPreferences {
 }
 
 // Fonction helper pour les recommandations
-export const getRecommendedSessionType = (goal: OnboardingInput['goal']): ("strength" | "cardio" | "mixed" | "mobility")[] => {
-  switch (goal) {
-    case 'weight-loss':
-      return ['mixed', 'cardio'];
-    case 'muscle-gain':
-    case 'strength':
-      return ['strength'];
-    case 'endurance':
-      return ['cardio'];
-    case 'wellness':
-      return ['mixed', 'mobility'];
-    default:
-      return ['mixed'];
+export const getRecommendedSessionType = (goals: OnboardingInput['goal']): ("strength" | "cardio" | "mixed" | "mobility")[] => {
+  const results = new Set<"strength" | "cardio" | "mixed" | "mobility">();
+  for (const goal of goals) {
+    switch (goal) {
+      case 'weight-loss': results.add('mixed'); results.add('cardio'); break;
+      case 'muscle-gain': case 'strength': results.add('strength'); break;
+      case 'endurance': results.add('cardio'); break;
+      case 'wellness': results.add('mixed'); results.add('mobility'); break;
+      default: results.add('mixed');
+    }
   }
+  return results.size > 0 ? Array.from(results) : ['mixed'];
 };
 
-export const getRecommendedCardioIntensity = (goal: OnboardingInput['goal'], level: TrainingPreferences['experienceLevel']): ("liss" | "miss" | "hiit" | "mixed")[] => {
-  if (goal === 'weight-loss') {
-    if (level === 'beginner') return ['liss', 'miss'];
-    return ['hiit', 'mixed'];
+export const getRecommendedCardioIntensity = (goals: OnboardingInput['goal'], level: TrainingPreferences['experienceLevel']): ("liss" | "miss" | "hiit" | "mixed")[] => {
+  const results = new Set<"liss" | "miss" | "hiit" | "mixed">();
+  for (const goal of goals) {
+    if (goal === 'weight-loss') {
+      if (level === 'beginner') { results.add('liss'); results.add('miss'); }
+      else { results.add('hiit'); results.add('mixed'); }
+    } else if (goal === 'endurance') { results.add('miss'); results.add('hiit'); }
+    else if (goal === 'wellness') { results.add('liss'); }
+    else { results.add('mixed'); }
   }
-  if (goal === 'endurance') return ['miss', 'hiit'];
-  if (goal === 'wellness') return ['liss'];
-  return ['mixed'];
+  return results.size > 0 ? Array.from(results) : ['mixed'];
 };
 
 export const getRecommendedSplit = (frequency: number, level: TrainingPreferences['experienceLevel']): ("full_body" | "upper_lower" | "ppl" | "body_part")[] => {
@@ -181,15 +182,16 @@ export const nutritionPlanner = {
     
     // 4. Déficit calorique selon objectif et IMC
     let deficitPercent = 0.15; // -15% par défaut
+    const goalArray = input.goal || [];
     
-    if (input.goal === 'weight-loss') {
+    if (goalArray.includes('weight-loss')) {
       if (bmi >= 30 || bmi < 20) {
-        deficitPercent = 0.10; // -10% si IMC élevé ou faible (adhérence > vitesse)
+        deficitPercent = 0.10;
       }
-    } else if (input.goal === 'muscle-gain') {
-      deficitPercent = -0.10; // +10% surplus
+    } else if (goalArray.includes('muscle-gain')) {
+      deficitPercent = -0.10;
     } else {
-      deficitPercent = 0; // maintenance
+      deficitPercent = 0;
     }
     
     const targetCalories = Math.round(tdee * (1 - deficitPercent));
@@ -226,7 +228,7 @@ export const nutritionPlanner = {
       hydration,
       mealsPerDay,
       sampleDay,
-      explanation: `Ton IMC est de ${bmi} (${bmiCategory}). Ton métabolisme de base (BMR) est d'environ ${Math.round(bmr)} kcal/jour. Avec ton niveau d'activité (${input.activityLevel}), ton besoin total (TDEE) est d'environ ${tdee} kcal/jour. Pour ${input.goal === 'weight-loss' ? 'perdre du poids de manière saine' : input.goal === 'muscle-gain' ? 'prendre du muscle' : 'maintenir ton poids'}, on vise ${targetCalories} kcal${deficit !== 0 ? ` (${deficit > 0 ? 'déficit' : 'surplus'} de ${Math.abs(deficit)} kcal)` : ''} avec ${protein}g de protéines, ${carbs}g de glucides, ${fat}g de lipides et ${fiber}g de fibres par jour. Hydratation recommandée : ${(hydration / 1000).toFixed(1)}L/jour.`,
+      explanation: `Ton IMC est de ${bmi} (${bmiCategory}). Ton métabolisme de base (BMR) est d'environ ${Math.round(bmr)} kcal/jour. Avec ton niveau d'activité (${input.activityLevel}), ton besoin total (TDEE) est d'environ ${tdee} kcal/jour. Pour ${goalArray.includes('weight-loss') ? 'perdre du poids de manière saine' : goalArray.includes('muscle-gain') ? 'prendre du muscle' : 'maintenir ton poids'}, on vise ${targetCalories} kcal${deficit !== 0 ? ` (${deficit > 0 ? 'déficit' : 'surplus'} de ${Math.abs(deficit)} kcal)` : ''} avec ${protein}g de protéines, ${carbs}g de glucides, ${fat}g de lipides et ${fiber}g de fibres par jour. Hydratation recommandée : ${(hydration / 1000).toFixed(1)}L/jour.`,
     };
   },
 };
@@ -409,7 +411,7 @@ export const trainingPlanner = {
       sessionName: "Séance Full Body #1",
       exercises,
       totalDuration: Math.round(totalDuration / 60),
-      explanation: `Cette séance est adaptée à ton niveau ${input.goal === 'weight-loss' ? 'avec focus perte de poids' : input.goal === 'muscle-gain' ? 'avec focus prise de muscle' : ''}, ${input.frequency} séances/semaine. Elle dure environ ${Math.round(totalDuration / 60)} minutes ${isHome ? 'à la maison' : 'en salle'}.`,
+      explanation: `Cette séance est adaptée à ton niveau ${input.goal?.includes('weight-loss') ? 'avec focus perte de poids' : input.goal?.includes('muscle-gain') ? 'avec focus prise de muscle' : ''}, ${input.frequency} séances/semaine. Elle dure environ ${Math.round(totalDuration / 60)} minutes ${isHome ? 'à la maison' : 'en salle'}.`,
     };
   },
 };
