@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
       subscription: subscriptionsMap.get(p.id) ?? null,
     }));
 
-    // Filter by role after join
+    // Filter by role after join — adjust total accordingly
     if (roleFilter === "admin") {
       users = users.filter((u) => u.role === "admin");
     } else if (roleFilter === "member") {
@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ users, total: totalCount ?? 0, page, limit }),
+      JSON.stringify({ users, total: roleFilter ? users.length : (totalCount ?? 0), page, limit }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
