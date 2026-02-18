@@ -1,245 +1,173 @@
 
-# Module Admin Dashboard — Plan d'implémentation complet
+# Backlog Admin Dashboard — Améliorations priorisées
 
-## Architecture globale
+## Audit de l'existant
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│                  ADMIN DASHBOARD                        │
-├─────────────────────────────────────────────────────────┤
-│  DB: user_roles table (uuid, user_id, role enum)        │
-│  DB: admin_audit_log table (who, action, target, when)  │
-├─────────────────────────────────────────────────────────┤
-│  Edge Function: admin-stats (métriques globales)        │
-│  Edge Function: admin-users (list/detail)               │
-│  Edge Function: admin-actions (disable/delete/reset)    │
-│  → Chacune vérifie has_role(uid, 'admin') côté serveur  │
-├─────────────────────────────────────────────────────────┤
-│  Context: useAdminRole() → hook frontend                │
-│  Route: AdminRoute guard (client-side UI masquage)      │
-│  Pages: /admin → /admin/users → /admin/users/:id        │
-└─────────────────────────────────────────────────────────┘
-```
+**Ce qui fonctionne bien :**
+- RBAC serveur solide (3 edge functions avec vérification `has_role()` indépendante)
+- Audit log opérationnel (disable, enable, reset\_password tous loggués)
+- Liste utilisateurs avec filtres rôle/statut, recherche email, pagination
+- Fiche détail complète (compte, usage, abonnement, historique actions)
+- Guard frontend `AdminRoute` + masquage UI conditionnel
 
-## Étape 1 — Migration base de données
+**Problèmes identifiés lors de l'audit :**
 
-### Fichier : `supabase/migrations/[timestamp]_admin_roles.sql`
+1. **Bug pagination avec filtre rôle** : le filtre rôle est appliqué côté JS après récupération d'une page de 50 résultats — si les admins sont en page 2, ils n'apparaissent jamais. Le fix récent (`users.length` pour le total) corrige l'affichage du compteur mais pas le fond du problème.
+2. **Audit log illisible** : les actions sont affichées en snake\_case brut (`disable_account`, `reset_password`) et les `details` en JSON brut — pas d'interface humaine.
+3. **Pas de tri** sur la liste utilisateurs (seulement l'ordre `created_at DESC` figé).
+4. **Subscription trialing** : 8 utilisateurs ont le statut `trialing` — ils n'apparaissent pas dans le compteur "abonnements actifs" du dashboard (qui filtre `status = 'active'`).
+5. **Pas de graphique** : le dashboard est purement textuel, impossible de voir les tendances sur 8 semaines (les données existent en DB).
+6. **Pas d'export CSV** des utilisateurs.
+7. **Pas de filtre "inactif"** (utilisateurs sans activité depuis X jours).
+8. **Action "changer le rôle" absente** de l'UI — actuellement DB-only.
+9. **Reset password** génère un lien affiché en clair dans l'UI, sans expiration visible ni option "envoyer par email directement".
+10. **Aucune confirmation** avant disable/enable (seul delete a une confirmation).
 
-```sql
--- 1. Créer le type enum pour les rôles
-CREATE TYPE public.app_role AS ENUM ('admin', 'member');
+---
 
--- 2. Créer la table user_roles (séparée des profiles, sécurité oblige)
-CREATE TABLE public.user_roles (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-  role app_role NOT NULL DEFAULT 'member',
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (user_id, role)
-);
+## Backlog priorisé (Impact / Effort)
 
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+### Priorité 1 — Bugs et fiabilité (Impact Haut / Effort Faible)
 
--- RLS : les admins peuvent voir les rôles, les users voient le leur
-CREATE POLICY "Users can view own role" ON public.user_roles
-  FOR SELECT USING (auth.uid() = user_id);
+**1.1 — Corriger le filtre rôle côté backend (bug pagination)**
 
--- 3. Fonction security definer pour vérifier le rôle (évite récursion RLS)
-CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
-RETURNS boolean
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = _user_id AND role = _role
-  )
-$$;
+Problème réel : le filtre rôle se fait en JS après récupération d'une page paginée. Si tous les admins sont après les 50 premiers membres (triés par `created_at DESC`), ils n'apparaissent jamais.
 
--- 4. Trigger : créer un rôle 'member' à chaque inscription
-CREATE OR REPLACE FUNCTION public.handle_new_user_role()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
-AS $$
-BEGIN
-  INSERT INTO public.user_roles (user_id, role)
-  VALUES (NEW.id, 'member')
-  ON CONFLICT DO NOTHING;
-  RETURN NEW;
-END;
-$$;
+Correction dans `admin-users/index.ts` : joindre `user_roles` côté Supabase avec un filtre SQL au lieu du filtre JS post-fetch. Utiliser une requête avec `.in()` sur les `user_id` filtrés par rôle d'abord.
 
-CREATE TRIGGER on_auth_user_created_role
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user_role();
+Fichiers : `supabase/functions/admin-users/index.ts`
 
--- 5. Table audit log des actions admin
-CREATE TABLE public.admin_audit_log (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  admin_user_id uuid NOT NULL,
-  target_user_id uuid,
-  action text NOT NULL,
-  details jsonb,
-  created_at timestamptz NOT NULL DEFAULT now()
-);
+**1.2 — Corriger le compteur "abonnements actifs"**
 
-ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
+Le dashboard affiche `1` abonné actif mais 8 utilisateurs sont en `trialing`. La métrique doit refléter tous les abonnements payants non expirés (`status IN ('active', 'trialing')`).
 
-CREATE POLICY "Admins can view audit log" ON public.admin_audit_log
-  FOR SELECT USING (public.has_role(auth.uid(), 'admin'));
+Fichiers : `supabase/functions/admin-stats/index.ts`
 
--- 6. Ajouter colonne is_disabled sur profiles pour soft-delete/disable
-ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS is_disabled boolean NOT NULL DEFAULT false;
-```
+**1.3 — Ajouter une confirmation avant disable/enable**
 
-## Étape 2 — Edge Functions (3 nouvelles, toutes protégées RBAC)
+Actuellement un clic sur "Désactiver le compte" agit immédiatement, sans dialog de confirmation. Risque d'action accidentelle.
 
-### `supabase/functions/admin-stats/index.ts`
-Métriques globales admin :
-- `total_users` (count profiles)
-- `new_users_today/week/month` (profiles.created_at)
-- `active_users_7d/30d` (sessions ou profiles.last_activity_at)
-- `completed_sessions_total/week`
-- `weekly_checkins_count` (pour taux de review)
-- `subscriptions_active` count
+Fichiers : `src/pages/admin/AdminUserDetail.tsx`
 
-Authentification : `getClaims()` → vérifie `has_role(userId, 'admin')` → 403 sinon.
+---
 
-### `supabase/functions/admin-users/index.ts`
-Liste et détail utilisateurs :
-- `GET ?page=1&limit=50&search=email&role=admin&status=active` → liste paginée
-- `GET ?userId=uuid` → fiche détaillée (profil + goals + sessions count + subscription)
+### Priorité 2 — Ergonomie et lisibilité (Impact Haut / Effort Moyen)
 
-Joint : `profiles` + `user_roles` + `subscriptions` + sessions count + weekly_programs count.
+**2.1 — Humaniser l'audit log**
 
-Authentification : idem, guard admin obligatoire.
+Actions affichées en snake\_case brut (`disable_account`) et `details` en JSON brut. Créer un mapping lisible :
 
-### `supabase/functions/admin-actions/index.ts`
-Actions admin :
-- `POST { action: "disable", targetUserId }` → `profiles.is_disabled = true`
-- `POST { action: "enable", targetUserId }` → `profiles.is_disabled = false`
-- `POST { action: "delete", targetUserId, confirm: "DELETE" }` → supprime données + auth user
-- `POST { action: "reset_password", targetUserId }` → `auth.admin.generateLink(recovery)`
-- Garde : impossible de s'auto-supprimer, impossible de supprimer le dernier admin
-
-Chaque action écrit dans `admin_audit_log`.
-
-## Étape 3 — Contexte frontend (hook)
-
-### `src/hooks/useAdminRole.tsx`
-```typescript
-// Appel Supabase pour vérifier le rôle de l'utilisateur courant
-// Retourne { isAdmin: boolean, isLoading: boolean }
-// Utilise React Query avec cache de 5 min
-// Requête : supabase.from("user_roles").select("role")
-//            .eq("user_id", user.id).eq("role", "admin").maybeSingle()
-```
-
-Important : l'état `isLoading` doit être vérifié avant d'afficher quoi que ce soit — pas de flash de contenu non autorisé.
-
-## Étape 4 — Guard de route frontend
-
-### `src/components/AdminRoute.tsx`
-```typescript
-// Similaire à ProtectedRoute mais vérifie isAdmin
-// Si isLoading → spinner
-// Si !isAdmin → <Navigate to="/hub" /> + toast "Accès refusé"
-// Si isAdmin → <>{children}</>
-```
-
-## Étape 5 — Pages Admin (3 pages)
-
-### `src/pages/admin/AdminDashboard.tsx`
-Vue globale avec KPIs en cards :
-- Utilisateurs totaux / nouveaux (7j) / actifs (30j)
-- Séances complétées / cette semaine
-- Abonnements actifs
-- Taux de check-in hebdo (%)
-- Navigation vers la liste utilisateurs
-
-### `src/pages/admin/AdminUsers.tsx`
-Table utilisateurs avec :
-- Colonnes : Email, Nom, Rôle, Statut (actif/désactivé), Créé le, Dernière activité, Nb séances, Abonnement
-- Barre de recherche (email)
-- Filtres : rôle, statut, activité récente
-- Pagination (50/page)
-- Click sur ligne → fiche détail
-
-### `src/pages/admin/AdminUserDetail.tsx`
-Fiche utilisateur :
-- Infos compte (email, rôle, statut, dates)
-- Indicateurs usage (sessions count, check-ins, semaines actives)
-- Programme actif si existe
-- Abonnement actuel
-- Actions : Désactiver / Réactiver / Supprimer (modal de confirmation avec saisie "DELETE") / Reset password
-- Historique des actions admin (audit log filtré par target_user_id)
-
-## Étape 6 — Intégration navigation
-
-### `src/pages/Hub.tsx`
-Ajouter une `ModuleCard` "Admin" conditionnelle :
-```typescript
-const { isAdmin } = useAdminRole();
-// ...
-{isAdmin && (
-  <ModuleCard
-    icon={ShieldCheck}
-    title="Admin"
-    subtitle="Dashboard"
-    iconColor="0 72% 51%"
-    to="/admin"
-  />
-)}
-```
-
-### `src/components/Header.tsx`
-Dans la nav desktop et le menu mobile : ajouter lien "Admin" conditionnel à `isAdmin`.
-
-### `src/App.tsx`
-Ajouter les routes :
-```typescript
-<Route path="/admin" element={<AdminRoute><AppLayout><AdminDashboard /></AppLayout></AdminRoute>} />
-<Route path="/admin/users" element={<AdminRoute><AppLayout><AdminUsers /></AppLayout></AdminRoute>} />
-<Route path="/admin/users/:userId" element={<AdminRoute><AppLayout><AdminUserDetail /></AppLayout></AdminRoute>} />
-```
-
-### `supabase/config.toml`
-Ajouter :
-```toml
-[functions.admin-stats]
-verify_jwt = false
-
-[functions.admin-users]
-verify_jwt = false
-
-[functions.admin-actions]
-verify_jwt = false
-```
-(JWT vérifié manuellement dans le code avec getClaims + has_role)
-
-## Fichiers à créer/modifier
-
-| Fichier | Type | Description |
+| Clé technique | Libellé affiché | Icône |
 |---|---|---|
-| `supabase/migrations/[ts]_admin_roles.sql` | CREATE | user_roles, has_role(), audit_log, is_disabled |
-| `supabase/functions/admin-stats/index.ts` | CREATE | KPIs admin protégés |
-| `supabase/functions/admin-users/index.ts` | CREATE | Liste + détail users admin |
-| `supabase/functions/admin-actions/index.ts` | CREATE | Actions (disable/delete/reset) + audit |
-| `src/hooks/useAdminRole.tsx` | CREATE | Hook rôle admin avec React Query |
-| `src/components/AdminRoute.tsx` | CREATE | Guard de route admin |
-| `src/pages/admin/AdminDashboard.tsx` | CREATE | Page overview KPIs |
-| `src/pages/admin/AdminUsers.tsx` | CREATE | Liste utilisateurs avec filtres |
-| `src/pages/admin/AdminUserDetail.tsx` | CREATE | Fiche utilisateur + actions |
-| `src/App.tsx` | EDIT | Ajout routes /admin/* |
-| `src/pages/Hub.tsx` | EDIT | ModuleCard "Admin" conditionnel |
-| `src/components/Header.tsx` | EDIT | Lien nav "Admin" conditionnel |
-| `supabase/config.toml` | EDIT | Ajouter les 3 nouvelles functions |
-| `src/integrations/supabase/types.ts` | AUTO | Mis à jour automatiquement par la migration |
+| `disable_account` | Compte désactivé | 🔒 |
+| `enable_account` | Compte réactivé | ✅ |
+| `reset_password` | Reset mot de passe envoyé | 🔑 |
+| `delete_account` | Compte supprimé | 🗑️ |
 
-## Sécurités implémentées
+Les `details` JSON (ex: `{"email":"..."}`) doivent être traduits en phrases lisibles.
 
-- Rôles dans une table séparée `user_roles` (jamais sur `profiles`)
-- Fonction `has_role()` en SECURITY DEFINER (pas de récursion RLS)
-- Vérification backend obligatoire dans chaque edge function (pas de confiance au frontend)
-- Impossible de s'auto-supprimer ou de supprimer le dernier admin
-- Audit log de toutes les actions admin (qui, quoi, quand, sur qui)
-- Guard frontend `AdminRoute` pour masquer l'UI (jamais seule barrière)
-- Confirmation explicite pour suppression (saisie "DELETE")
+Fichiers : `src/pages/admin/AdminUserDetail.tsx`
+
+**2.2 — Ajouter des graphiques au dashboard**
+
+Les données historiques existent en DB (sessions par semaine, nouveaux utilisateurs). Ajouter 2 mini-graphiques avec Recharts (déjà installé) :
+- Évolution des séances complétées par semaine (8 semaines)
+- Nouveaux inscrits par semaine (8 semaines)
+
+Nécessite d'enrichir `admin-stats` avec des données temporelles (`sessions_by_week`, `signups_by_week`).
+
+Fichiers : `supabase/functions/admin-stats/index.ts`, `src/pages/admin/AdminDashboard.tsx`
+
+**2.3 — Tri de la liste utilisateurs**
+
+Ajouter des options de tri : date d'inscription, dernière activité, nombre de séances. Un clic sur l'en-tête de colonne change le tri.
+
+Fichiers : `supabase/functions/admin-users/index.ts`, `src/pages/admin/AdminUsers.tsx`
+
+---
+
+### Priorité 3 — Nouvelles fonctionnalités (Impact Moyen / Effort Moyen)
+
+**3.1 — Filtre "Utilisateurs inactifs"**
+
+Ajouter un filtre rapide "Inactifs 14j", "Inactifs 30j" sur la liste utilisateurs. S'appuie sur `last_activity_at` déjà disponible côté backend.
+
+Fichiers : `supabase/functions/admin-users/index.ts`, `src/pages/admin/AdminUsers.tsx`
+
+**3.2 — Export CSV**
+
+Bouton "Exporter CSV" sur la page liste utilisateurs. Génère un fichier `users_YYYY-MM-DD.csv` avec : email, nom, rôle, statut, inscrit le, dernière activité, séances complétées, abonnement.
+
+Peut être 100% côté frontend (prend tous les résultats sans pagination) ou via une edge function dédiée pour les gros volumes.
+
+Fichiers : `src/pages/admin/AdminUsers.tsx` (+ optionnellement une edge function)
+
+**3.3 — Action "Changer le rôle" depuis l'UI**
+
+Ajouter un bouton "Promouvoir admin" / "Rétrograder membre" sur la fiche utilisateur avec confirmation. Écrit dans `user_roles` et logge dans `admin_audit_log`.
+
+Nécessite une nouvelle action dans `admin-actions` : `case "set_role"`.
+
+Garde de sécurité : impossible de se rétrograder soi-même, impossible de rétrograder le dernier admin.
+
+Fichiers : `supabase/functions/admin-actions/index.ts`, `src/pages/admin/AdminUserDetail.tsx`
+
+**3.4 — Filtre "Premium / Trialing / Sans abonnement"**
+
+Ajouter un filtre abonnement sur la liste utilisateurs. Actuellement le badge "Premium" est visible sur les cards mais non filtrable.
+
+Fichiers : `supabase/functions/admin-users/index.ts`, `src/pages/admin/AdminUsers.tsx`
+
+---
+
+### Priorité 4 — Amélioration UX avancée (Impact Moyen / Effort Plus élevé)
+
+**4.1 — Envoyer le reset password par email directement**
+
+Actuellement le lien reset s'affiche en clair dans l'UI (risque de copie accidentelle dans un mauvais canal). Ajouter une option "Envoyer par email" qui appelle `resend` pour envoyer directement le lien à l'adresse de l'utilisateur, sans l'afficher à l'admin.
+
+Fichiers : `supabase/functions/admin-actions/index.ts` (nouvel action `send_reset_email`), `src/pages/admin/AdminUserDetail.tsx`
+
+**4.2 — Indicateur taux de complétion des onboardings**
+
+Métrique utile manquante : % d'utilisateurs ayant complété l'onboarding. En DB : `profiles.onboarding_completed`. Actuellement : 8/8 ont complété (100% selon les données actuelles).
+
+Ajouter cette métrique au dashboard et à la liste utilisateurs (colonne ou badge).
+
+Fichiers : `supabase/functions/admin-stats/index.ts`, `src/pages/admin/AdminDashboard.tsx`
+
+**4.3 — Recherche par nom en plus de l'email**
+
+La recherche actuelle est limitée à l'email (`ilike email`). Ajouter la recherche sur `name` avec un OR.
+
+Fichiers : `supabase/functions/admin-users/index.ts`
+
+---
+
+## Récapitulatif (matrice Impact / Effort)
+
+| # | Amélioration | Impact | Effort | Priorité |
+|---|---|---|---|---|
+| 1.1 | Fix filtre rôle (bug pagination) | Haut | Faible | P1 — Critique |
+| 1.2 | Fix compteur abonnements trialing | Moyen | Faible | P1 — Critique |
+| 1.3 | Confirmation avant disable/enable | Haut | Faible | P1 — Sécurité |
+| 2.1 | Humaniser l'audit log | Haut | Faible | P2 — Quick win |
+| 2.2 | Graphiques dashboard (Recharts) | Haut | Moyen | P2 — Valeur |
+| 2.3 | Tri de la liste utilisateurs | Moyen | Faible | P2 — UX |
+| 3.1 | Filtre utilisateurs inactifs | Moyen | Faible | P3 |
+| 3.2 | Export CSV | Moyen | Moyen | P3 |
+| 3.3 | Changer le rôle depuis l'UI | Moyen | Moyen | P3 |
+| 3.4 | Filtre abonnement | Faible | Faible | P3 |
+| 4.1 | Reset password par email direct | Moyen | Moyen | P4 |
+| 4.2 | Taux d'onboarding + métrique | Faible | Faible | P4 |
+| 4.3 | Recherche par nom | Faible | Faible | P4 |
+
+---
+
+## Recommandation de lotissement
+
+**Sprint 1 (1-2 jours)** : 1.1 + 1.2 + 1.3 + 2.1 + 2.3 + 4.3 — Tout en faible effort, impact direct sur la fiabilité et l'ergonomie quotidienne.
+
+**Sprint 2 (2-3 jours)** : 2.2 + 3.1 + 3.2 — Valeur perçue forte, données déjà disponibles.
+
+**Sprint 3 (3-5 jours)** : 3.3 + 4.1 — Actions admin enrichies, demandent plus de backend.
