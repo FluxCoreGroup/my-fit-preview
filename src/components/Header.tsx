@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, ArrowRight } from "lucide-react";
+import { useAdminRole } from "@/hooks/useAdminRole";
+import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, ArrowRight, ShieldCheck } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -26,6 +27,15 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // Moved to top level (required — no hooks after conditional returns)
+  const [scrolled, setScrolled] = useState(false);
+  const { isAdmin } = useAdminRole();
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleBack = () => {
     if (onBack) {
@@ -60,6 +70,12 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
             <Link to="/settings/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Support
             </Link>
+            {isAdmin && (
+              <Link to="/admin" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                Admin
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -118,6 +134,16 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
                   >
                     Support
                   </Link>
+                  {isAdmin && (
+                    <Link 
+                      to="/admin" 
+                      onClick={closeMobileMenu}
+                      className="text-lg font-medium text-primary hover:text-primary/80 transition-colors py-2 flex items-center gap-2"
+                    >
+                      <ShieldCheck className="w-5 h-5" />
+                      Admin
+                    </Link>
+                  )}
                   <div className="border-t pt-4 mt-4 space-y-4">
                     <Link 
                       to="/settings" 
@@ -222,14 +248,6 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
   }
 
   // Header Marketing (pour landing) - Simplifié et transparent
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
