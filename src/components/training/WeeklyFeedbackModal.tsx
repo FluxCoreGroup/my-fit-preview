@@ -215,8 +215,10 @@ export const WeeklyFeedbackModal = ({ open, onClose, onComplete }: WeeklyFeedbac
     if (!user) return;
 
     try {
-      // Calculate NEXT week's start date
-      const nextWeekStart = startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 });
+      // Bug fix: Calculate next week's start based on current week's Monday, not new Date()
+      // Using new Date() could generate for 2 weeks ahead if user does check-in on Monday
+      const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const nextWeekStart = addWeeks(currentWeekStart, 1);
 
       const { data, error } = await supabase.functions.invoke('generate-weekly-program', {
         body: {
@@ -268,7 +270,8 @@ export const WeeklyFeedbackModal = ({ open, onClose, onComplete }: WeeklyFeedbac
   ].filter(Boolean).length;
 
   const isValid = (weight1 || weight2 || weight3) && adherence && rpe && hasPain && energy;
-  const nextWeekStart = startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 });
+  const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+  const nextWeekStart = addWeeks(currentWeekStart, 1);
   const nextWeekLabel = format(nextWeekStart, "dd MMMM", { locale: fr });
 
   const CurrentStepIcon = generatingSteps[generatingStep]?.icon || Brain;
