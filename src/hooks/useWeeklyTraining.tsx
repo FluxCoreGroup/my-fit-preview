@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfWeek, addWeeks, format, endOfWeek, addDays } from "date-fns";
+import { startOfWeek, addWeeks, format, endOfWeek, subWeeks, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 
@@ -11,6 +11,7 @@ interface Session {
   completed: boolean;
   created_at: string;
   session_date: string;
+  partially_completed?: boolean;
 }
 
 interface WeeklyProgram {
@@ -31,6 +32,8 @@ export const useWeeklyTraining = () => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [historicalPrograms, setHistoricalPrograms] = useState<WeeklyProgram[]>([]);
   const [currentProgram, setCurrentProgram] = useState<WeeklyProgram | null>(null);
+  // Program with pending check-in (past week, not yet checked-in)
+  const [pendingCheckInProgram, setPendingCheckInProgram] = useState<WeeklyProgram | null>(null);
 
   const fetchWeeklySessions = async () => {
     if (!user) return;
@@ -68,18 +71,28 @@ export const useWeeklyTraining = () => {
         .select("*")
         .eq("user_id", user.id)
         .order("week_start_date", { ascending: false })
-        .limit(4);
+        .limit(10);
 
       if (error) throw error;
       setHistoricalPrograms(data || []);
       
-      // Set current program (most recent)
+      const now = new Date();
+
+      // Set current program (active this week)
       if (data && data.length > 0) {
         const current = data.find(p => 
-          new Date(p.week_start_date) <= new Date() && 
-          new Date(p.week_end_date) >= new Date()
+          new Date(p.week_start_date) <= now && 
+          new Date(p.week_end_date) >= now
         );
         setCurrentProgram(current || null);
+
+        // Detect past program(s) without check-in (not older than 30 days to avoid spam)
+        const pending = data.find(p =>
+          new Date(p.week_end_date) < now &&
+          !p.check_in_completed &&
+          differenceInDays(now, new Date(p.week_end_date)) <= 30
+        );
+        setPendingCheckInProgram(pending || null);
       }
     } catch (error) {
       console.error("Error fetching historical programs:", error);
@@ -117,41 +130,65 @@ export const useWeeklyTraining = () => {
     // Fetch the most recent past weekly program (week already ended)
     const { data: lastProgram } = await supabase
       .from("weekly_programs")
-      .select("check_in_completed, week_start_date")
+      .select("check_in_completed, week_start_date, week_end_date")
       .eq("user_id", user.id)
       .lt("week_end_date", new Date().toISOString())
       .order("week_start_date", { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    // No past program → allow (edge case: user deletes old programs)
+    // No past program → allow
     if (!lastProgram) {
       return { allowed: true };
     }
 
-    // Fast path: check_in_completed already set on the weekly_program row
+    // Fast path: check_in_completed already set → allow
     if (lastProgram.check_in_completed) {
       return { allowed: true };
     }
 
+    // Robustness: if last week ended > 14 days ago without check-in → user is inactive, allow anyway
+    const daysSinceEnd = differenceInDays(new Date(), new Date(lastProgram.week_end_date));
+    if (daysSinceEnd > 14) {
+      // Auto-mark as completed silently so they don't get blocked on next visit
+      await supabase
+        .from("weekly_programs")
+        .update({ check_in_completed: true })
+        .eq("user_id", user.id)
+        .eq("week_start_date", lastProgram.week_start_date);
+
+      return { allowed: true };
+    }
+
     // Fallback: check via week_iso in weekly_checkins
-    // Use ISO week string based on the program's week_start_date, not created_at
+    // Use ISO week string based on the program's week_start_date
     const lastWeekISO = format(new Date(lastProgram.week_start_date), "yyyy-'W'II");
+    // Also check the following week's ISO (handles late check-ins on Monday)
+    const nextWeekISO = format(addWeeks(new Date(lastProgram.week_start_date), 1), "yyyy-'W'II");
+
     const { data: lastWeekCheckIn } = await supabase
       .from("weekly_checkins")
       .select("id")
       .eq("user_id", user.id)
-      .eq("week_iso", lastWeekISO)
+      .in("week_iso", [lastWeekISO, nextWeekISO])
+      .limit(1)
       .maybeSingle();
 
-    if (!lastWeekCheckIn) {
-      return {
-        allowed: false,
-        reason: "Tu dois compléter le check-in de la semaine dernière avant de générer cette semaine.",
-      };
+    if (lastWeekCheckIn) {
+      // Auto-repair: found check-in but weekly_programs not updated
+      await supabase
+        .from("weekly_programs")
+        .update({ check_in_completed: true, check_in_id: lastWeekCheckIn.id })
+        .eq("user_id", user.id)
+        .eq("week_start_date", lastProgram.week_start_date);
+
+      return { allowed: true };
     }
 
-    return { allowed: true };
+    return {
+      allowed: false,
+      reason: "Tu dois compléter le check-in de la semaine dernière avant de générer cette semaine.",
+    };
   }, [user]);
 
   const generateWeeklyProgram = async (regenerate = false) => {
@@ -191,7 +228,6 @@ export const useWeeklyTraining = () => {
 
       if (error) throw error;
 
-
       await fetchWeeklySessions();
       await fetchHistoricalPrograms();
     } catch (error) {
@@ -203,6 +239,28 @@ export const useWeeklyTraining = () => {
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  // Postpone a session by N days
+  const postponeSession = async (sessionId: string, days: number = 1) => {
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) return;
+
+    const newDate = new Date(session.session_date);
+    newDate.setDate(newDate.getDate() + days);
+
+    const { error } = await supabase
+      .from("sessions")
+      .update({ session_date: newDate.toISOString() })
+      .eq("id", sessionId)
+      .eq("user_id", user?.id);
+
+    if (error) {
+      toast({ title: "Erreur", description: "Impossible de reporter la séance", variant: "destructive" });
+    } else {
+      toast({ title: "Séance reportée", description: `Déplacée au ${format(newDate, "EEEE dd MMM", { locale: fr })}` });
+      await fetchWeeklySessions();
     }
   };
 
@@ -235,8 +293,11 @@ export const useWeeklyTraining = () => {
   // Check if all sessions are completed
   const isWeekComplete = sessions.length > 0 && sessions.every(s => s.completed);
 
-  // Check if feedback is needed (week complete but no check-in done)
+  // needsFeedback: week complete but check-in not done yet
   const needsFeedback = isWeekComplete && currentProgram && !currentProgram.check_in_completed;
+
+  // hasPendingCheckIn: a past week has no check-in (separate from current week)
+  const hasPendingCheckIn = !!pendingCheckInProgram && !needsFeedback;
 
   const refreshData = async () => {
     await fetchWeeklySessions();
@@ -251,13 +312,17 @@ export const useWeeklyTraining = () => {
     changeWeek,
     goToCurrentWeek,
     generateWeeklyProgram,
+    postponeSession,
     getWeekLabel,
     getCompletedCount,
     getProgressPercentage,
     canGenerateWeek,
     historicalPrograms,
+    currentProgram,
+    pendingCheckInProgram,
     isWeekComplete,
     needsFeedback,
+    hasPendingCheckIn,
     refreshData,
   };
 };

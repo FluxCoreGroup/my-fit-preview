@@ -244,16 +244,17 @@ const Session = () => {
   const handleEndSessionEarly = async (reason: string, details?: string) => {
     if (user && sessionId) {
       try {
+        // Mark session as completed but partially_completed = true
         await supabase
           .from("sessions")
-          .update({ completed: true })
+          .update({ completed: true, partially_completed: true })
           .eq("id", sessionId);
 
-        // Store exit reason in feedback
+        // Store exit reason in feedback with partial flag
         await supabase.from("feedback").insert({
           user_id: user.id,
           session_id: sessionId,
-          completed: true,
+          completed: false, // partially done
           comments: `Arrêt anticipé - ${reason}${details ? `: ${details}` : ""}`,
         });
       } catch (error) {

@@ -68,6 +68,7 @@ const Training = () => {
     historicalPrograms,
     isWeekComplete,
     needsFeedback,
+    hasPendingCheckIn,
     refreshData,
   } = useWeeklyTraining();
 
@@ -365,7 +366,8 @@ const Training = () => {
             </Card>
           )}
 
-          {needsCheckIn && (
+          {/* Bannière check-in hebdomadaire requis — semaine précédente non bouclée */}
+          {(needsCheckIn || hasPendingCheckIn) && (
             <Card className="p-4 mb-4 bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-yellow-500/20">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
@@ -419,6 +421,7 @@ const Training = () => {
                   session={session}
                   sessionNumber={index + 1}
                   onStartSession={() => handleStartSession(session)}
+                  onSessionUpdated={refreshData}
                 />
               ))}
             </div>
