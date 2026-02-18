@@ -127,22 +127,77 @@ Deno.serve(async (req) => {
     const search = url.searchParams.get("search") ?? "";
     const roleFilter = url.searchParams.get("role") ?? "";
     const statusFilter = url.searchParams.get("status") ?? "";
+    const inactiveFilter = url.searchParams.get("inactive") ?? ""; // "14" | "30"
+    const subscriptionFilter = url.searchParams.get("subscription") ?? ""; // "active" | "trialing" | "none"
+    const sortBy = url.searchParams.get("sort") ?? "created_at"; // "created_at" | "last_activity_at" | "sessions_completed"
+    const sortDir = url.searchParams.get("dir") ?? "desc"; // "asc" | "desc"
+    const exportAll = url.searchParams.get("export") === "true";
     const offset = (page - 1) * limit;
 
-    // Fetch profiles with filters
+    // 1.1 FIX — If role filter active, first resolve matching user_ids via SQL
+    let allowedUserIds: string[] | null = null;
+    if (roleFilter === "admin" || roleFilter === "member") {
+      const { data: roleRows } = await supabaseAdmin
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", roleFilter);
+      allowedUserIds = (roleRows ?? []).map((r) => r.user_id);
+      // If no users found with that role, return empty
+      if (allowedUserIds.length === 0) {
+        return new Response(
+          JSON.stringify({ users: [], total: 0, page, limit }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Build profiles query
     let profilesQuery = supabaseAdmin
       .from("profiles")
-      .select("*", { count: "exact" })
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .select("*", { count: "exact" });
 
-    if (search) {
-      profilesQuery = profilesQuery.ilike("email", `%${search}%`);
+    // Apply sort (sessions_completed is sorted client-side since it's computed)
+    const validSortCols = ["created_at", "last_activity_at"];
+    const col = validSortCols.includes(sortBy) ? sortBy : "created_at";
+    profilesQuery = profilesQuery.order(col, { ascending: sortDir === "asc", nullsFirst: false });
+
+    // Role filter via SQL (fix 1.1)
+    if (allowedUserIds !== null) {
+      profilesQuery = profilesQuery.in("id", allowedUserIds);
     }
+
+    // Search: email OR name (fix 4.3)
+    if (search) {
+      profilesQuery = profilesQuery.or(
+        `email.ilike.%${search}%,name.ilike.%${search}%`
+      );
+    }
+
+    // Status filter
     if (statusFilter === "disabled") {
       profilesQuery = profilesQuery.eq("is_disabled", true);
     } else if (statusFilter === "active") {
       profilesQuery = profilesQuery.eq("is_disabled", false);
+    }
+
+    // Inactive filter (3.1)
+    if (inactiveFilter === "14") {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 14);
+      profilesQuery = profilesQuery.or(
+        `last_activity_at.lt.${cutoff.toISOString()},last_activity_at.is.null`
+      );
+    } else if (inactiveFilter === "30") {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 30);
+      profilesQuery = profilesQuery.or(
+        `last_activity_at.lt.${cutoff.toISOString()},last_activity_at.is.null`
+      );
+    }
+
+    // Pagination (skip for CSV export)
+    if (!exportAll) {
+      profilesQuery = profilesQuery.range(offset, offset + limit - 1);
     }
 
     const { data: profiles, count: totalCount } = await profilesQuery;
@@ -150,15 +205,13 @@ Deno.serve(async (req) => {
     if (!profiles || profiles.length === 0) {
       return new Response(
         JSON.stringify({ users: [], total: 0, page, limit }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const profileIds = profiles.map((p) => p.id);
 
-    // Fetch roles, subscriptions, sessions counts
+    // Fetch roles, subscriptions, sessions counts in parallel
     const [rolesRes, subscriptionsRes, sessionsCountRes] = await Promise.all([
       supabaseAdmin
         .from("user_roles")
@@ -168,7 +221,7 @@ Deno.serve(async (req) => {
         .from("subscriptions")
         .select("user_id, status, plan_type")
         .in("user_id", profileIds)
-        .eq("status", "active"),
+        .in("status", ["active", "trialing"]), // include trialing (fix 1.2 for list)
       supabaseAdmin
         .from("sessions")
         .select("user_id, completed")
@@ -178,15 +231,16 @@ Deno.serve(async (req) => {
     const rolesMap = new Map(
       (rolesRes.data ?? []).map((r) => [r.user_id, r.role])
     );
-    const subscriptionsMap = new Map(
-      (subscriptionsRes.data ?? []).map((s) => [s.user_id, s])
-    );
+    // Keep only the most recent active/trialing sub per user
+    const subscriptionsMap = new Map<string, { status: string; plan_type: string | null }>();
+    for (const s of subscriptionsRes.data ?? []) {
+      if (!subscriptionsMap.has(s.user_id)) {
+        subscriptionsMap.set(s.user_id, s);
+      }
+    }
     const sessionsMap = new Map<string, { total: number; completed: number }>();
     for (const session of sessionsCountRes.data ?? []) {
-      const entry = sessionsMap.get(session.user_id) ?? {
-        total: 0,
-        completed: 0,
-      };
+      const entry = sessionsMap.get(session.user_id) ?? { total: 0, completed: 0 };
       entry.total++;
       if (session.completed) entry.completed++;
       sessionsMap.set(session.user_id, entry);
@@ -206,18 +260,29 @@ Deno.serve(async (req) => {
       subscription: subscriptionsMap.get(p.id) ?? null,
     }));
 
-    // Filter by role after join — adjust total accordingly
-    if (roleFilter === "admin") {
-      users = users.filter((u) => u.role === "admin");
-    } else if (roleFilter === "member") {
-      users = users.filter((u) => u.role === "member");
+    // Subscription filter (3.4)
+    if (subscriptionFilter === "active") {
+      users = users.filter((u) => u.subscription?.status === "active");
+    } else if (subscriptionFilter === "trialing") {
+      users = users.filter((u) => u.subscription?.status === "trialing");
+    } else if (subscriptionFilter === "none") {
+      users = users.filter((u) => !u.subscription);
     }
 
+    // Sort by sessions_completed (computed, must be done after join)
+    if (sortBy === "sessions_completed") {
+      users.sort((a, b) =>
+        sortDir === "asc"
+          ? a.sessions_completed - b.sessions_completed
+          : b.sessions_completed - a.sessions_completed
+      );
+    }
+
+    const total = subscriptionFilter ? users.length : (totalCount ?? 0);
+
     return new Response(
-      JSON.stringify({ users, total: roleFilter ? users.length : (totalCount ?? 0), page, limit }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ users, total, page, limit }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
     console.error("admin-users error:", err);

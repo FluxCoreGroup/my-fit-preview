@@ -13,11 +13,26 @@ import {
   ChevronRight,
   RefreshCw,
   ShieldCheck,
+  GraduationCap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/BackButton";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+interface WeekPoint {
+  label: string;
+  count: number;
+}
 
 interface AdminStats {
   total_users: number;
@@ -31,6 +46,10 @@ interface AdminStats {
   weekly_checkins_month: number;
   subscriptions_active: number;
   checkin_rate_pct: number;
+  onboarding_completed: number;
+  onboarding_rate_pct: number;
+  sessions_by_week: WeekPoint[];
+  signups_by_week: WeekPoint[];
 }
 
 function StatCard({
@@ -59,6 +78,57 @@ function StatCard({
             <Icon className={`w-5 h-5 ${highlight ? "text-primary" : "text-muted-foreground"}`} />
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MiniBarChart({
+  data,
+  title,
+  color,
+}: {
+  data: WeekPoint[];
+  title: string;
+  color: string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="pb-2 pt-4 px-4">
+        <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-2 pb-3">
+        <ResponsiveContainer width="100%" height={100}>
+          <BarChart data={data} margin={{ top: 0, right: 4, left: -24, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" className="stroke-border/50" vertical={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              allowDecimals={false}
+              tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              cursor={{ fill: "hsl(var(--muted))" }}
+              contentStyle={{
+                background: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
+              formatter={(v: number) => [v, ""]}
+              labelFormatter={(l) => l}
+            />
+            <Bar dataKey="count" fill={color} radius={[3, 3, 0, 0]} maxBarSize={20} />
+          </BarChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
   );
@@ -186,6 +256,12 @@ export default function AdminDashboard() {
                   value={stats?.active_users_7d ?? 0}
                   sub={`${stats?.active_users_30d ?? 0} actifs (30j)`}
                 />
+                <StatCard
+                  icon={GraduationCap}
+                  label="Onboarding complété"
+                  value={`${stats?.onboarding_rate_pct ?? 0}%`}
+                  sub={`${stats?.onboarding_completed ?? 0} utilisateurs`}
+                />
               </>
             )}
           </div>
@@ -230,10 +306,43 @@ export default function AdminDashboard() {
                   icon={CreditCard}
                   label="Abonnements actifs"
                   value={stats?.subscriptions_active ?? 0}
+                  sub="active + trialing"
                 />
               </>
             )}
           </div>
+        </div>
+
+        {/* Charts (2.2) */}
+        <div>
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+            Tendances (8 semaines)
+          </h2>
+          {loading ? (
+            <div className="grid grid-cols-1 gap-3">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="pt-4 pb-3">
+                    <Skeleton className="h-4 w-36 mb-2" />
+                    <Skeleton className="h-24 w-full" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              <MiniBarChart
+                data={stats?.sessions_by_week ?? []}
+                title="Séances complétées / semaine"
+                color="hsl(var(--primary))"
+              />
+              <MiniBarChart
+                data={stats?.signups_by_week ?? []}
+                title="Nouveaux inscrits / semaine"
+                color="hsl(var(--primary) / 0.6)"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
