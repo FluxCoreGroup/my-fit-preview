@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   ShieldCheck,
   User,
-  Calendar,
   Dumbbell,
   CreditCard,
   AlertTriangle,
@@ -16,6 +15,13 @@ import {
   Trash2,
   KeyRound,
   Clock,
+  Lock,
+  CheckCircle2,
+  KeySquare,
+  Mail,
+  UserCog,
+  UserCheck,
+  UserX,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,6 +78,33 @@ interface UserDetail {
   }>;
 }
 
+// 2.1 — Mapping audit log lisible
+const ACTION_MAP: Record<string, { label: string; Icon: React.ElementType; color: string }> = {
+  disable_account:  { label: "Compte désactivé",            Icon: Lock,        color: "text-orange-500" },
+  enable_account:   { label: "Compte réactivé",             Icon: CheckCircle2, color: "text-green-500" },
+  reset_password:   { label: "Lien reset mot de passe généré", Icon: KeySquare,  color: "text-blue-500"  },
+  send_reset_email: { label: "Email reset mot de passe envoyé", Icon: Mail,      color: "text-blue-500"  },
+  delete_account:   { label: "Compte supprimé",             Icon: Trash2,      color: "text-destructive" },
+  set_role:         { label: "Rôle modifié",                Icon: UserCog,     color: "text-purple-500" },
+};
+
+function humanizeDetails(action: string, details: Record<string, unknown> | null): string | null {
+  if (!details) return null;
+  if (action === "reset_password" || action === "send_reset_email") {
+    return details.email ? `Envoyé à ${details.email}` : null;
+  }
+  if (action === "set_role") {
+    return `${details.previous_role ?? "?"} → ${details.new_role ?? "?"}`;
+  }
+  if (action === "delete_account" && details.email) {
+    return `Utilisateur : ${details.email}`;
+  }
+  // Fallback: render key=value pairs in a human readable form
+  return Object.entries(details)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(" · ");
+}
+
 export default function AdminUserDetail() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
@@ -116,10 +149,7 @@ export default function AdminUserDetail() {
     if (userId) fetchDetail();
   }, [userId]);
 
-  const callAction = async (
-    action: string,
-    extra?: Record<string, unknown>
-  ) => {
+  const callAction = async (action: string, extra?: Record<string, unknown>) => {
     setActionLoading(true);
     try {
       const token = await getToken();
@@ -140,13 +170,12 @@ export default function AdminUserDetail() {
     }
   };
 
+  // 1.3 — disable/enable are now inside AlertDialog
   const handleDisable = async () => {
     try {
       await callAction(detail?.profile.is_disabled ? "enable" : "disable");
       toast.success(
-        detail?.profile.is_disabled
-          ? "Compte réactivé avec succès"
-          : "Compte désactivé avec succès"
+        detail?.profile.is_disabled ? "Compte réactivé avec succès" : "Compte désactivé avec succès"
       );
       fetchDetail();
     } catch (e: unknown) {
@@ -180,10 +209,43 @@ export default function AdminUserDetail() {
     }
   };
 
+  // 4.1 — Send reset email directly
+  const handleSendResetEmail = async () => {
+    try {
+      const data = await callAction("send_reset_email");
+      if (data.success) {
+        toast.success(`Email de réinitialisation envoyé à ${data.email}`);
+        setResetLink(null);
+        fetchDetail();
+      }
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erreur");
+    }
+  };
+
+  // 3.3 — Set role
+  const handleSetRole = async (newRole: "admin" | "member") => {
+    try {
+      await callAction("set_role", { newRole });
+      toast.success(
+        newRole === "admin" ? "Utilisateur promu administrateur" : "Utilisateur rétrogradé en membre"
+      );
+      fetchDetail();
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erreur");
+    }
+  };
+
   const isSelf = adminUser?.id === userId;
 
   const fmtDate = (d: string | null | undefined) =>
     d ? format(new Date(d), "d MMM yyyy", { locale: fr }) : "—";
+
+const subscriptionBadgeClass = (status: string) => {
+    if (status === "active") return "bg-green-500/10 text-green-700 dark:text-green-400";
+    if (status === "trialing") return "bg-primary/10 text-primary";
+    return "";
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -258,16 +320,24 @@ export default function AdminUserDetail() {
                     detail?.profile.is_disabled ? (
                       <Badge variant="destructive">Désactivé</Badge>
                     ) : (
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
+                    <Badge variant="secondary" className="bg-green-500/10 text-green-700 dark:text-green-400">
                         Actif
                       </Badge>
                     )
                   }
                 />
-                <Row label="Onboarding" value={detail?.profile.onboarding_completed ? "Complété" : "Incomplet"} />
+                <Row
+                  label="Onboarding"
+                  value={detail?.profile.onboarding_completed ? "Complété ✓" : "Incomplet"}
+                />
                 <Row label="Inscrit le" value={fmtDate(detail?.profile.created_at)} />
                 <Row label="Dernière activité" value={fmtDate(detail?.profile.last_activity_at)} />
-                <Row label="ID" value={<span className="font-mono text-xs">{userId}</span>} copy copyValue={userId} />
+                <Row
+                  label="ID"
+                  value={<span className="font-mono text-xs">{userId}</span>}
+                  copy
+                  copyValue={userId}
+                />
               </>
             )}
           </CardContent>
@@ -327,16 +397,8 @@ export default function AdminUserDetail() {
                     label="Statut"
                     value={
                       <Badge
-                        variant={
-                          detail?.subscription?.status === "active"
-                            ? "secondary"
-                            : "destructive"
-                        }
-                        className={
-                          detail?.subscription?.status === "active"
-                            ? "bg-green-100 text-green-700"
-                            : ""
-                        }
+                        variant="secondary"
+                        className={subscriptionBadgeClass(detail?.subscription?.status ?? "")}
                       >
                         {detail?.subscription?.status ?? "—"}
                       </Badge>
@@ -361,36 +423,130 @@ export default function AdminUserDetail() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {/* Disable / Enable */}
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2"
-                onClick={handleDisable}
-                disabled={actionLoading}
-              >
-                {detail?.profile.is_disabled ? (
-                  <>
-                    <ToggleLeft className="w-4 h-4 text-green-600" />
-                    Réactiver le compte
-                  </>
-                ) : (
-                  <>
-                    <ToggleRight className="w-4 h-4 text-orange-500" />
-                    Désactiver le compte
-                  </>
-                )}
-              </Button>
+
+              {/* 1.3 — Disable/Enable with confirmation dialog */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2"
+                    disabled={actionLoading || loading}
+                  >
+                    {detail?.profile.is_disabled ? (
+                      <>
+                        <ToggleLeft className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        Réactiver le compte
+                      </>
+                    ) : (
+                      <>
+                        <ToggleRight className="w-4 h-4 text-amber-500" />
+                        Désactiver le compte
+                      </>
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="w-5 h-5 text-amber-500" />
+                      {detail?.profile.is_disabled ? "Réactiver le compte ?" : "Désactiver le compte ?"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {detail?.profile.is_disabled
+                        ? `L'utilisateur ${detail?.profile.email} pourra à nouveau se connecter.`
+                        : `L'utilisateur ${detail?.profile.email} ne pourra plus se connecter à son compte.`}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDisable}
+                      disabled={actionLoading}
+                      className={
+                        detail?.profile.is_disabled
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-amber-500 hover:bg-amber-600 text-white"
+                      }
+                    >
+                      {detail?.profile.is_disabled ? "Réactiver" : "Désactiver"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              {/* 3.3 — Change role */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2"
+                    disabled={actionLoading || loading}
+                  >
+                    {detail?.role === "admin" ? (
+                      <>
+                        <UserX className="w-4 h-4 text-muted-foreground" />
+                        Rétrograder en membre
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="w-4 h-4 text-primary" />
+                        Promouvoir administrateur
+                      </>
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                      <UserCog className="w-5 h-5 text-primary" />
+                      {detail?.role === "admin"
+                        ? "Rétrograder en membre ?"
+                        : "Promouvoir administrateur ?"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {detail?.role === "admin"
+                        ? `${detail?.profile.email} perdra l'accès à l'espace admin.`
+                        : `${detail?.profile.email} aura accès à l'espace admin et à toutes les actions admin.`}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() =>
+                        handleSetRole(detail?.role === "admin" ? "member" : "admin")
+                      }
+                      disabled={actionLoading}
+                      className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      {detail?.role === "admin" ? "Rétrograder" : "Promouvoir"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
 
               {/* Reset password */}
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2"
-                onClick={handleResetPassword}
-                disabled={actionLoading}
-              >
-                <KeyRound className="w-4 h-4 text-blue-500" />
-                Générer lien reset mot de passe
-              </Button>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  onClick={handleResetPassword}
+                  disabled={actionLoading}
+                >
+                  <KeyRound className="w-4 h-4 text-primary" />
+                  Générer lien reset mot de passe
+                </Button>
+
+                {/* 4.1 — Send reset email directly */}
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  onClick={handleSendResetEmail}
+                  disabled={actionLoading}
+                >
+                  <Mail className="w-4 h-4 text-primary" />
+                  Envoyer reset par email directement
+                </Button>
+              </div>
 
               {resetLink && (
                 <div className="p-3 bg-muted rounded-lg">
@@ -461,7 +617,7 @@ export default function AdminUserDetail() {
           </Card>
         )}
 
-        {/* Audit log */}
+        {/* 2.1 — Audit log humanisé */}
         {!loading && detail && detail.audit_log.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
@@ -471,25 +627,33 @@ export default function AdminUserDetail() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {detail.audit_log.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="flex items-start justify-between gap-3 py-2 border-b last:border-0"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{entry.action}</p>
-                      {entry.details && (
-                        <p className="text-xs text-muted-foreground">
-                          {JSON.stringify(entry.details)}
-                        </p>
-                      )}
+              <div className="space-y-1">
+                {detail.audit_log.map((entry) => {
+                  const mapped = ACTION_MAP[entry.action];
+                  const Icon = mapped?.Icon ?? Clock;
+                  const label = mapped?.label ?? entry.action;
+                  const color = mapped?.color ?? "text-muted-foreground";
+                  const humanDetails = humanizeDetails(entry.action, entry.details);
+                  return (
+                    <div
+                      key={entry.id}
+                      className="flex items-start justify-between gap-3 py-2.5 border-b last:border-0"
+                    >
+                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                        <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${color}`} />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">{label}</p>
+                          {humanDetails && (
+                            <p className="text-xs text-muted-foreground truncate">{humanDetails}</p>
+                          )}
+                        </div>
+                      </div>
+                      <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
+                        {format(new Date(entry.created_at), "d MMM yy HH:mm", { locale: fr })}
+                      </span>
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {format(new Date(entry.created_at), "d MMM yy HH:mm", { locale: fr })}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

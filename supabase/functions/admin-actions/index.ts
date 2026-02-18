@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -66,7 +67,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, targetUserId, confirm } = body;
+    const { action, targetUserId, confirm, newRole } = body;
 
     if (!action || !targetUserId) {
       return new Response(
@@ -78,8 +79,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Anti-self-action guard
-    if (targetUserId === adminUserId && action !== "reset_password") {
+    // Anti-self-action guard (allow reset_password on self)
+    if (
+      targetUserId === adminUserId &&
+      action !== "reset_password" &&
+      action !== "send_reset_email"
+    ) {
       return new Response(
         JSON.stringify({
           error:
@@ -92,7 +97,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Helper: write audit log (using service role, bypass RLS)
+    // Helper: write audit log
     const writeAudit = async (
       actionName: string,
       details?: Record<string, unknown>
@@ -152,11 +157,14 @@ Deno.serve(async (req) => {
           .select("user_id")
           .eq("role", "admin");
 
-        if (adminRoles && adminRoles.length === 1 && adminRoles[0].user_id === targetUserId) {
+        if (
+          adminRoles &&
+          adminRoles.length === 1 &&
+          adminRoles[0].user_id === targetUserId
+        ) {
           return new Response(
             JSON.stringify({
-              error:
-                "Impossible de supprimer le dernier administrateur.",
+              error: "Impossible de supprimer le dernier administrateur.",
             }),
             {
               status: 400,
@@ -167,21 +175,40 @@ Deno.serve(async (req) => {
 
         await writeAudit("delete_account");
 
-        // Delete user data (cascade via FK on auth.users will handle user_roles)
         await Promise.all([
           supabaseAdmin.from("goals").delete().eq("user_id", targetUserId),
           supabaseAdmin.from("sessions").delete().eq("user_id", targetUserId),
           supabaseAdmin.from("feedback").delete().eq("user_id", targetUserId),
-          supabaseAdmin.from("weekly_programs").delete().eq("user_id", targetUserId),
-          supabaseAdmin.from("weekly_checkins").delete().eq("user_id", targetUserId),
-          supabaseAdmin.from("conversations").delete().eq("user_id", targetUserId),
-          supabaseAdmin.from("training_preferences").delete().eq("user_id", targetUserId),
-          supabaseAdmin.from("subscriptions").delete().eq("user_id", targetUserId),
-          supabaseAdmin.from("weight_logs").delete().eq("user_id", targetUserId),
-          supabaseAdmin.from("nutrition_logs").delete().eq("user_id", targetUserId),
+          supabaseAdmin
+            .from("weekly_programs")
+            .delete()
+            .eq("user_id", targetUserId),
+          supabaseAdmin
+            .from("weekly_checkins")
+            .delete()
+            .eq("user_id", targetUserId),
+          supabaseAdmin
+            .from("conversations")
+            .delete()
+            .eq("user_id", targetUserId),
+          supabaseAdmin
+            .from("training_preferences")
+            .delete()
+            .eq("user_id", targetUserId),
+          supabaseAdmin
+            .from("subscriptions")
+            .delete()
+            .eq("user_id", targetUserId),
+          supabaseAdmin
+            .from("weight_logs")
+            .delete()
+            .eq("user_id", targetUserId),
+          supabaseAdmin
+            .from("nutrition_logs")
+            .delete()
+            .eq("user_id", targetUserId),
         ]);
 
-        // Delete auth user (this cascades user_roles via FK)
         const { error: deleteError } =
           await supabaseAdmin.auth.admin.deleteUser(targetUserId);
         if (deleteError) throw deleteError;
@@ -191,9 +218,8 @@ Deno.serve(async (req) => {
         });
       }
 
-      // ── Reset password ────────────────────────────────────────────────────
+      // ── Reset password (returns link) ──────────────────────────────────────
       case "reset_password": {
-        // Get user email
         const { data: profile } = await supabaseAdmin
           .from("profiles")
           .select("email")
@@ -225,10 +251,135 @@ Deno.serve(async (req) => {
             success: true,
             link: linkData?.properties?.action_link,
           }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
+      }
+
+      // ── Send reset password by email directly (4.1) ────────────────────────
+      case "send_reset_email": {
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("email, name")
+          .eq("id", targetUserId)
+          .maybeSingle();
+
+        if (!profile?.email) {
+          return new Response(
+            JSON.stringify({ error: "Utilisateur introuvable" }),
+            {
+              status: 404,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
+        }
+
+        const { data: linkData, error: linkError } =
+          await supabaseAdmin.auth.admin.generateLink({
+            type: "recovery",
+            email: profile.email,
+          });
+
+        if (linkError) throw linkError;
+
+        const resetLink = linkData?.properties?.action_link;
+        if (!resetLink) throw new Error("Impossible de générer le lien");
+
+        // Send via Resend
+        const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+        const { error: emailError } = await resend.emails.send({
+          from: "PULSE <noreply@pulse-ai.app>",
+          to: profile.email,
+          subject: "Réinitialisation de votre mot de passe PULSE",
+          html: `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;">
+              <h2 style="color:#18181b;">Réinitialisation de mot de passe</h2>
+              <p>Bonjour${profile.name ? ` ${profile.name}` : ""},</p>
+              <p>Un administrateur a demandé la réinitialisation de votre mot de passe.</p>
+              <p>Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :</p>
+              <a href="${resetLink}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#18181b;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">
+                Réinitialiser mon mot de passe
+              </a>
+              <p style="color:#71717a;font-size:13px;">Ce lien expire dans 24 heures. Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
+            </div>
+          `,
+        });
+
+        if (emailError) throw emailError;
+
+        await writeAudit("send_reset_email", { email: profile.email });
+
+        return new Response(
+          JSON.stringify({ success: true, email: profile.email }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // ── Set role (3.3) ─────────────────────────────────────────────────────
+      case "set_role": {
+        if (newRole !== "admin" && newRole !== "member") {
+          return new Response(
+            JSON.stringify({ error: "Rôle invalide. Utilisez 'admin' ou 'member'." }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
+        }
+
+        // Guard: cannot demote yourself
+        if (targetUserId === adminUserId && newRole === "member") {
+          return new Response(
+            JSON.stringify({ error: "Vous ne pouvez pas vous rétrograder vous-même." }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
+          );
+        }
+
+        // Guard: cannot demote the last admin
+        if (newRole === "member") {
+          const { data: adminRoles } = await supabaseAdmin
+            .from("user_roles")
+            .select("user_id")
+            .eq("role", "admin");
+
+          if (
+            adminRoles &&
+            adminRoles.length === 1 &&
+            adminRoles[0].user_id === targetUserId
+          ) {
+            return new Response(
+              JSON.stringify({
+                error: "Impossible de rétrograder le dernier administrateur.",
+              }),
+              {
+                status: 400,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              }
+            );
+          }
+        }
+
+        // Upsert role
+        const { error: upsertError } = await supabaseAdmin
+          .from("user_roles")
+          .upsert(
+            { user_id: targetUserId, role: newRole },
+            { onConflict: "user_id" }
+          );
+
+        if (upsertError) throw upsertError;
+
+        const previousRole = newRole === "admin" ? "member" : "admin";
+        await writeAudit("set_role", {
+          previous_role: previousRole,
+          new_role: newRole,
+        });
+
+        return new Response(JSON.stringify({ success: true, role: newRole }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       default:

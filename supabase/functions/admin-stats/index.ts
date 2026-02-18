@@ -38,7 +38,6 @@ Deno.serve(async (req) => {
 
     const userId = claimsData.claims.sub;
 
-    // Utiliser le service role pour vérifier has_role (bypass RLS)
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -69,6 +68,21 @@ Deno.serve(async (req) => {
     weekStartOfPeriod.setDate(now.getDate() - now.getDay() + 1);
     weekStartOfPeriod.setHours(0, 0, 0, 0);
 
+    // Build week boundaries for the last 8 weeks
+    const weeks: { label: string; start: string; end: string }[] = [];
+    for (let i = 7; i >= 0; i--) {
+      const wStart = new Date(now);
+      wStart.setDate(now.getDate() - now.getDay() + 1 - i * 7);
+      wStart.setHours(0, 0, 0, 0);
+      const wEnd = new Date(wStart);
+      wEnd.setDate(wStart.getDate() + 7);
+      const label = `S${wStart.getDate()}/${wStart.getMonth() + 1}`;
+      weeks.push({ label, start: wStart.toISOString(), end: wEnd.toISOString() });
+    }
+
+    const eightWeeksAgo = new Date(now);
+    eightWeeksAgo.setDate(now.getDate() - 56);
+
     // Fetch all metrics in parallel
     const [
       totalUsersRes,
@@ -81,6 +95,10 @@ Deno.serve(async (req) => {
       sessionsCompletedWeekRes,
       checkinsRes,
       subscriptionsRes,
+      onboardingCompletedRes,
+      // Historical data for charts
+      sessionsHistoryRes,
+      signupsHistoryRes,
     ] = await Promise.all([
       supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
       supabaseAdmin
@@ -116,17 +134,53 @@ Deno.serve(async (req) => {
         .from("weekly_checkins")
         .select("id", { count: "exact", head: true })
         .gte("created_at", monthStart.toISOString()),
+      // 1.2 FIX — include trialing in active subscriptions
       supabaseAdmin
         .from("subscriptions")
         .select("id", { count: "exact", head: true })
-        .eq("status", "active"),
+        .in("status", ["active", "trialing"]),
+      // 4.2 onboarding completed
+      supabaseAdmin
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("onboarding_completed", true),
+      // Historical sessions for chart (2.2)
+      supabaseAdmin
+        .from("sessions")
+        .select("session_date")
+        .eq("completed", true)
+        .gte("session_date", eightWeeksAgo.toISOString()),
+      // Historical signups for chart (2.2)
+      supabaseAdmin
+        .from("profiles")
+        .select("created_at")
+        .gte("created_at", eightWeeksAgo.toISOString()),
     ]);
 
-    // Checkin rate (checkins this month / total users)
+    // Aggregate chart data by week
+    const sessions_by_week = weeks.map((w) => ({
+      label: w.label,
+      count: (sessionsHistoryRes.data ?? []).filter((s) => {
+        const d = s.session_date;
+        return d >= w.start && d < w.end;
+      }).length,
+    }));
+
+    const signups_by_week = weeks.map((w) => ({
+      label: w.label,
+      count: (signupsHistoryRes.data ?? []).filter((p) => {
+        const d = p.created_at;
+        return d >= w.start && d < w.end;
+      }).length,
+    }));
+
     const totalUsers = totalUsersRes.count ?? 0;
     const checkinsCount = checkinsRes.count ?? 0;
     const checkinRate =
       totalUsers > 0 ? Math.round((checkinsCount / totalUsers) * 100) : 0;
+    const onboardingCompleted = onboardingCompletedRes.count ?? 0;
+    const onboardingRate =
+      totalUsers > 0 ? Math.round((onboardingCompleted / totalUsers) * 100) : 0;
 
     const stats = {
       total_users: totalUsers,
@@ -140,6 +194,11 @@ Deno.serve(async (req) => {
       weekly_checkins_month: checkinsCount,
       subscriptions_active: subscriptionsRes.count ?? 0,
       checkin_rate_pct: checkinRate,
+      onboarding_completed: onboardingCompleted,
+      onboarding_rate_pct: onboardingRate,
+      // Charts (2.2)
+      sessions_by_week,
+      signups_by_week,
     };
 
     return new Response(JSON.stringify(stats), {
