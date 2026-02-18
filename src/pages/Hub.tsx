@@ -8,9 +8,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOnboarding, TOUR_STEPS } from "@/contexts/OnboardingContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion, AlertTriangle } from "lucide-react";
+import { Dumbbell, Utensils, Target, Apple, Settings, MessageCircleQuestion, AlertTriangle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscriptionContext } from "@/contexts/SubscriptionContext";
+import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
@@ -35,6 +36,7 @@ const Hub = () => {
   const { user } = useAuth();
   const { state, isOnboardingActive, isLoading: onboardingLoading, startTour, skipTour, checkOnboardingStatus, getCurrentStep } = useOnboarding();
   const { status: subscriptionStatus } = useSubscriptionContext();
+  const { isAdmin } = useAdminRole();
   const [showWelcome, setShowWelcome] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
   const [initDone, setInitDone] = useState(false);
@@ -277,6 +279,17 @@ const Hub = () => {
               iconColor="180 60% 50%"
               to="/settings/support"
             />
+
+            {/* Admin — conditionnel */}
+            {isAdmin && (
+              <ModuleCard
+                icon={ShieldCheck}
+                title="Admin"
+                subtitle="Dashboard"
+                iconColor="0 72% 51%"
+                to="/admin"
+              />
+            )}
           </div>
         </div>
       </div>

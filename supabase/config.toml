@@ -68,3 +68,12 @@ verify_jwt = false
 
 [functions.get-public-stats]
 verify_jwt = false
+
+[functions.admin-stats]
+verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = false
+
+[functions.admin-actions]
+verify_jwt = false

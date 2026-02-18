@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { SubscriptionRoute } from "./components/SubscriptionRoute";
+import { AdminRoute } from "./components/AdminRoute";
 import { useSaveOnboardingData } from "./hooks/useSaveOnboardingData";
 import { AppLayout } from "./components/layouts/AppLayout";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
@@ -39,6 +40,9 @@ import CoachsIA from "./pages/CoachsIA";
 import Hub from "./pages/Hub";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import { ScrollToTop } from "./components/ScrollToTop";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminUserDetail from "./pages/admin/AdminUserDetail";
 
 // Component to sync onboarding data to Supabase as soon as user is authenticated
 const OnboardingSyncGate = () => {
@@ -86,6 +90,11 @@ const App = () => (
             <Route path="/settings/nutrition" element={<ProtectedRoute><AppLayout><NutritionSettings /></AppLayout></ProtectedRoute>} />
             <Route path="/settings/subscription" element={<ProtectedRoute><AppLayout><Subscription /></AppLayout></ProtectedRoute>} />
             <Route path="/settings/support" element={<ProtectedRoute><AppLayout><SettingsSupport /></AppLayout></ProtectedRoute>} />
+
+            {/* Admin routes — protected by AdminRoute (RBAC) */}
+            <Route path="/admin" element={<AdminRoute><AppLayout><AdminDashboard /></AppLayout></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><AppLayout><AdminUsers /></AppLayout></AdminRoute>} />
+            <Route path="/admin/users/:userId" element={<AdminRoute><AppLayout><AdminUserDetail /></AppLayout></AdminRoute>} />
               
               <Route path="*" element={<NotFound />} />
       </Routes>
