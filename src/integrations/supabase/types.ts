@@ -297,6 +297,7 @@ export type Database = {
           id: string
           pain_zones: string[] | null
           rpe: number | null
+          satisfaction: number | null
           session_id: string | null
           user_id: string
         }
@@ -308,6 +309,7 @@ export type Database = {
           id?: string
           pain_zones?: string[] | null
           rpe?: number | null
+          satisfaction?: number | null
           session_id?: string | null
           user_id: string
         }
@@ -319,6 +321,7 @@ export type Database = {
           id?: string
           pain_zones?: string[] | null
           rpe?: number | null
+          satisfaction?: number | null
           session_id?: string | null
           user_id?: string
         }
@@ -515,6 +518,7 @@ export type Database = {
           created_at: string
           exercises: Json | null
           id: string
+          partially_completed: boolean | null
           session_date: string
           user_id: string
         }
@@ -523,6 +527,7 @@ export type Database = {
           created_at?: string
           exercises?: Json | null
           id?: string
+          partially_completed?: boolean | null
           session_date?: string
           user_id: string
         }
@@ -531,6 +536,7 @@ export type Database = {
           created_at?: string
           exercises?: Json | null
           id?: string
+          partially_completed?: boolean | null
           session_date?: string
           user_id?: string
         }

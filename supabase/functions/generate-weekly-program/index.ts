@@ -66,9 +66,11 @@ serve(async (req) => {
     }
     console.log(`Subscription check passed for user ${user.id}`);
 
-    const { week_start_date, regenerate } = await req.json();
+    const { week_start_date, regenerate, quick_preferences } = await req.json();
 
+    // =============================================
     // Fetch user goals and preferences
+    // =============================================
     const { data: goals } = await supabase
       .from("goals")
       .select("*")
@@ -93,8 +95,66 @@ serve(async (req) => {
       );
     }
 
-    const frequency = goals.frequency || 3;
-    const sessionDuration = goals.session_duration || 60;
+    // =============================================
+    // Fetch historical context for intelligent generation
+    // =============================================
+
+    // 1. Last weekly check-in
+    const { data: lastCheckin } = await supabase
+      .from("weekly_checkins")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // 2. Recent feedback (last 3 sessions)
+    const { data: recentFeedback } = await supabase
+      .from("feedback")
+      .select("rpe, completed, comments, had_pain, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(3);
+
+    // 3. Last completed session date (to detect inactivity gap)
+    const { data: lastCompletedSession } = await supabase
+      .from("sessions")
+      .select("session_date")
+      .eq("user_id", user.id)
+      .eq("completed", true)
+      .order("session_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // Calculate inactivity gap
+    const now = new Date();
+    const lastSessionDate = lastCompletedSession
+      ? new Date(lastCompletedSession.session_date)
+      : null;
+    const inactivityDays = lastSessionDate
+      ? Math.floor((now.getTime() - lastSessionDate.getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    // Build historical context object for prompt injection
+    const historicalContext = buildHistoricalContext(
+      lastCheckin,
+      recentFeedback || [],
+      inactivityDays,
+    );
+
+    // =============================================
+    // Apply quick preferences overrides if provided
+    // =============================================
+    const effectiveGoals = { ...goals };
+    const effectivePreferences = { ...preferences };
+    if (quick_preferences) {
+      if (quick_preferences.frequency) effectiveGoals.frequency = quick_preferences.frequency;
+      if (quick_preferences.session_duration) effectiveGoals.session_duration = quick_preferences.session_duration;
+      if (quick_preferences.focus) effectivePreferences.progression_focus = quick_preferences.focus;
+    }
+
+    const frequency = effectiveGoals.frequency || 3;
+    const sessionDuration = effectiveGoals.session_duration || 60;
 
     // Delete existing sessions if regenerating
     if (regenerate) {
@@ -123,7 +183,7 @@ serve(async (req) => {
     }
 
     // Determine split logic
-    const split = preferences?.split_preference || "full_body";
+    const split = effectivePreferences?.split_preference || "full_body";
     const sessionTypes = getSplitTypes(split, frequency);
 
     const generatedSessions = [];
@@ -137,8 +197,9 @@ serve(async (req) => {
           i + 1,
           sessionType,
           sessionDuration,
-          goals,
-          preferences,
+          effectiveGoals,
+          effectivePreferences,
+          historicalContext,
         );
 
         console.log(
@@ -342,19 +403,19 @@ serve(async (req) => {
       );
     }
 
-    // Create weekly_program record
+    // Create weekly_program record (upsert to avoid duplicates)
     if (successCount > 0) {
       const weekEnd = new Date(week_start_date);
       weekEnd.setDate(weekEnd.getDate() + 7);
 
-      await supabase.from("weekly_programs").insert({
+      await supabase.from("weekly_programs").upsert({
         user_id: user.id,
         week_start_date: week_start_date,
         week_end_date: weekEnd.toISOString(),
         total_sessions: successCount,
         completed_sessions: 0,
         check_in_completed: false,
-      });
+      }, { onConflict: "user_id,week_start_date", ignoreDuplicates: false });
     }
 
     console.log(
@@ -366,6 +427,7 @@ serve(async (req) => {
         success: true,
         sessions: generatedSessions,
         totalGenerated: successCount,
+        historicalContext: historicalContext.summary,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
@@ -382,6 +444,91 @@ serve(async (req) => {
     );
   }
 });
+
+// =============================================
+// Historical context builder
+// =============================================
+function buildHistoricalContext(
+  lastCheckin: any,
+  recentFeedback: any[],
+  inactivityDays: number | null,
+): { prompt: string; summary: string[] } {
+  const parts: string[] = [];
+  const summaryItems: string[] = [];
+
+  // Inactivity gap detection
+  if (inactivityDays !== null && inactivityDays > 14) {
+    const weeks = Math.round(inactivityDays / 7);
+    parts.push(
+      `⚠️ REPRISE APRÈS PAUSE : L'utilisateur reprend après ${weeks} semaine(s) d'inactivité (${inactivityDays} jours depuis la dernière séance). Appliquer une semaine de décharge : réduire le volume de 20% (moins de séries), intensité RPE max 7, exercices basiques polyarticulaires uniquement.`
+    );
+    summaryItems.push(`Reprise progressive après ${weeks} semaine(s) d'inactivité`);
+  }
+
+  // Last check-in data
+  if (lastCheckin) {
+    const checkinParts: string[] = [];
+
+    if (lastCheckin.rpe_avg) {
+      checkinParts.push(`RPE moyen semaine passée: ${lastCheckin.rpe_avg}/10`);
+      if (lastCheckin.rpe_avg >= 9) {
+        parts.push(`🔴 RPE ÉLEVÉ (${lastCheckin.rpe_avg}/10) : Réduire l'intensité globale de 10-15%. Moins de séries, plus de repos, RPE cible max 7-8.`);
+        summaryItems.push("Volume réduit — RPE trop élevé la semaine passée");
+      } else if (lastCheckin.rpe_avg <= 6) {
+        parts.push(`🟢 RPE FAIBLE (${lastCheckin.rpe_avg}/10) : Augmenter légèrement le volume (+1 série sur les exercices principaux) ou l'intensité.`);
+        summaryItems.push("Volume augmenté — RPE confortable la semaine passée");
+      }
+    }
+
+    if (lastCheckin.has_pain) {
+      const zones = Array.isArray(lastCheckin.pain_zones) && lastCheckin.pain_zones.length > 0
+        ? lastCheckin.pain_zones.join(", ")
+        : "zones non spécifiées";
+      parts.push(`🚨 DOULEUR SIGNALÉE (zones: ${zones}) : Éviter ABSOLUMENT les exercices sollicitant ces zones. Proposer des alternatives. Réduire d'1 série par exercice. Priorité à la récupération.`);
+      summaryItems.push(`Douleur signalée — exercices adaptés pour ${zones}`);
+    }
+
+    if (lastCheckin.energy_level === "low") {
+      parts.push(`⚡ ÉNERGIE FAIBLE : Raccourcir les séances, favoriser les supersets pour économiser du temps, réduire le volume total.`);
+      summaryItems.push("Séances allégées — énergie faible signalée");
+    } else if (lastCheckin.energy_level === "high") {
+      parts.push(`⚡ ÉNERGIE ÉLEVÉE : L'utilisateur se sent bien. Tu peux augmenter légèrement le volume ou l'intensité.`);
+    }
+
+    if (lastCheckin.adherence_diet !== null && lastCheckin.adherence_diet < 50) {
+      parts.push(`🍽️ ADHÉRENCE NUTRITION FAIBLE (${lastCheckin.adherence_diet}%) : Prendre en compte un potentiel déficit énergétique. Ne pas augmenter le volume.`);
+    }
+
+    if (checkinParts.length > 0) {
+      parts.unshift(`## DONNÉES CHECK-IN SEMAINE PRÉCÉDENTE\n${checkinParts.join(" | ")}`);
+    }
+  }
+
+  // Recent session feedback
+  if (recentFeedback.length > 0) {
+    const avgRpe = recentFeedback
+      .filter(f => f.rpe !== null)
+      .reduce((sum, f) => sum + (f.rpe || 0), 0) / Math.max(recentFeedback.filter(f => f.rpe !== null).length, 1);
+
+    if (avgRpe > 0) {
+      parts.push(`📊 RPE MOYEN DES 3 DERNIÈRES SÉANCES: ${avgRpe.toFixed(1)}/10`);
+    }
+
+    const hasPainFeedback = recentFeedback.some(f => f.had_pain);
+    if (hasPainFeedback) {
+      parts.push(`⚕️ DOULEUR SIGNALÉE LORS DE SÉANCES RÉCENTES : Adapter les exercices en conséquence.`);
+    }
+  }
+
+  const promptSection = parts.length > 0
+    ? `\n## CONTEXTE HISTORIQUE À PRENDRE EN COMPTE IMPÉRATIVEMENT\n\n${parts.join("\n\n")}\n`
+    : "";
+
+  return {
+    prompt: promptSection,
+    summary: summaryItems,
+  };
+}
 
 const getSplitTypes = (split: string, frequency: number): string[] => {
   switch (split) {
@@ -419,6 +566,7 @@ const buildSessionPrompt = (
   duration: number,
   goals: Record<string, any>,
   preferences: Record<string, any> | null,
+  historicalContext: { prompt: string; summary: string[] },
 ) => {
   // Build user profile details
   const age = goals.age ? `${goals.age} ans` : "Non renseigné";
@@ -506,7 +654,7 @@ const buildSessionPrompt = (
 2. **EXERCICES**: Nom technique correct en français (ex: "Développé couché", pas "Bench press")
 3. **AUCUN BLABLA**: Phrases courtes, directes, sans émojis, sans formules de politesse
 4. **CONSEILS**: Techniques et actionnables, pas de généralités
-
+${historicalContext.prompt}
 ## PARAMÈTRES SELON LE NIVEAU ${experienceLevel.toUpperCase()}
 
 - Séries par exercice: ${config.sets}

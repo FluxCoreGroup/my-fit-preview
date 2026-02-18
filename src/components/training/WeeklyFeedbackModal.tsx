@@ -151,51 +151,47 @@ export const WeeklyFeedbackModal = ({ open, onClose, onComplete }: WeeklyFeedbac
       const currentWeekISO = format(new Date(), "yyyy-'W'II");
       const avgWeight = weights.reduce((a, b) => a + (b || 0), 0) / weights.length;
 
-      // Save check-in
-      const { data: checkinData, error } = await supabase.from("weekly_checkins").insert({
-        user_id: user.id,
-        week_iso: currentWeekISO,
-        weight_measure_1: weight1,
-        weight_measure_2: weight2,
-        weight_measure_3: weight3,
-        average_weight: avgWeight,
-        adherence_diet: adherence,
-        rpe_avg: rpe,
-        has_pain: hasPain === "yes",
-        energy_level: energy,
-        blockers: comment || null,
-        pain_zones: hasPain === "yes" ? ["non_specifie"] : [],
-      }).select().single();
+      // Check if check-in already exists for this week (avoid duplicate insert)
+      const { data: existingCheckin } = await supabase
+        .from("weekly_checkins")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("week_iso", currentWeekISO)
+        .maybeSingle();
 
-      if (error) {
-        if (error.code === "23505") {
-          toast({
-            title: "Check-in déjà fait",
-            description: "Tu as déjà fait ton check-in cette semaine",
-            variant: "destructive",
-          });
-          onClose();
-          return;
-        }
-        throw error;
+      let checkinId: string | null = existingCheckin?.id || null;
+
+      if (!existingCheckin) {
+        // Save new check-in
+        const { data: checkinData, error } = await supabase.from("weekly_checkins").insert({
+          user_id: user.id,
+          week_iso: currentWeekISO,
+          weight_measure_1: weight1,
+          weight_measure_2: weight2,
+          weight_measure_3: weight3,
+          average_weight: avgWeight,
+          adherence_diet: adherence,
+          rpe_avg: rpe,
+          has_pain: hasPain === "yes",
+          energy_level: energy,
+          blockers: comment || null,
+          pain_zones: hasPain === "yes" ? ["non_specifie"] : [],
+        }).select().single();
+
+        if (error) throw error;
+        checkinId = checkinData?.id || null;
       }
 
-      // Update current week's program to mark check-in as completed
-      const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const currentWeekEnd = addWeeks(currentWeekStart, 1);
-      
+      // Mark all past uncompleted programs as completed (handles inactivity edge cases)
       await supabase
         .from("weekly_programs")
-        .update({ 
-          check_in_completed: true,
-          check_in_id: checkinData?.id 
-        })
+        .update({ check_in_completed: true, check_in_id: checkinId })
         .eq("user_id", user.id)
-        .gte("week_start_date", currentWeekStart.toISOString())
-        .lt("week_end_date", currentWeekEnd.toISOString());
+        .eq("check_in_completed", false)
+        .lt("week_end_date", new Date().toISOString());
 
       setLoading(false);
-      
+
       // Move to generation step
       setStep("generating");
       await generateNextWeek();

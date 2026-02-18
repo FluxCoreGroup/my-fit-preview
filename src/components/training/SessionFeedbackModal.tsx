@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Smile, Meh, Frown, Angry, HelpCircle, Star, Sparkles } from "lucide-react";
+import { Smile, Meh, Frown, Angry, HelpCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SessionFeedbackModalProps {
@@ -35,7 +35,6 @@ export const SessionFeedbackModal = ({
   const { user } = useAuth();
   const [rpe, setRpe] = useState([7]);
   const [difficulty, setDifficulty] = useState<number | null>(null);
-  const [satisfaction, setSatisfaction] = useState(0);
   const [comments, setComments] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,6 +44,13 @@ export const SessionFeedbackModal = ({
     { value: 3, icon: Frown, label: "Dur", color: "text-orange-500" },
     { value: 4, icon: Angry, label: "Très dur", color: "text-red-500" },
   ];
+
+  // Show adjustment hint based on RPE
+  const getRpeHint = (rpeVal: number) => {
+    if (rpeVal >= 9) return "💡 RPE élevé détecté — ta prochaine séance sera automatiquement allégée.";
+    if (rpeVal <= 5) return "💡 Séance facile — tu peux progresser sur la prochaine.";
+    return null;
+  };
 
   const handleSubmit = async () => {
     if (!user || difficulty === null) {
@@ -59,7 +65,7 @@ export const SessionFeedbackModal = ({
     setIsSubmitting(true);
 
     try {
-      // Save feedback
+      // Save feedback (satisfaction column removed — not in DB)
       await supabase.from('feedback').insert({
         user_id: user.id,
         session_id: sessionId,
@@ -101,11 +107,13 @@ export const SessionFeedbackModal = ({
     }
   };
 
+  const rpeHint = getRpeHint(rpe[0]);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent withClose={false} className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 p-0 max-h-screen">
         {/* Header with gradient accent */}
-        <div className="bg-gradient-to-r from-primary/20 to-secondary/20 px-6 h-24  flex flex-col justify-center items-center">
+        <div className="bg-gradient-to-r from-primary/20 to-secondary/20 px-6 h-24 flex flex-col justify-center items-center">
           <DialogHeader className="space-y-1">
             <div className="flex items-center gap-2 mx-auto">
               <Sparkles className="w-4 h-4 text-primary" />
@@ -152,6 +160,12 @@ export const SessionFeedbackModal = ({
                 <span className="text-xs text-muted-foreground">Maximal</span>
               </div>
             </div>
+            {/* Immediate adjustment hint */}
+            {rpeHint && (
+              <p className="text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
+                {rpeHint}
+              </p>
+            )}
           </div>
 
           <Separator className="bg-border/50" />
@@ -185,32 +199,6 @@ export const SessionFeedbackModal = ({
 
           <Separator className="bg-border/50" />
 
-          {/* Satisfaction Section - Star Rating */}
-          <div className="space-y-3">
-            <label className="text-base font-semibold block">Ta satisfaction</label>
-            <div className="flex justify-center gap-2">
-              {[1, 2, 3, 4, 5].map((star) => {
-                const isSelected = star <= satisfaction;
-                return (
-                  <button
-                    key={star}
-                    onClick={() => setSatisfaction(star)}
-                    className={cn(
-                      "w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200",
-                      isSelected
-                        ? "bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/30"
-                        : "border-2 border-border/50 text-muted-foreground hover:border-primary hover:bg-primary/10 hover:text-primary"
-                    )}
-                  >
-                    <Star className={cn("w-5 h-5", isSelected && "fill-current")} />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <Separator className="bg-border/50" />
-
           {/* Comments Section */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground block">
@@ -230,7 +218,6 @@ export const SessionFeedbackModal = ({
             onClick={handleSubmit}
             disabled={isSubmitting || difficulty === null}
             className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity rounded-xl py-6 text-base font-semibold shadow-lg shadow-primary/20"
-            
           >
             {isSubmitting ? "Enregistrement..." : "Enregistrer et retourner au Hub"}
           </Button>
