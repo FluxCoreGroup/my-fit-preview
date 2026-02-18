@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { startOfWeek, addWeeks, format, endOfWeek } from "date-fns";
+import { startOfWeek, addWeeks, format, endOfWeek, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 
@@ -114,16 +114,34 @@ export const useWeeklyTraining = () => {
       return { allowed: true };
     }
 
-    // Check if last week's check-in exists
-    const lastWeekStart = startOfWeek(addWeeks(new Date(), -1), { weekStartsOn: 1 });
-    const lastWeekEnd = endOfWeek(lastWeekStart, { weekStartsOn: 1 });
+    // Fetch the most recent past weekly program (week already ended)
+    const { data: lastProgram } = await supabase
+      .from("weekly_programs")
+      .select("check_in_completed, week_start_date")
+      .eq("user_id", user.id)
+      .lt("week_end_date", new Date().toISOString())
+      .order("week_start_date", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
+    // No past program → allow (edge case: user deletes old programs)
+    if (!lastProgram) {
+      return { allowed: true };
+    }
+
+    // Fast path: check_in_completed already set on the weekly_program row
+    if (lastProgram.check_in_completed) {
+      return { allowed: true };
+    }
+
+    // Fallback: check via week_iso in weekly_checkins
+    // Use ISO week string based on the program's week_start_date, not created_at
+    const lastWeekISO = format(new Date(lastProgram.week_start_date), "yyyy-'W'II");
     const { data: lastWeekCheckIn } = await supabase
       .from("weekly_checkins")
       .select("id")
       .eq("user_id", user.id)
-      .gte("created_at", lastWeekStart.toISOString())
-      .lte("created_at", lastWeekEnd.toISOString())
+      .eq("week_iso", lastWeekISO)
       .maybeSingle();
 
     if (!lastWeekCheckIn) {
