@@ -1,173 +1,179 @@
+# Feature Enhancement: Share Functionality — Plan d'implémentation
 
-# Backlog Admin Dashboard — Améliorations priorisées
+## Contexte & état actuel
 
-## Audit de l'existant
+### Post-session (training)
 
-**Ce qui fonctionne bien :**
-- RBAC serveur solide (3 edge functions avec vérification `has_role()` indépendante)
-- Audit log opérationnel (disable, enable, reset\_password tous loggués)
-- Liste utilisateurs avec filtres rôle/statut, recherche email, pagination
-- Fiche détail complète (compte, usage, abonnement, historique actions)
-- Guard frontend `AdminRoute` + masquage UI conditionnel
+- `SessionFeedbackModal.tsx` : après `handleSubmit()`, le modal se ferme et navigue vers `/training` immédiatement. Aucune étape de partage.
+- Il n'existe aucun composant "share post-workout" dans la codebase.
 
-**Problèmes identifiés lors de l'audit :**
+### Nutrition
 
-1. **Bug pagination avec filtre rôle** : le filtre rôle est appliqué côté JS après récupération d'une page de 50 résultats — si les admins sont en page 2, ils n'apparaissent jamais. Le fix récent (`users.length` pour le total) corrige l'affichage du compteur mais pas le fond du problème.
-2. **Audit log illisible** : les actions sont affichées en snake\_case brut (`disable_account`, `reset_password`) et les `details` en JSON brut — pas d'interface humaine.
-3. **Pas de tri** sur la liste utilisateurs (seulement l'ordre `created_at DESC` figé).
-4. **Subscription trialing** : 8 utilisateurs ont le statut `trialing` — ils n'apparaissent pas dans le compteur "abonnements actifs" du dashboard (qui filtre `status = 'active'`).
-5. **Pas de graphique** : le dashboard est purement textuel, impossible de voir les tendances sur 8 semaines (les données existent en DB).
-6. **Pas d'export CSV** des utilisateurs.
-7. **Pas de filtre "inactif"** (utilisateurs sans activité depuis X jours).
-8. **Action "changer le rôle" absente** de l'UI — actuellement DB-only.
-9. **Reset password** génère un lien affiché en clair dans l'UI, sans expiration visible ni option "envoyer par email directement".
-10. **Aucune confirmation** avant disable/enable (seul delete a une confirmation).
+- `ShareNutritionButton.tsx` : composant existant mais minimaliste — pas d'URL dans le texte partagé, pas de libellé d'objectif (perte de poids / prise de masse), pas de visuels.
+- Le bouton est déjà intégré dans `Nutrition.tsx` (ligne 296).
 
 ---
 
-## Backlog priorisé (Impact / Effort)
+## Ce qui va être créé / modifié
 
-### Priorité 1 — Bugs et fiabilité (Impact Haut / Effort Faible)
 
-**1.1 — Corriger le filtre rôle côté backend (bug pagination)**
+| Fichier                                             | Type   | Description                                                                             |
+| --------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
+| `src/components/training/PostWorkoutShareModal.tsx` | CREATE | Modal de partage post-séance, déclenché après le feedback                               |
+| `src/components/nutrition/ShareNutritionButton.tsx` | EDIT   | Amélioration du contenu partagé (URL + objectif + macros enrichis)                      |
+| `src/components/training/SessionFeedbackModal.tsx`  | EDIT   | Après submit réussi : afficher le PostWorkoutShareModal au lieu de naviguer directement |
 
-Problème réel : le filtre rôle se fait en JS après récupération d'une page paginée. Si tous les admins sont après les 50 premiers membres (triés par `created_at DESC`), ils n'apparaissent jamais.
-
-Correction dans `admin-users/index.ts` : joindre `user_roles` côté Supabase avec un filtre SQL au lieu du filtre JS post-fetch. Utiliser une requête avec `.in()` sur les `user_id` filtrés par rôle d'abord.
-
-Fichiers : `supabase/functions/admin-users/index.ts`
-
-**1.2 — Corriger le compteur "abonnements actifs"**
-
-Le dashboard affiche `1` abonné actif mais 8 utilisateurs sont en `trialing`. La métrique doit refléter tous les abonnements payants non expirés (`status IN ('active', 'trialing')`).
-
-Fichiers : `supabase/functions/admin-stats/index.ts`
-
-**1.3 — Ajouter une confirmation avant disable/enable**
-
-Actuellement un clic sur "Désactiver le compte" agit immédiatement, sans dialog de confirmation. Risque d'action accidentelle.
-
-Fichiers : `src/pages/admin/AdminUserDetail.tsx`
 
 ---
 
-### Priorité 2 — Ergonomie et lisibilité (Impact Haut / Effort Moyen)
+## Étape 1 — `PostWorkoutShareModal.tsx` (nouveau composant)
 
-**2.1 — Humaniser l'audit log**
+Ce composant s'ouvre **après** que le feedback est enregistré avec succès, dans `SessionFeedbackModal`.
 
-Actions affichées en snake\_case brut (`disable_account`) et `details` en JSON brut. Créer un mapping lisible :
+**Fonctionnement en 2 étapes dans `SessionFeedbackModal.tsx` :**
 
-| Clé technique | Libellé affiché | Icône |
-|---|---|---|
-| `disable_account` | Compte désactivé | 🔒 |
-| `enable_account` | Compte réactivé | ✅ |
-| `reset_password` | Reset mot de passe envoyé | 🔑 |
-| `delete_account` | Compte supprimé | 🗑️ |
+```
+1. User remplit RPE + difficulté → clique "Enregistrer"
+2. handleSubmit() sauvegarde en DB → succès → setShowShareModal(true)
+3. PostWorkoutShareModal s'ouvre (SessionFeedbackModal reste ouvert mais en arrière-plan, ou se ferme)
+4. User choisit : Partager / Passer → navigation vers /training
+```
 
-Les `details` JSON (ex: `{"email":"..."}`) doivent être traduits en phrases lisibles.
+**Contenu du texte partagé (construction dynamique) :**
 
-Fichiers : `src/pages/admin/AdminUserDetail.tsx`
+```
+🏋️ Séance validée.
 
-**2.2 — Ajouter des graphiques au dashboard**
+{seriesCompleted} séries réalisées.
 
-Les données historiques existent en DB (sessions par semaine, nouveaux utilisateurs). Ajouter 2 mini-graphiques avec Recharts (déjà installé) :
-- Évolution des séances complétées par semaine (8 semaines)
-- Nouveaux inscrits par semaine (8 semaines)
+Une de plus vers l’objectif.
+Qui s’entraîne aujourd’hui ?
 
-Nécessite d'enrichir `admin-stats` avec des données temporelles (`sessions_by_week`, `signups_by_week`).
+👉 https://www.pulse-ai.app
+```
 
-Fichiers : `supabase/functions/admin-stats/index.ts`, `src/pages/admin/AdminDashboard.tsx`
+**Props reçues du parent :**
 
-**2.3 — Tri de la liste utilisateurs**
+```typescript
+interface PostWorkoutShareModalProps {
+  open: boolean;
+  onClose: () => void;             // navigate("/training")
+  rpe: number;
+  difficultyLabel: string;         // "Facile" | "Modéré" | "Dur" | "Très dur"
+  setsCompleted: number;
+  sessionName?: string;
+}
+```
 
-Ajouter des options de tri : date d'inscription, dernière activité, nombre de séances. Un clic sur l'en-tête de colonne change le tri.
+**UI du modal :**
 
-Fichiers : `supabase/functions/admin-users/index.ts`, `src/pages/admin/AdminUsers.tsx`
-
----
-
-### Priorité 3 — Nouvelles fonctionnalités (Impact Moyen / Effort Moyen)
-
-**3.1 — Filtre "Utilisateurs inactifs"**
-
-Ajouter un filtre rapide "Inactifs 14j", "Inactifs 30j" sur la liste utilisateurs. S'appuie sur `last_activity_at` déjà disponible côté backend.
-
-Fichiers : `supabase/functions/admin-users/index.ts`, `src/pages/admin/AdminUsers.tsx`
-
-**3.2 — Export CSV**
-
-Bouton "Exporter CSV" sur la page liste utilisateurs. Génère un fichier `users_YYYY-MM-DD.csv` avec : email, nom, rôle, statut, inscrit le, dernière activité, séances complétées, abonnement.
-
-Peut être 100% côté frontend (prend tous les résultats sans pagination) ou via une edge function dédiée pour les gros volumes.
-
-Fichiers : `src/pages/admin/AdminUsers.tsx` (+ optionnellement une edge function)
-
-**3.3 — Action "Changer le rôle" depuis l'UI**
-
-Ajouter un bouton "Promouvoir admin" / "Rétrograder membre" sur la fiche utilisateur avec confirmation. Écrit dans `user_roles` et logge dans `admin_audit_log`.
-
-Nécessite une nouvelle action dans `admin-actions` : `case "set_role"`.
-
-Garde de sécurité : impossible de se rétrograder soi-même, impossible de rétrograder le dernier admin.
-
-Fichiers : `supabase/functions/admin-actions/index.ts`, `src/pages/admin/AdminUserDetail.tsx`
-
-**3.4 — Filtre "Premium / Trialing / Sans abonnement"**
-
-Ajouter un filtre abonnement sur la liste utilisateurs. Actuellement le badge "Premium" est visible sur les cards mais non filtrable.
-
-Fichiers : `supabase/functions/admin-users/index.ts`, `src/pages/admin/AdminUsers.tsx`
+- Header avec fond dégradé et confettis (Sparkles icon)
+- Preview du texte à partager dans un encadré stylé (readonly)
+- 2 boutons :
+  - **"Partager ma séance"** (bouton principal) : appelle `navigator.share()` si disponible (mobile), sinon copie dans le clipboard + toast "Copié !"
+  - **"Continuer sans partager"** (ghost) : `onClose()` directement
+- Le lien `https://www.pulse-ai.app` est inclus dans le texte partagé (champ `url` de `navigator.share()`)
 
 ---
 
-### Priorité 4 — Amélioration UX avancée (Impact Moyen / Effort Plus élevé)
+## Étape 2 — Modifier `SessionFeedbackModal.tsx`
 
-**4.1 — Envoyer le reset password par email directement**
+**Ajout d'un état local :**
 
-Actuellement le lien reset s'affiche en clair dans l'UI (risque de copie accidentelle dans un mauvais canal). Ajouter une option "Envoyer par email" qui appelle `resend` pour envoyer directement le lien à l'adresse de l'utilisateur, sans l'afficher à l'admin.
+```typescript
+const [showShareModal, setShowShareModal] = useState(false);
+const [savedDifficulty, setSavedDifficulty] = useState<string>("");
+```
 
-Fichiers : `supabase/functions/admin-actions/index.ts` (nouvel action `send_reset_email`), `src/pages/admin/AdminUserDetail.tsx`
+**Modification de `handleSubmit()` :**
+Après le `toast` succès, au lieu de `navigate("/training")` :
 
-**4.2 — Indicateur taux de complétion des onboardings**
+```typescript
+// Au lieu de : onClose(); navigate("/training");
+// Faire :
+setSavedDifficulty(difficultyOptions.find(d => d.value === difficulty)?.label || "");
+setShowShareModal(true);
+// SessionFeedbackModal reste visible mais en fond (le share modal se superpose)
+```
 
-Métrique utile manquante : % d'utilisateurs ayant complété l'onboarding. En DB : `profiles.onboarding_completed`. Actuellement : 8/8 ont complété (100% selon les données actuelles).
+**Ajout dans le JSX :**
 
-Ajouter cette métrique au dashboard et à la liste utilisateurs (colonne ou badge).
+```typescript
+<PostWorkoutShareModal
+  open={showShareModal}
+  onClose={() => { setShowShareModal(false); onClose(); navigate("/training"); }}
+  rpe={rpe[0]}
+  difficultyLabel={savedDifficulty}
+  setsCompleted={exerciseLogs.length}
+/>
+```
 
-Fichiers : `supabase/functions/admin-stats/index.ts`, `src/pages/admin/AdminDashboard.tsx`
+**Flux complet :**
 
-**4.3 — Recherche par nom en plus de l'email**
-
-La recherche actuelle est limitée à l'email (`ilike email`). Ajouter la recherche sur `name` avec un OR.
-
-Fichiers : `supabase/functions/admin-users/index.ts`
+```
+Session.tsx → setShowFeedbackModal(true)
+  └─ SessionFeedbackModal : RPE + difficulté + commentaires → submit
+       └─ Sauvegarde DB (feedback + exercise_logs)
+            └─ Succès → PostWorkoutShareModal s'ouvre
+                 ├─ "Partager" → navigator.share() ou clipboard → navigate("/training")
+                 └─ "Passer" → navigate("/training")
+```
 
 ---
 
-## Récapitulatif (matrice Impact / Effort)
+## Étape 3 — Améliorer `ShareNutritionButton.tsx`
 
-| # | Amélioration | Impact | Effort | Priorité |
-|---|---|---|---|---|
-| 1.1 | Fix filtre rôle (bug pagination) | Haut | Faible | P1 — Critique |
-| 1.2 | Fix compteur abonnements trialing | Moyen | Faible | P1 — Critique |
-| 1.3 | Confirmation avant disable/enable | Haut | Faible | P1 — Sécurité |
-| 2.1 | Humaniser l'audit log | Haut | Faible | P2 — Quick win |
-| 2.2 | Graphiques dashboard (Recharts) | Haut | Moyen | P2 — Valeur |
-| 2.3 | Tri de la liste utilisateurs | Moyen | Faible | P2 — UX |
-| 3.1 | Filtre utilisateurs inactifs | Moyen | Faible | P3 |
-| 3.2 | Export CSV | Moyen | Moyen | P3 |
-| 3.3 | Changer le rôle depuis l'UI | Moyen | Moyen | P3 |
-| 3.4 | Filtre abonnement | Faible | Faible | P3 |
-| 4.1 | Reset password par email direct | Moyen | Moyen | P4 |
-| 4.2 | Taux d'onboarding + métrique | Faible | Faible | P4 |
-| 4.3 | Recherche par nom | Faible | Faible | P4 |
+**Contenu partagé enrichi :**
+
+```
+🥗 Mon plan nutritionnel sur Pulse.ai
+
+🎯 Objectif : {goalTypeLabel}   ← nouveau (ex: "Prise de masse", "Perte de poids")
+📊 Calories : {targetCalories} kcal/jour
+💪 Protéines : {protein}g | 🍚 Glucides : {carbs}g | 🥑 Lipides : {fats}g
+
+🤖 Plan généré par mon coach IA Pulse.ai
+👉 https://www.pulse-ai.app
+```
+
+**Nouvelles props :**
+
+```typescript
+type ShareNutritionButtonProps = {
+  targetCalories?: number;
+  protein?: number;
+  carbs?: number;
+  fats?: number;
+  goalType?: string | string[];   // ← NOUVEAU
+};
+```
+
+**Mapping `goalType` → libellé lisible :**
+
+```typescript
+const goalLabel = Array.isArray(goalType) && goalType.includes("weight-loss")
+  ? "Perte de poids 🔥"
+  : goalType?.includes?.("muscle-gain") ? "Prise de masse 💪"
+  : "Maintien & santé ⚖️";
+```
+
+**Dans `Nutrition.tsx` :** passer `goalType={goals?.goal_type}` au `ShareNutritionButton`.
+
+**URL** : `navigator.share({ title, text, url: "https://www.pulse-ai.app" })` — l'URL est séparée du texte pour que certaines apps (Twitter, WhatsApp) la traitent correctement.
+
+**Amélioration UX du bouton :** ajouter un effet de clic (variant `hero` ou classe animée) et un feedback visuel de "Copié !" si clipboard.
 
 ---
 
-## Recommandation de lotissement
+## Résumé des fichiers
 
-**Sprint 1 (1-2 jours)** : 1.1 + 1.2 + 1.3 + 2.1 + 2.3 + 4.3 — Tout en faible effort, impact direct sur la fiabilité et l'ergonomie quotidienne.
 
-**Sprint 2 (2-3 jours)** : 2.2 + 3.1 + 3.2 — Valeur perçue forte, données déjà disponibles.
+| Fichier                                             | Changement                                         |
+| --------------------------------------------------- | -------------------------------------------------- |
+| `src/components/training/PostWorkoutShareModal.tsx` | Création complète                                  |
+| `src/components/training/SessionFeedbackModal.tsx`  | Ajout `showShareModal` state + rendu conditionnel  |
+| `src/components/nutrition/ShareNutritionButton.tsx` | Enrichissement contenu + URL + goalType            |
+| `src/pages/Nutrition.tsx`                           | Passer `goalType` en prop à `ShareNutritionButton` |
 
-**Sprint 3 (3-5 jours)** : 3.3 + 4.1 — Actions admin enrichies, demandent plus de backend.
+
+Aucune migration de base de données, aucune edge function nécessaire — tout est 100% frontend.
