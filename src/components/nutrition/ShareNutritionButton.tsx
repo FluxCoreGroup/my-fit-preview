@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Share2 } from "lucide-react";
+import { Share2, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type ShareNutritionButtonProps = {
@@ -7,34 +8,62 @@ type ShareNutritionButtonProps = {
   protein?: number;
   carbs?: number;
   fats?: number;
+  goalType?: string | string[];
 };
 
-export const ShareNutritionButton = ({ targetCalories, protein, carbs, fats }: ShareNutritionButtonProps) => {
+export const ShareNutritionButton = ({ targetCalories, protein, carbs, fats, goalType }: ShareNutritionButtonProps) => {
   const { toast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const goalLabel = Array.isArray(goalType)
+    ? goalType.includes("weight-loss")
+      ? "Perte de poids 🔥"
+      : goalType.includes("muscle-gain")
+      ? "Prise de masse 💪"
+      : "Maintien & santé ⚖️"
+    : typeof goalType === "string"
+    ? goalType.includes("weight-loss")
+      ? "Perte de poids 🔥"
+      : goalType.includes("muscle-gain")
+      ? "Prise de masse 💪"
+      : "Maintien & santé ⚖️"
+    : "Maintien & santé ⚖️";
+
+  const shareText =
+    `🥗 Mon plan nutritionnel sur Pulse.ai\n\n` +
+    `🎯 Objectif : ${goalLabel}\n` +
+    `📊 Calories : ${targetCalories || "-"} kcal/jour\n` +
+    `💪 Protéines : ${protein || "-"}g | 🍚 Glucides : ${carbs || "-"}g | 🥑 Lipides : ${fats || "-"}g\n\n` +
+    `🤖 Plan généré par mon coach IA Pulse.ai\n` +
+    `👉 https://www.pulse-ai.app`;
 
   const handleShare = async () => {
-    const shareText = `🎯 Mon plan nutritionnel Pulse.ai\n\n` +
-      `📊 Objectif: ${targetCalories || "-"} kcal/jour\n` +
-      `💪 Protéines: ${protein || "-"}g\n` +
-      `🍚 Glucides: ${carbs || "-"}g\n` +
-      `🥑 Lipides: ${fats || "-"}g\n\n` +
-      `#PulseAI #Nutrition #Fitness`;
-
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Mon plan nutritionnel",
+          title: "Mon plan nutritionnel Pulse.ai",
           text: shareText,
+          url: "https://www.pulse-ai.app",
         });
-      } catch (err) {
-        console.log("Share cancelled");
+      } catch {
+        // user cancelled
       }
     } else {
-      await navigator.clipboard.writeText(shareText);
-      toast({
-        title: "Copié !",
-        description: "Partage ton plan sur tes réseaux sociaux",
-      });
+      try {
+        await navigator.clipboard.writeText(shareText);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        toast({
+          title: "Copié !",
+          description: "Colle ton plan sur tes réseaux sociaux 🚀",
+        });
+      } catch {
+        toast({
+          title: "Erreur",
+          description: "Impossible de copier le texte.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -43,10 +72,15 @@ export const ShareNutritionButton = ({ targetCalories, protein, carbs, fats }: S
       variant="outline"
       size="sm"
       onClick={handleShare}
-      className="w-full"
+      className="w-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
     >
-      <Share2 className="w-4 h-4 mr-2" />
-      Partager mes progrès
+      {copied ? (
+        <Check className="w-4 h-4 mr-2" />
+      ) : (
+        <Share2 className="w-4 h-4 mr-2" />
+      )}
+      {copied ? "Copié !" : "Partager mon plan"}
     </Button>
   );
 };
+

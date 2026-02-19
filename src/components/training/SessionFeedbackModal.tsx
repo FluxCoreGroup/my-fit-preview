@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Smile, Meh, Frown, Angry, HelpCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PostWorkoutShareModal } from "@/components/training/PostWorkoutShareModal";
 
 interface SessionFeedbackModalProps {
   open: boolean;
@@ -37,6 +38,8 @@ export const SessionFeedbackModal = ({
   const [difficulty, setDifficulty] = useState<number | null>(null);
   const [comments, setComments] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [savedDifficulty, setSavedDifficulty] = useState<string>("");
 
   const difficultyOptions = [
     { value: 1, icon: Smile, label: "Facile", color: "text-green-500" },
@@ -93,8 +96,8 @@ export const SessionFeedbackModal = ({
         description: "Ta séance a été enregistrée avec succès.",
       });
 
-      onClose();
-      navigate("/training");
+      setSavedDifficulty(difficultyOptions.find(d => d.value === difficulty)?.label || "");
+      setShowShareModal(true);
     } catch (error) {
       console.error("Error saving feedback:", error);
       toast({
@@ -110,6 +113,7 @@ export const SessionFeedbackModal = ({
   const rpeHint = getRpeHint(rpe[0]);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent withClose={false} className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 p-0 max-h-screen">
         {/* Header with gradient accent */}
@@ -224,5 +228,14 @@ export const SessionFeedbackModal = ({
         </div>
       </DialogContent>
     </Dialog>
+
+    <PostWorkoutShareModal
+      open={showShareModal}
+      onClose={() => { setShowShareModal(false); onClose(); navigate("/training"); }}
+      rpe={rpe[0]}
+      difficultyLabel={savedDifficulty}
+      setsCompleted={exerciseLogs.length}
+    />
+    </>
   );
 };

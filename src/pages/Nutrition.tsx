@@ -298,6 +298,7 @@ const Nutrition = () => {
                   protein={macros?.protein}
                   carbs={macros?.carbs}
                   fats={macros?.fat}
+                  goalType={goals?.goal_type}
                 />
               </Card>
               
