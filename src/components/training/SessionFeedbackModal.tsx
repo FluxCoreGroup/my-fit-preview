@@ -23,13 +23,17 @@ interface SessionFeedbackModalProps {
     weightUsed: number;
     rpe: number;
   }>;
+  totalSets?: number;
+  durationSeconds?: number;
 }
 
 export const SessionFeedbackModal = ({
   open,
   onClose,
   sessionId,
-  exerciseLogs
+  exerciseLogs,
+  totalSets,
+  durationSeconds = 0,
 }: SessionFeedbackModalProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -234,7 +238,8 @@ export const SessionFeedbackModal = ({
       onClose={() => { setShowShareModal(false); onClose(); navigate("/training"); }}
       rpe={rpe[0]}
       difficultyLabel={savedDifficulty}
-      setsCompleted={exerciseLogs.length}
+      setsCompleted={totalSets ?? exerciseLogs.length}
+      durationSeconds={durationSeconds}
     />
     </>
   );

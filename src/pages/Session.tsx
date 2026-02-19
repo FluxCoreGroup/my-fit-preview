@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -56,6 +56,8 @@ const Session = () => {
   const [currentWeight, setCurrentWeight] = useState("");
   const [currentRPE, setCurrentRPE] = useState(7);
   const [advancedTracking, setAdvancedTracking] = useState(false);
+  const [completedSetsCount, setCompletedSetsCount] = useState(0);
+  const sessionStartRef = useRef<Date | null>(null);
 
   // Check for first-time tutorial
   useEffect(() => {
@@ -97,6 +99,7 @@ const Session = () => {
           if (exercisesArray.length > 0) {
             setExercises(exercisesArray);
             setSessionId(session.id);
+            sessionStartRef.current = new Date();
             return;
           }
         }
@@ -120,6 +123,7 @@ const Session = () => {
         if (exercisesArray.length > 0) {
           setExercises(exercisesArray);
           setSessionId(lastSession.id);
+          sessionStartRef.current = new Date();
           return;
         }
       }
@@ -171,6 +175,8 @@ const Session = () => {
   };
 
   const handleSetComplete = async () => {
+    setCompletedSetsCount(prev => prev + 1);
+
     if (advancedTracking) {
       const weight = parseFloat(currentWeight) || 0;
       if (weight > 0) {
@@ -233,6 +239,8 @@ const Session = () => {
     setIsPaused(true);
     setCurrentWeight("");
     setCurrentRPE(7);
+    setCompletedSetsCount(0);
+    sessionStartRef.current = new Date();
     clearLogs();
     setShowExitModal(false);
     toast({
@@ -559,6 +567,12 @@ const Session = () => {
           onClose={() => setShowFeedbackModal(false)}
           sessionId={sessionId}
           exerciseLogs={exerciseLogs}
+          totalSets={completedSetsCount}
+          durationSeconds={
+            sessionStartRef.current
+              ? Math.floor((Date.now() - sessionStartRef.current.getTime()) / 1000)
+              : 0
+          }
         />
       )}
     </div>

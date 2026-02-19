@@ -10,18 +10,34 @@ interface PostWorkoutShareModalProps {
   difficultyLabel: string;
   setsCompleted: number;
   sessionName?: string;
+  durationSeconds?: number;
 }
+
+const formatDuration = (seconds: number): string => {
+  if (seconds < 60) return `${seconds}s`;
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${h}h`;
+};
 
 export const PostWorkoutShareModal = ({
   open,
   onClose,
   setsCompleted,
+  durationSeconds = 0,
 }: PostWorkoutShareModalProps) => {
   const { toast } = useToast();
 
+  const durationLine =
+    durationSeconds > 0
+      ? ` en ${formatDuration(durationSeconds)}`
+      : "";
+
   const shareText =
     `🏋️ Séance validée.\n\n` +
-    `${setsCompleted} séries réalisées.\n\n` +
+    `${setsCompleted} séries réalisées${durationLine}.\n\n` +
     `Une de plus vers l'objectif.\n` +
     `Qui s'entraîne aujourd'hui ?\n\n` +
     `👉 https://www.pulse-ai.app`;
