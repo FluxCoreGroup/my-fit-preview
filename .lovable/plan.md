@@ -1,179 +1,161 @@
-# Feature Enhancement: Share Functionality — Plan d'implémentation
 
-## Contexte & état actuel
+# Fix : "0 séries" + Ajout de la durée d'entraînement dans le partage
 
-### Post-session (training)
+## Diagnostic des bugs
 
-- `SessionFeedbackModal.tsx` : après `handleSubmit()`, le modal se ferme et navigue vers `/training` immédiatement. Aucune étape de partage.
-- Il n'existe aucun composant "share post-workout" dans la codebase.
+### Bug 1 — "0 séries réalisées"
 
-### Nutrition
+`PostWorkoutShareModal` reçoit `setsCompleted={exerciseLogs.length}` depuis `SessionFeedbackModal`, qui reçoit lui-même `exerciseLogs` depuis `Session.tsx`.
 
-- `ShareNutritionButton.tsx` : composant existant mais minimaliste — pas d'URL dans le texte partagé, pas de libellé d'objectif (perte de poids / prise de masse), pas de visuels.
-- Le bouton est déjà intégré dans `Nutrition.tsx` (ligne 296).
+`exerciseLogs` est rempli uniquement dans `handleSetComplete()` **si** `advancedTracking === true` ET `parseFloat(currentWeight) > 0`. La majorité des utilisateurs n'activent pas le tracking avancé → `exerciseLogs.length = 0` systématiquement.
 
----
+**Solution** : calculer le nombre total de séries complétées indépendamment du tracking avancé. Dans `Session.tsx`, un compteur `completedSetsCount` incrémenté à chaque appel de `handleSetComplete()` suffit. Ce compteur est passé au `SessionFeedbackModal` (nouvelle prop), puis relayé au `PostWorkoutShareModal`.
 
-## Ce qui va être créé / modifié
+### Bug 2 — Durée absente
 
-
-| Fichier                                             | Type   | Description                                                                             |
-| --------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
-| `src/components/training/PostWorkoutShareModal.tsx` | CREATE | Modal de partage post-séance, déclenché après le feedback                               |
-| `src/components/nutrition/ShareNutritionButton.tsx` | EDIT   | Amélioration du contenu partagé (URL + objectif + macros enrichis)                      |
-| `src/components/training/SessionFeedbackModal.tsx`  | EDIT   | Après submit réussi : afficher le PostWorkoutShareModal au lieu de naviguer directement |
-
+Aucun chrono global n'existe dans `Session.tsx`. Il faut :
+- Enregistrer `sessionStartTime` au montage (ou au premier exercice chargé)
+- Calculer la durée au moment de l'ouverture du `SessionFeedbackModal`
+- Passer cette durée au modal de partage
 
 ---
 
-## Étape 1 — `PostWorkoutShareModal.tsx` (nouveau composant)
+## Fichiers à modifier
 
-Ce composant s'ouvre **après** que le feedback est enregistré avec succès, dans `SessionFeedbackModal`.
-
-**Fonctionnement en 2 étapes dans `SessionFeedbackModal.tsx` :**
-
-```
-1. User remplit RPE + difficulté → clique "Enregistrer"
-2. handleSubmit() sauvegarde en DB → succès → setShowShareModal(true)
-3. PostWorkoutShareModal s'ouvre (SessionFeedbackModal reste ouvert mais en arrière-plan, ou se ferme)
-4. User choisit : Partager / Passer → navigation vers /training
-```
-
-**Contenu du texte partagé (construction dynamique) :**
-
-```
-🏋️ Séance validée.
-
-{seriesCompleted} séries réalisées.
-
-Une de plus vers l’objectif.
-Qui s’entraîne aujourd’hui ?
-
-👉 https://www.pulse-ai.app
-```
-
-**Props reçues du parent :**
-
-```typescript
-interface PostWorkoutShareModalProps {
-  open: boolean;
-  onClose: () => void;             // navigate("/training")
-  rpe: number;
-  difficultyLabel: string;         // "Facile" | "Modéré" | "Dur" | "Très dur"
-  setsCompleted: number;
-  sessionName?: string;
-}
-```
-
-**UI du modal :**
-
-- Header avec fond dégradé et confettis (Sparkles icon)
-- Preview du texte à partager dans un encadré stylé (readonly)
-- 2 boutons :
-  - **"Partager ma séance"** (bouton principal) : appelle `navigator.share()` si disponible (mobile), sinon copie dans le clipboard + toast "Copié !"
-  - **"Continuer sans partager"** (ghost) : `onClose()` directement
-- Le lien `https://www.pulse-ai.app` est inclus dans le texte partagé (champ `url` de `navigator.share()`)
+| Fichier | Modification |
+|---|---|
+| `src/pages/Session.tsx` | Ajouter `sessionStartTime` (ref ou state) + `completedSetsCount` state, les passer à `SessionFeedbackModal` |
+| `src/components/training/SessionFeedbackModal.tsx` | Accepter `totalSets` et `durationSeconds` en props, les relayer à `PostWorkoutShareModal` |
+| `src/components/training/PostWorkoutShareModal.tsx` | Accepter `durationSeconds`, formater la durée, mettre à jour `shareText` |
 
 ---
 
-## Étape 2 — Modifier `SessionFeedbackModal.tsx`
+## Détail des changements
 
-**Ajout d'un état local :**
+### `Session.tsx`
 
+**Ajouter un ref de démarrage de séance :**
 ```typescript
-const [showShareModal, setShowShareModal] = useState(false);
-const [savedDifficulty, setSavedDifficulty] = useState<string>("");
+const sessionStartRef = useRef<Date | null>(null);
 ```
 
-**Modification de `handleSubmit()` :**
-Après le `toast` succès, au lieu de `navigate("/training")` :
-
+Au moment où les exercices sont chargés (dans `loadSession`, après `setExercises(...)`), initialiser :
 ```typescript
-// Au lieu de : onClose(); navigate("/training");
-// Faire :
-setSavedDifficulty(difficultyOptions.find(d => d.value === difficulty)?.label || "");
-setShowShareModal(true);
-// SessionFeedbackModal reste visible mais en fond (le share modal se superpose)
+sessionStartRef.current = new Date();
 ```
 
-**Ajout dans le JSX :**
-
+**Ajouter un compteur de séries réelles :**
 ```typescript
-<PostWorkoutShareModal
-  open={showShareModal}
-  onClose={() => { setShowShareModal(false); onClose(); navigate("/training"); }}
-  rpe={rpe[0]}
-  difficultyLabel={savedDifficulty}
-  setsCompleted={exerciseLogs.length}
+const [completedSetsCount, setCompletedSetsCount] = useState(0);
+```
+
+Dans `handleSetComplete()`, incrémenter **inconditionnellement** (pas seulement si tracking activé) :
+```typescript
+setCompletedSetsCount(prev => prev + 1);
+```
+
+**Calculer la durée lors du déclenchement du feedback modal :**
+```typescript
+const durationSeconds = sessionStartRef.current
+  ? Math.floor((Date.now() - sessionStartRef.current.getTime()) / 1000)
+  : 0;
+```
+
+**Passer au modal :**
+```typescript
+<SessionFeedbackModal
+  ...
+  totalSets={completedSetsCount}
+  durationSeconds={durationSeconds}
 />
 ```
 
-**Flux complet :**
+Aussi réinitialiser `completedSetsCount` dans `handleRestartSession()`.
 
+---
+
+### `SessionFeedbackModal.tsx`
+
+Nouvelles props :
+```typescript
+interface SessionFeedbackModalProps {
+  ...
+  totalSets?: number;        // ← nouveau
+  durationSeconds?: number;  // ← nouveau
+}
 ```
-Session.tsx → setShowFeedbackModal(true)
-  └─ SessionFeedbackModal : RPE + difficulté + commentaires → submit
-       └─ Sauvegarde DB (feedback + exercise_logs)
-            └─ Succès → PostWorkoutShareModal s'ouvre
-                 ├─ "Partager" → navigator.share() ou clipboard → navigate("/training")
-                 └─ "Passer" → navigate("/training")
+
+Relayer au `PostWorkoutShareModal` :
+```typescript
+<PostWorkoutShareModal
+  ...
+  setsCompleted={totalSets ?? exerciseLogs.length}
+  durationSeconds={durationSeconds ?? 0}
+/>
 ```
 
 ---
 
-## Étape 3 — Améliorer `ShareNutritionButton.tsx`
+### `PostWorkoutShareModal.tsx`
 
-**Contenu partagé enrichi :**
-
-```
-🥗 Mon plan nutritionnel sur Pulse.ai
-
-🎯 Objectif : {goalTypeLabel}   ← nouveau (ex: "Prise de masse", "Perte de poids")
-📊 Calories : {targetCalories} kcal/jour
-💪 Protéines : {protein}g | 🍚 Glucides : {carbs}g | 🥑 Lipides : {fats}g
-
-🤖 Plan généré par mon coach IA Pulse.ai
-👉 https://www.pulse-ai.app
-```
-
-**Nouvelles props :**
-
+Nouvelle prop `durationSeconds` :
 ```typescript
-type ShareNutritionButtonProps = {
-  targetCalories?: number;
-  protein?: number;
-  carbs?: number;
-  fats?: number;
-  goalType?: string | string[];   // ← NOUVEAU
+interface PostWorkoutShareModalProps {
+  ...
+  durationSeconds?: number;  // ← nouveau
+}
+```
+
+Fonction de formatage :
+```typescript
+const formatDuration = (seconds: number) => {
+  if (seconds < 60) return `${seconds}s`;
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`;
 };
 ```
 
-**Mapping `goalType` → libellé lisible :**
+**Texte de partage mis à jour :**
+```
+🏋️ Séance validée.
 
-```typescript
-const goalLabel = Array.isArray(goalType) && goalType.includes("weight-loss")
-  ? "Perte de poids 🔥"
-  : goalType?.includes?.("muscle-gain") ? "Prise de masse 💪"
-  : "Maintien & santé ⚖️";
+{setsCompleted} séries réalisées en {formatDuration(durationSeconds)}.
+
+Une de plus vers l'objectif.
+Qui s'entraîne aujourd'hui ?
+
+👉 https://www.pulse-ai.app
 ```
 
-**Dans `Nutrition.tsx` :** passer `goalType={goals?.goal_type}` au `ShareNutritionButton`.
+Si `durationSeconds === 0` (cas de secours), la ligne durée est omise :
+```
+🏋️ Séance validée.
 
-**URL** : `navigator.share({ title, text, url: "https://www.pulse-ai.app" })` — l'URL est séparée du texte pour que certaines apps (Twitter, WhatsApp) la traitent correctement.
+{setsCompleted} séries réalisées.
 
-**Amélioration UX du bouton :** ajouter un effet de clic (variant `hero` ou classe animée) et un feedback visuel de "Copié !" si clipboard.
+Une de plus vers l'objectif.
+Qui s'entraîne aujourd'hui ?
+
+👉 https://www.pulse-ai.app
+```
 
 ---
 
-## Résumé des fichiers
+## Résultat attendu
 
+Après un vrai workout de 45 min avec 18 séries (tracking avancé OFF) :
+```
+🏋️ Séance validée.
 
-| Fichier                                             | Changement                                         |
-| --------------------------------------------------- | -------------------------------------------------- |
-| `src/components/training/PostWorkoutShareModal.tsx` | Création complète                                  |
-| `src/components/training/SessionFeedbackModal.tsx`  | Ajout `showShareModal` state + rendu conditionnel  |
-| `src/components/nutrition/ShareNutritionButton.tsx` | Enrichissement contenu + URL + goalType            |
-| `src/pages/Nutrition.tsx`                           | Passer `goalType` en prop à `ShareNutritionButton` |
+18 séries réalisées en 45 min.
 
+Une de plus vers l'objectif.
+Qui s'entraîne aujourd'hui ?
 
-Aucune migration de base de données, aucune edge function nécessaire — tout est 100% frontend.
+👉 https://www.pulse-ai.app
+```
+
+Aucune migration base de données, aucune edge function — 100% frontend.
