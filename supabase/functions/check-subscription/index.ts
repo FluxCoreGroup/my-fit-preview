@@ -135,13 +135,18 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    // Log detailed error server-side only
     logStep("ERROR in check-subscription", { message: errorMessage });
     
-    // Return generic error to client
-    return new Response(JSON.stringify({ error: 'Erreur lors de la vérification de l\'abonnement' }), {
+    // Return 401 for auth errors so frontend handles gracefully
+    const isAuthError = errorMessage.includes("Auth session missing") || 
+                        errorMessage.includes("Authentication error") ||
+                        errorMessage.includes("not authenticated");
+    
+    return new Response(JSON.stringify({ 
+      error: isAuthError ? 'Session expirée' : 'Erreur lors de la vérification de l\'abonnement' 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
+      status: isAuthError ? 401 : 500,
     });
   }
 });
