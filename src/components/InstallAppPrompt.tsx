@@ -176,6 +176,27 @@ export function InstallAppPrompt({ trigger }: InstallAppPromptProps) {
               </div>
             )}
 
+            {!isIOS && !isAndroid && (
+              <div className="space-y-3 mb-6">
+                <Step
+                  number={1}
+                  icon={<Copy className="w-4 h-4" />}
+                  text="Copie le lien de la webapp"
+                  action={copyButton}
+                />
+                <Step
+                  number={2}
+                  icon={<Compass className="w-4 h-4" />}
+                  text={<>Ouvre ton <strong>navigateur</strong> et colle le lien dans la barre d'adresse</>}
+                />
+                <Step
+                  number={3}
+                  icon={<Download className="w-4 h-4" />}
+                  text={<>Cherche l'option <strong>Ajouter à l'écran d'accueil</strong> dans le menu</>}
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <Button onClick={handleClose} className="w-full" size="lg">
                 J'ai compris
