@@ -7,11 +7,9 @@ import {
   Download,
   Share,
   MoreVertical,
-  Plus,
   Smartphone,
   Copy,
   Compass,
-  Globe,
   Chrome,
   Check,
 } from "lucide-react";
@@ -70,10 +68,6 @@ export function InstallAppPrompt({ trigger }: InstallAppPromptProps) {
     }
   };
 
-  const handleOpenBrowser = () => {
-    window.open(APP_URL, "_blank");
-  };
-
   const handleInstall = async () => {
     if (hasDeferredPrompt) {
       await triggerInstall();
@@ -93,7 +87,6 @@ export function InstallAppPrompt({ trigger }: InstallAppPromptProps) {
   const copyButton = (
     <Button
       size="sm"
-      variant="outline"
       className="mt-2 h-9 text-xs"
       onClick={handleCopyLink}
     >
@@ -103,22 +96,6 @@ export function InstallAppPrompt({ trigger }: InstallAppPromptProps) {
         <Copy className="w-3.5 h-3.5 mr-1.5" />
       )}
       {copied ? "Copié !" : "Copier le lien"}
-    </Button>
-  );
-
-  const openBrowserButton = (
-    <Button
-      size="sm"
-      variant="outline"
-      className="mt-2 h-9 text-xs"
-      onClick={handleOpenBrowser}
-    >
-      {isIOS ? (
-        <Compass className="w-3.5 h-3.5 mr-1.5" />
-      ) : (
-        <Chrome className="w-3.5 h-3.5 mr-1.5" />
-      )}
-      {isIOS ? "Ouvrir Safari" : "Ouvrir Chrome"}
     </Button>
   );
 
@@ -155,7 +132,7 @@ export function InstallAppPrompt({ trigger }: InstallAppPromptProps) {
           </div>
         ) : (
           <>
-            {/* iOS tutorial */}
+            {/* iOS tutorial — 3 steps */}
             {isIOS && (
               <div className="space-y-3 mb-6">
                 <Step
@@ -167,23 +144,17 @@ export function InstallAppPrompt({ trigger }: InstallAppPromptProps) {
                 <Step
                   number={2}
                   icon={<Compass className="w-4 h-4" />}
-                  text="Ouvre Safari"
-                  action={openBrowserButton}
+                  text={<>Ouvre <strong>Safari</strong> et colle le lien dans la barre d'adresse</>}
                 />
                 <Step
                   number={3}
                   icon={<Share className="w-4 h-4" />}
-                  text="Colle le lien dans la barre d'adresse, puis appuie sur Partager"
-                />
-                <Step
-                  number={4}
-                  icon={<Plus className="w-4 h-4" />}
-                  text={'"Sur l\'écran d\'accueil" → "Ajouter"'}
+                  text={<>Appuie sur <strong>Partager</strong> → <strong>Sur l'écran d'accueil</strong> → <strong>Ajouter</strong></>}
                 />
               </div>
             )}
 
-            {/* Android without native prompt */}
+            {/* Android without native prompt — 3 steps */}
             {isAndroid && !hasDeferredPrompt && (
               <div className="space-y-3 mb-6">
                 <Step
@@ -195,18 +166,12 @@ export function InstallAppPrompt({ trigger }: InstallAppPromptProps) {
                 <Step
                   number={2}
                   icon={<Chrome className="w-4 h-4" />}
-                  text="Ouvre Google Chrome"
-                  action={openBrowserButton}
+                  text={<>Ouvre <strong>Chrome</strong> et colle le lien dans la barre d'adresse</>}
                 />
                 <Step
                   number={3}
-                  icon={<Globe className="w-4 h-4" />}
-                  text="Colle le lien dans la barre d'adresse et valide"
-                />
-                <Step
-                  number={4}
                   icon={<MoreVertical className="w-4 h-4" />}
-                  text={'⋮ → "Ajouter à l\'écran d\'accueil" → Confirmer'}
+                  text={<><strong>⋮</strong> → <strong>Ajouter à l'écran d'accueil</strong> → Confirmer</>}
                 />
               </div>
             )}
@@ -238,7 +203,7 @@ function Step({
 }: {
   number: number;
   icon: React.ReactNode;
-  text: string;
+  text: React.ReactNode;
   action?: React.ReactNode;
 }) {
   return (
