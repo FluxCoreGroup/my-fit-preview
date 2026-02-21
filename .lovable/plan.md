@@ -1,125 +1,76 @@
 
 
-# Tutoriel PWA enrichi — Copier le lien + Ouvrir le navigateur
+# Fix du bouton "Ouvrir Safari" + ameliorations UX/UI
 
-## Probleme actuel
+## Probleme
 
-Le tutoriel suppose que l'utilisateur est deja dans Safari (iOS) ou Chrome (Android). En realite, beaucoup d'utilisateurs ouvrent la webapp depuis un navigateur in-app (Instagram, Facebook, Messenger, etc.) qui ne supporte pas l'installation PWA.
+Le bouton "Ouvrir Safari" utilise `window.open(APP_URL, "_blank")` qui, dans un navigateur in-app (Instagram, Facebook, Messenger...), ouvre le lien dans ce meme navigateur in-app. Il est techniquement impossible de forcer l'ouverture de Safari ou Chrome depuis un webview tiers -- c'est une restriction au niveau de l'OS.
 
-Le tutoriel doit donc guider l'utilisateur a :
-1. Copier le lien de la webapp
-2. Ouvrir le bon navigateur (Safari sur iOS, Chrome sur Android)
-3. Coller le lien
-4. Suivre les etapes d'installation
+## Solution
 
-## Nouveau flux du tutoriel
+Supprimer les boutons "Ouvrir Safari" / "Ouvrir Chrome" et simplifier le tutoriel en 3 etapes claires.
 
-### iOS (4 etapes)
+## Nouveau tutoriel
 
-| Etape | Icone | Texte | Action/Bouton |
-|---|---|---|---|
-| 1 | Copy | Copie le lien de la webapp | Bouton "Copier le lien" qui copie `https://www.pulse-ai.app` dans le clipboard + toast |
-| 2 | Compass (Safari) | Ouvre Safari | Bouton "Ouvrir Safari" — ouvre `https://www.pulse-ai.app` via `window.open()` |
-| 3 | Share | Colle le lien dans la barre d'adresse, puis appuie sur Partager | Texte simple |
-| 4 | Plus | "Sur l'ecran d'accueil" → "Ajouter" | Texte simple |
+### iOS (3 etapes)
 
-### Android (4 etapes)
+| Etape | Icone | Texte |
+|---|---|---|
+| 1 | Copy | "Copie le lien de la webapp" + **bouton "Copier le lien"** |
+| 2 | Compass | "Ouvre **Safari** et colle le lien dans la barre d'adresse" |
+| 3 | Share + Plus | "Appuie sur **Partager** puis **Sur l'ecran d'accueil** et **Ajouter**" |
 
-| Etape | Icone | Texte | Action/Bouton |
-|---|---|---|---|
-| 1 | Copy | Copie le lien de la webapp | Bouton "Copier le lien" qui copie `https://www.pulse-ai.app` |
-| 2 | Chrome | Ouvre Google Chrome | Bouton "Ouvrir Chrome" — ouvre `https://www.pulse-ai.app` via `window.open()` |
-| 3 | Globe | Colle le lien dans la barre d'adresse et valide | Texte simple |
-| 4 | MoreVertical | ⋮ → "Ajouter a l'ecran d'accueil" → Confirmer | Texte simple |
+### Android sans prompt natif (3 etapes)
 
-## Detection navigateur in-app
+| Etape | Icone | Texte |
+|---|---|---|
+| 1 | Copy | "Copie le lien de la webapp" + **bouton "Copier le lien"** |
+| 2 | Chrome | "Ouvre **Chrome** et colle le lien dans la barre d'adresse" |
+| 3 | MoreVertical | "Appuie sur **⋮** puis **Ajouter a l'ecran d'accueil** et confirme" |
 
-Ajouter dans `useInstallPrompt.tsx` :
+### Android avec prompt natif
 
-```typescript
-const isInAppBrowser = /FBAN|FBAV|Instagram|Messenger|Line|Twitter|Snapchat/i.test(ua);
-```
+Inchange : bouton "Installer" qui declenche `beforeinstallprompt`.
 
-Quand `isInAppBrowser === true`, les etapes 1 et 2 (copier + ouvrir navigateur) sont essentielles. Quand l'utilisateur est deja dans Safari/Chrome, les etapes sont quand meme affichees (pas de mal a copier le lien), mais le bouton d'etape 2 pourrait dire "Deja dans Safari ? Passe a l'etape 3".
+## Ameliorations UX/UI
 
-## Fichiers a modifier
+1. **Suppression du bouton "Ouvrir Safari/Chrome"** -- source de confusion, remplace par une instruction textuelle claire.
+2. **Mise en gras des mots-cles** dans les instructions (Safari, Chrome, Partager, etc.) pour faciliter le scan visuel.
+3. **Reduction a 3 etapes** au lieu de 4 -- plus simple, moins intimidant.
+4. **Bouton "Copier le lien" plus visible** -- style `default` (rempli) au lieu de `outline` pour qu'il soit le seul call-to-action dans le tutoriel.
+
+## Fichier a modifier
 
 | Fichier | Modification |
 |---|---|
-| `src/hooks/useInstallPrompt.tsx` | Ajouter `isInAppBrowser` dans le retour |
-| `src/components/InstallAppPrompt.tsx` | Refonte du tutoriel : 4 etapes avec boutons d'action (copier lien, ouvrir navigateur), detection in-app, URL configurable |
+| `src/components/InstallAppPrompt.tsx` | Supprimer `handleOpenBrowser`, supprimer `openBrowserButton`, reorganiser les etapes iOS et Android en 3 etapes, mettre en gras les mots-cles, changer le variant du bouton copier |
 
 ## Detail technique
 
-### `useInstallPrompt.tsx`
+### Suppressions
 
-Ajouter :
-```typescript
-const isInAppBrowser = /FBAN|FBAV|Instagram|Messenger|Line|Twitter|Snapchat/i.test(ua);
-```
-Et l'inclure dans le `return`.
+- Supprimer la fonction `handleOpenBrowser`
+- Supprimer la variable `openBrowserButton`
+- Supprimer les imports `Globe` et `Chrome` (Chrome n'est plus utilise comme icone de bouton, seulement comme icone d'etape)
 
-### `InstallAppPrompt.tsx`
+### Etapes iOS refactorees
 
-**URL de la webapp :**
-```typescript
-const APP_URL = "https://www.pulse-ai.app";
-```
-
-**Fonction copier le lien :**
-```typescript
-const handleCopyLink = async () => {
-  await navigator.clipboard.writeText(APP_URL);
-  toast.success("Lien copié !");
-};
+```text
+Step 1: icon=Copy, text="Copie le lien de la webapp", action=bouton Copier
+Step 2: icon=Compass, text="Ouvre **Safari** et colle le lien dans la barre d'adresse"
+Step 3: icon=Share, text="Appuie sur **Partager** → **Sur l'écran d'accueil** → **Ajouter**"
 ```
 
-**Fonction ouvrir navigateur :**
-```typescript
-const handleOpenBrowser = () => {
-  window.open(APP_URL, "_blank");
-};
+### Etapes Android (sans prompt) refactorees
+
+```text
+Step 1: icon=Copy, text="Copie le lien de la webapp", action=bouton Copier
+Step 2: icon=Chrome, text="Ouvre **Chrome** et colle le lien dans la barre d'adresse"
+Step 3: icon=MoreVertical, text="**⋮** → **Ajouter à l'écran d'accueil** → Confirmer"
 ```
 
-**Composant Step ameliore :**
-Le composant `Step` accepte un `action` optionnel (un bouton) en plus du texte :
+### Texte en gras
 
-```typescript
-function Step({ number, icon, text, action }) {
-  return (
-    <div className="...">
-      <span>{number}</span>
-      {icon}
-      <div className="flex-1">
-        <span>{text}</span>
-        {action && <div className="mt-2">{action}</div>}
-      </div>
-    </div>
-  );
-}
-```
+Utiliser des balises `<strong>` ou `<b>` dans le JSX pour mettre en evidence les mots-cles d'action (Safari, Chrome, Partager, etc.). Le composant `Step` sera modifie pour accepter `text` en tant que `ReactNode` au lieu de `string`.
 
-**iOS steps :**
-```
-Etape 1 : "Copie le lien de la webapp" + [Bouton: Copier le lien]
-Etape 2 : "Ouvre Safari" + [Bouton: Ouvrir Safari]
-Etape 3 : "Colle le lien, puis appuie sur Partager"
-Etape 4 : "Sur l'ecran d'accueil → Ajouter"
-```
-
-**Android steps (si pas de beforeinstallprompt) :**
-```
-Etape 1 : "Copie le lien de la webapp" + [Bouton: Copier le lien]
-Etape 2 : "Ouvre Google Chrome" + [Bouton: Ouvrir Chrome]
-Etape 3 : "Colle le lien dans la barre d'adresse"
-Etape 4 : "⋮ → Ajouter a l'ecran d'accueil → Confirmer"
-```
-
-**Android avec `beforeinstallprompt` :** Le bouton "Installer" natif reste inchange (pas besoin du tutoriel copier/coller).
-
-**Boutons en bas du drawer :**
-- "J'ai compris" (ferme le drawer) — pour iOS et Android sans prompt natif
-- "Installer" — uniquement Android avec prompt natif
-- "Plus tard" (ghost, 7j cooldown) — toujours present
-
-Aucune migration DB, aucune edge function — 100% frontend.
+Aucune migration DB, aucune edge function -- 100% frontend, un seul fichier modifie.
