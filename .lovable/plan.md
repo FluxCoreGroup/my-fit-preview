@@ -1,119 +1,125 @@
 
 
-# Popup d'installation PWA — Plan d'implementation
+# Tutoriel PWA enrichi — Copier le lien + Ouvrir le navigateur
 
-## Composant principal
+## Probleme actuel
 
-Creation d'un composant `InstallAppPrompt.tsx` qui encapsule toute la logique de detection, affichage et persistence.
+Le tutoriel suppose que l'utilisateur est deja dans Safari (iOS) ou Chrome (Android). En realite, beaucoup d'utilisateurs ouvrent la webapp depuis un navigateur in-app (Instagram, Facebook, Messenger, etc.) qui ne supporte pas l'installation PWA.
 
-## Detection et conditions d'affichage
+Le tutoriel doit donc guider l'utilisateur a :
+1. Copier le lien de la webapp
+2. Ouvrir le bon navigateur (Safari sur iOS, Chrome sur Android)
+3. Coller le lien
+4. Suivre les etapes d'installation
 
-**Mode standalone :** Verifie `window.matchMedia('(display-mode: standalone)').matches` ou `navigator.standalone` (iOS). Si deja installe, le popup ne s'affiche jamais.
+## Nouveau flux du tutoriel
 
-**Mobile uniquement :** Utilise le hook `useIsMobile()` existant. Aucun affichage sur desktop.
+### iOS (4 etapes)
 
-**Flag de refus :** Stocke `pwa_install_dismissed` dans localStorage avec un timestamp. Si l'utilisateur ferme le popup, il ne reapparait qu'apres 7 jours.
+| Etape | Icone | Texte | Action/Bouton |
+|---|---|---|---|
+| 1 | Copy | Copie le lien de la webapp | Bouton "Copier le lien" qui copie `https://www.pulse-ai.app` dans le clipboard + toast |
+| 2 | Compass (Safari) | Ouvre Safari | Bouton "Ouvrir Safari" — ouvre `https://www.pulse-ai.app` via `window.open()` |
+| 3 | Share | Colle le lien dans la barre d'adresse, puis appuie sur Partager | Texte simple |
+| 4 | Plus | "Sur l'ecran d'accueil" → "Ajouter" | Texte simple |
 
-**Detection OS :**
-- iOS : `navigator.userAgent` contient "iPhone" ou "iPad" et pas "CriOS" (Chrome iOS)
-- Android : `navigator.userAgent` contient "Android"
-- Le contenu du mini-tutoriel s'adapte dynamiquement
+### Android (4 etapes)
 
-## Declenchement (2 points d'entree)
+| Etape | Icone | Texte | Action/Bouton |
+|---|---|---|---|
+| 1 | Copy | Copie le lien de la webapp | Bouton "Copier le lien" qui copie `https://www.pulse-ai.app` |
+| 2 | Chrome | Ouvre Google Chrome | Bouton "Ouvrir Chrome" — ouvre `https://www.pulse-ai.app` via `window.open()` |
+| 3 | Globe | Colle le lien dans la barre d'adresse et valide | Texte simple |
+| 4 | MoreVertical | ⋮ → "Ajouter a l'ecran d'accueil" → Confirmer | Texte simple |
 
-**1. Page `/start` (questionnaire)** : Le popup s'affiche au montage de `Start.tsx`, avec un delai de 2 secondes pour ne pas bloquer l'entree dans le formulaire.
+## Detection navigateur in-app
 
-**2. Fin de l'onboarding (guide tour)** : Dans `OnboardingContext.tsx`, quand `completeTour()` est appele, un flag `show_install_prompt` est mis dans localStorage. Le composant `Hub.tsx` le detecte et affiche le popup apres la completion du tour (une fois le `OnboardingComplete` modal ferme).
+Ajouter dans `useInstallPrompt.tsx` :
 
-## UI du popup
-
-- **Format** : Drawer/sheet depuis le bas de l'ecran (pas un dialog plein ecran). Utilise le composant `Drawer` existant (vaul).
-- **Animation** : slide-up fluide (natif au Drawer)
-- **Contenu dynamique selon l'OS :**
-
-**iOS (Safari) :**
-```
-1. Appuie sur l'icone de partage (icone Share)
-2. Fais defiler et choisis "Sur l'ecran d'accueil"
-3. Confirme en appuyant sur "Ajouter"
-```
-
-**Android (Chrome / Samsung) :**
-```
-1. Appuie sur le menu (3 points) en haut a droite
-2. Selectionne "Ajouter a l'ecran d'accueil"
-3. Confirme en appuyant sur "Ajouter"
+```typescript
+const isInAppBrowser = /FBAN|FBAV|Instagram|Messenger|Line|Twitter|Snapchat/i.test(ua);
 ```
 
-- **Boutons :**
-  - Sur Android : "Installer" (declenche le `beforeinstallprompt` natif si disponible)
-  - Sur iOS : "J'ai compris" (ferme le drawer, car iOS ne supporte pas `beforeinstallprompt`)
-  - "Plus tard" (ghost, ferme + stocke le flag de delai 7j)
+Quand `isInAppBrowser === true`, les etapes 1 et 2 (copier + ouvrir navigateur) sont essentielles. Quand l'utilisateur est deja dans Safari/Chrome, les etapes sont quand meme affichees (pas de mal a copier le lien), mais le bouton d'etape 2 pourrait dire "Deja dans Safari ? Passe a l'etape 3".
 
-- **Texte d'accroche :**
-  - Titre : "Installe Pulse sur ton telephone"
-  - Sous-titre : "Acces rapide, experience fluide, meilleure immersion."
+## Fichiers a modifier
 
-## Gestion du `beforeinstallprompt` (Android)
+| Fichier | Modification |
+|---|---|
+| `src/hooks/useInstallPrompt.tsx` | Ajouter `isInAppBrowser` dans le retour |
+| `src/components/InstallAppPrompt.tsx` | Refonte du tutoriel : 4 etapes avec boutons d'action (copier lien, ouvrir navigateur), detection in-app, URL configurable |
 
-Un hook `useInstallPrompt` capture l'evenement `beforeinstallprompt` au niveau global (dans `App.tsx` ou directement dans le composant). Sur Android/Chrome, cliquer "Installer" appelle `deferredPrompt.prompt()` pour declencher le vrai dialog d'installation natif.
-
-## Fichiers a creer / modifier
-
-| Fichier | Type | Description |
-|---|---|---|
-| `src/components/InstallAppPrompt.tsx` | CREATE | Composant principal (drawer + detection OS + tutoriel + persistence) |
-| `src/hooks/useInstallPrompt.tsx` | CREATE | Hook pour capturer `beforeinstallprompt` + detecter standalone/OS |
-| `src/pages/Start.tsx` | EDIT | Importer et rendre `<InstallAppPrompt trigger="start" />` |
-| `src/pages/Hub.tsx` | EDIT | Rendre `<InstallAppPrompt trigger="onboarding-complete" />` apres la fin du tour |
-
-## Details techniques
+## Detail technique
 
 ### `useInstallPrompt.tsx`
 
+Ajouter :
 ```typescript
-// Retourne :
-{
-  isStandalone: boolean;       // deja installe ?
-  isIOS: boolean;
-  isAndroid: boolean;
-  deferredPrompt: Event|null;  // beforeinstallprompt capture
-  triggerInstall: () => void;   // appelle prompt() sur Android
-  isDismissed: boolean;         // refuse depuis < 7j ?
-  dismiss: () => void;          // stocke le flag
-}
+const isInAppBrowser = /FBAN|FBAV|Instagram|Messenger|Line|Twitter|Snapchat/i.test(ua);
 ```
+Et l'inclure dans le `return`.
 
 ### `InstallAppPrompt.tsx`
 
-Props :
+**URL de la webapp :**
 ```typescript
-interface InstallAppPromptProps {
-  trigger: "start" | "onboarding-complete";
+const APP_URL = "https://www.pulse-ai.app";
+```
+
+**Fonction copier le lien :**
+```typescript
+const handleCopyLink = async () => {
+  await navigator.clipboard.writeText(APP_URL);
+  toast.success("Lien copié !");
+};
+```
+
+**Fonction ouvrir navigateur :**
+```typescript
+const handleOpenBrowser = () => {
+  window.open(APP_URL, "_blank");
+};
+```
+
+**Composant Step ameliore :**
+Le composant `Step` accepte un `action` optionnel (un bouton) en plus du texte :
+
+```typescript
+function Step({ number, icon, text, action }) {
+  return (
+    <div className="...">
+      <span>{number}</span>
+      {icon}
+      <div className="flex-1">
+        <span>{text}</span>
+        {action && <div className="mt-2">{action}</div>}
+      </div>
+    </div>
+  );
 }
 ```
 
-- Si `trigger === "start"` : s'affiche apres 2s de delai (`setTimeout`)
-- Si `trigger === "onboarding-complete"` : s'affiche quand le flag localStorage `show_install_prompt` est present (pose par `completeTour`), puis supprime le flag
-
-Le composant ne se rend pas du tout si : desktop, standalone, ou dismissed recemment.
-
-### Integration dans `Hub.tsx`
-
-Apres la fermeture du `OnboardingComplete` modal, afficher le prompt d'installation. Le flag `hub_onboarding_just_completed` (deja existant dans `OnboardingContext`) sert de declencheur.
-
-### Integration dans `Start.tsx`
-
-Ajout simple en bas du JSX :
-```typescript
-<InstallAppPrompt trigger="start" />
+**iOS steps :**
+```
+Etape 1 : "Copie le lien de la webapp" + [Bouton: Copier le lien]
+Etape 2 : "Ouvre Safari" + [Bouton: Ouvrir Safari]
+Etape 3 : "Colle le lien, puis appuie sur Partager"
+Etape 4 : "Sur l'ecran d'accueil → Ajouter"
 ```
 
-## Performance
+**Android steps (si pas de beforeinstallprompt) :**
+```
+Etape 1 : "Copie le lien de la webapp" + [Bouton: Copier le lien]
+Etape 2 : "Ouvre Google Chrome" + [Bouton: Ouvrir Chrome]
+Etape 3 : "Colle le lien dans la barre d'adresse"
+Etape 4 : "⋮ → Ajouter a l'ecran d'accueil → Confirmer"
+```
 
-- Aucun impact sur le chargement : le composant est lazy (delai 2s sur `/start`, conditionnel sur Hub)
-- Pas de librairie externe ajoutee : utilise `Drawer` (vaul) deja installe
-- Detection OS par `navigator.userAgent` (synchrone, zero cout)
+**Android avec `beforeinstallprompt` :** Le bouton "Installer" natif reste inchange (pas besoin du tutoriel copier/coller).
+
+**Boutons en bas du drawer :**
+- "J'ai compris" (ferme le drawer) — pour iOS et Android sans prompt natif
+- "Installer" — uniquement Android avec prompt natif
+- "Plus tard" (ghost, 7j cooldown) — toujours present
 
 Aucune migration DB, aucune edge function — 100% frontend.
-
