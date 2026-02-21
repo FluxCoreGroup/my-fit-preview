@@ -20,6 +20,7 @@ export function useInstallPrompt() {
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   const isIOS = /iPhone|iPad|iPod/.test(ua) && !/CriOS/.test(ua);
   const isAndroid = /Android/.test(ua);
+  const isInAppBrowser = /FBAN|FBAV|Instagram|Messenger|Line|Twitter|Snapchat/i.test(ua);
 
   const isDismissed = (() => {
     try {
@@ -60,6 +61,7 @@ export function useInstallPrompt() {
     isStandalone,
     isIOS,
     isAndroid,
+    isInAppBrowser,
     hasDeferredPrompt,
     triggerInstall,
     isDismissed,
