@@ -4,6 +4,7 @@ import { ModuleCard } from "@/components/dashboard/ModuleCard";
 import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { HubTour } from "@/components/dashboard/HubTour";
 import { OnboardingComplete } from "@/components/onboarding/OnboardingComplete";
+import { InstallAppPrompt } from "@/components/InstallAppPrompt";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOnboarding, TOUR_STEPS } from "@/contexts/OnboardingContext";
 import { useQuery } from "@tanstack/react-query";
@@ -158,8 +159,13 @@ const Hub = () => {
       
       <OnboardingComplete 
         open={showComplete}
-        onClose={() => setShowComplete(false)}
+        onClose={() => {
+          setShowComplete(false);
+          localStorage.setItem("show_install_prompt", "true");
+        }}
       />
+
+      <InstallAppPrompt trigger="onboarding-complete" />
 
       {/* Hub Tour Overlay */}
       <HubTour />

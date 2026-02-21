@@ -14,6 +14,7 @@ import type { OnboardingInput } from "@/services/planner";
 import { useToast } from "@/hooks/use-toast";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { Header } from "@/components/Header";
+import { InstallAppPrompt } from "@/components/InstallAppPrompt";
 const Start = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -766,10 +767,12 @@ const Start = () => {
           {!isStepValid && step < 5 && (
             <p className="text-sm text-destructive text-center mt-4">
               Remplis tous les champs obligatoires (*) pour continuer
-            </p>
+         </p>
           )}
         </div>
       </div>
+
+      <InstallAppPrompt trigger="start" />
     </>
   );
 };
