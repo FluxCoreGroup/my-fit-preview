@@ -52,7 +52,21 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const { data: response, error: fnError } = await supabase.functions.invoke("check-subscription");
-      if (fnError) throw fnError;
+      
+      // Handle auth errors (401) gracefully - treat as inactive, not error
+      if (fnError) {
+        const msg = fnError.message || "";
+        if (msg.includes("401") || msg.includes("session")) {
+          setStatus("inactive");
+          setProductId(null);
+          setSubscriptionEnd(null);
+          setTrialEnd(null);
+          setPlanInterval(null);
+          setError(null);
+          return;
+        }
+        throw fnError;
+      }
 
       if (response?.subscribed) {
         setStatus(response.subscription_status === "trialing" ? "trialing" : "active");
