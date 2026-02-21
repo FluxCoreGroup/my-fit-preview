@@ -1,161 +1,119 @@
 
-# Fix : "0 séries" + Ajout de la durée d'entraînement dans le partage
 
-## Diagnostic des bugs
+# Popup d'installation PWA — Plan d'implementation
 
-### Bug 1 — "0 séries réalisées"
+## Composant principal
 
-`PostWorkoutShareModal` reçoit `setsCompleted={exerciseLogs.length}` depuis `SessionFeedbackModal`, qui reçoit lui-même `exerciseLogs` depuis `Session.tsx`.
+Creation d'un composant `InstallAppPrompt.tsx` qui encapsule toute la logique de detection, affichage et persistence.
 
-`exerciseLogs` est rempli uniquement dans `handleSetComplete()` **si** `advancedTracking === true` ET `parseFloat(currentWeight) > 0`. La majorité des utilisateurs n'activent pas le tracking avancé → `exerciseLogs.length = 0` systématiquement.
+## Detection et conditions d'affichage
 
-**Solution** : calculer le nombre total de séries complétées indépendamment du tracking avancé. Dans `Session.tsx`, un compteur `completedSetsCount` incrémenté à chaque appel de `handleSetComplete()` suffit. Ce compteur est passé au `SessionFeedbackModal` (nouvelle prop), puis relayé au `PostWorkoutShareModal`.
+**Mode standalone :** Verifie `window.matchMedia('(display-mode: standalone)').matches` ou `navigator.standalone` (iOS). Si deja installe, le popup ne s'affiche jamais.
 
-### Bug 2 — Durée absente
+**Mobile uniquement :** Utilise le hook `useIsMobile()` existant. Aucun affichage sur desktop.
 
-Aucun chrono global n'existe dans `Session.tsx`. Il faut :
-- Enregistrer `sessionStartTime` au montage (ou au premier exercice chargé)
-- Calculer la durée au moment de l'ouverture du `SessionFeedbackModal`
-- Passer cette durée au modal de partage
+**Flag de refus :** Stocke `pwa_install_dismissed` dans localStorage avec un timestamp. Si l'utilisateur ferme le popup, il ne reapparait qu'apres 7 jours.
 
----
+**Detection OS :**
+- iOS : `navigator.userAgent` contient "iPhone" ou "iPad" et pas "CriOS" (Chrome iOS)
+- Android : `navigator.userAgent` contient "Android"
+- Le contenu du mini-tutoriel s'adapte dynamiquement
 
-## Fichiers à modifier
+## Declenchement (2 points d'entree)
 
-| Fichier | Modification |
-|---|---|
-| `src/pages/Session.tsx` | Ajouter `sessionStartTime` (ref ou state) + `completedSetsCount` state, les passer à `SessionFeedbackModal` |
-| `src/components/training/SessionFeedbackModal.tsx` | Accepter `totalSets` et `durationSeconds` en props, les relayer à `PostWorkoutShareModal` |
-| `src/components/training/PostWorkoutShareModal.tsx` | Accepter `durationSeconds`, formater la durée, mettre à jour `shareText` |
+**1. Page `/start` (questionnaire)** : Le popup s'affiche au montage de `Start.tsx`, avec un delai de 2 secondes pour ne pas bloquer l'entree dans le formulaire.
 
----
+**2. Fin de l'onboarding (guide tour)** : Dans `OnboardingContext.tsx`, quand `completeTour()` est appele, un flag `show_install_prompt` est mis dans localStorage. Le composant `Hub.tsx` le detecte et affiche le popup apres la completion du tour (une fois le `OnboardingComplete` modal ferme).
 
-## Détail des changements
+## UI du popup
 
-### `Session.tsx`
+- **Format** : Drawer/sheet depuis le bas de l'ecran (pas un dialog plein ecran). Utilise le composant `Drawer` existant (vaul).
+- **Animation** : slide-up fluide (natif au Drawer)
+- **Contenu dynamique selon l'OS :**
 
-**Ajouter un ref de démarrage de séance :**
-```typescript
-const sessionStartRef = useRef<Date | null>(null);
+**iOS (Safari) :**
+```
+1. Appuie sur l'icone de partage (icone Share)
+2. Fais defiler et choisis "Sur l'ecran d'accueil"
+3. Confirme en appuyant sur "Ajouter"
 ```
 
-Au moment où les exercices sont chargés (dans `loadSession`, après `setExercises(...)`), initialiser :
-```typescript
-sessionStartRef.current = new Date();
+**Android (Chrome / Samsung) :**
+```
+1. Appuie sur le menu (3 points) en haut a droite
+2. Selectionne "Ajouter a l'ecran d'accueil"
+3. Confirme en appuyant sur "Ajouter"
 ```
 
-**Ajouter un compteur de séries réelles :**
+- **Boutons :**
+  - Sur Android : "Installer" (declenche le `beforeinstallprompt` natif si disponible)
+  - Sur iOS : "J'ai compris" (ferme le drawer, car iOS ne supporte pas `beforeinstallprompt`)
+  - "Plus tard" (ghost, ferme + stocke le flag de delai 7j)
+
+- **Texte d'accroche :**
+  - Titre : "Installe Pulse sur ton telephone"
+  - Sous-titre : "Acces rapide, experience fluide, meilleure immersion."
+
+## Gestion du `beforeinstallprompt` (Android)
+
+Un hook `useInstallPrompt` capture l'evenement `beforeinstallprompt` au niveau global (dans `App.tsx` ou directement dans le composant). Sur Android/Chrome, cliquer "Installer" appelle `deferredPrompt.prompt()` pour declencher le vrai dialog d'installation natif.
+
+## Fichiers a creer / modifier
+
+| Fichier | Type | Description |
+|---|---|---|
+| `src/components/InstallAppPrompt.tsx` | CREATE | Composant principal (drawer + detection OS + tutoriel + persistence) |
+| `src/hooks/useInstallPrompt.tsx` | CREATE | Hook pour capturer `beforeinstallprompt` + detecter standalone/OS |
+| `src/pages/Start.tsx` | EDIT | Importer et rendre `<InstallAppPrompt trigger="start" />` |
+| `src/pages/Hub.tsx` | EDIT | Rendre `<InstallAppPrompt trigger="onboarding-complete" />` apres la fin du tour |
+
+## Details techniques
+
+### `useInstallPrompt.tsx`
+
 ```typescript
-const [completedSetsCount, setCompletedSetsCount] = useState(0);
-```
-
-Dans `handleSetComplete()`, incrémenter **inconditionnellement** (pas seulement si tracking activé) :
-```typescript
-setCompletedSetsCount(prev => prev + 1);
-```
-
-**Calculer la durée lors du déclenchement du feedback modal :**
-```typescript
-const durationSeconds = sessionStartRef.current
-  ? Math.floor((Date.now() - sessionStartRef.current.getTime()) / 1000)
-  : 0;
-```
-
-**Passer au modal :**
-```typescript
-<SessionFeedbackModal
-  ...
-  totalSets={completedSetsCount}
-  durationSeconds={durationSeconds}
-/>
-```
-
-Aussi réinitialiser `completedSetsCount` dans `handleRestartSession()`.
-
----
-
-### `SessionFeedbackModal.tsx`
-
-Nouvelles props :
-```typescript
-interface SessionFeedbackModalProps {
-  ...
-  totalSets?: number;        // ← nouveau
-  durationSeconds?: number;  // ← nouveau
+// Retourne :
+{
+  isStandalone: boolean;       // deja installe ?
+  isIOS: boolean;
+  isAndroid: boolean;
+  deferredPrompt: Event|null;  // beforeinstallprompt capture
+  triggerInstall: () => void;   // appelle prompt() sur Android
+  isDismissed: boolean;         // refuse depuis < 7j ?
+  dismiss: () => void;          // stocke le flag
 }
 ```
 
-Relayer au `PostWorkoutShareModal` :
+### `InstallAppPrompt.tsx`
+
+Props :
 ```typescript
-<PostWorkoutShareModal
-  ...
-  setsCompleted={totalSets ?? exerciseLogs.length}
-  durationSeconds={durationSeconds ?? 0}
-/>
-```
-
----
-
-### `PostWorkoutShareModal.tsx`
-
-Nouvelle prop `durationSeconds` :
-```typescript
-interface PostWorkoutShareModalProps {
-  ...
-  durationSeconds?: number;  // ← nouveau
+interface InstallAppPromptProps {
+  trigger: "start" | "onboarding-complete";
 }
 ```
 
-Fonction de formatage :
+- Si `trigger === "start"` : s'affiche apres 2s de delai (`setTimeout`)
+- Si `trigger === "onboarding-complete"` : s'affiche quand le flag localStorage `show_install_prompt` est present (pose par `completeTour`), puis supprime le flag
+
+Le composant ne se rend pas du tout si : desktop, standalone, ou dismissed recemment.
+
+### Integration dans `Hub.tsx`
+
+Apres la fermeture du `OnboardingComplete` modal, afficher le prompt d'installation. Le flag `hub_onboarding_just_completed` (deja existant dans `OnboardingContext`) sert de declencheur.
+
+### Integration dans `Start.tsx`
+
+Ajout simple en bas du JSX :
 ```typescript
-const formatDuration = (seconds: number) => {
-  if (seconds < 60) return `${seconds}s`;
-  const mins = Math.floor(seconds / 60);
-  if (mins < 60) return `${mins} min`;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return m > 0 ? `${h}h${m.toString().padStart(2, '0')}` : `${h}h`;
-};
+<InstallAppPrompt trigger="start" />
 ```
 
-**Texte de partage mis à jour :**
-```
-🏋️ Séance validée.
+## Performance
 
-{setsCompleted} séries réalisées en {formatDuration(durationSeconds)}.
+- Aucun impact sur le chargement : le composant est lazy (delai 2s sur `/start`, conditionnel sur Hub)
+- Pas de librairie externe ajoutee : utilise `Drawer` (vaul) deja installe
+- Detection OS par `navigator.userAgent` (synchrone, zero cout)
 
-Une de plus vers l'objectif.
-Qui s'entraîne aujourd'hui ?
+Aucune migration DB, aucune edge function — 100% frontend.
 
-👉 https://www.pulse-ai.app
-```
-
-Si `durationSeconds === 0` (cas de secours), la ligne durée est omise :
-```
-🏋️ Séance validée.
-
-{setsCompleted} séries réalisées.
-
-Une de plus vers l'objectif.
-Qui s'entraîne aujourd'hui ?
-
-👉 https://www.pulse-ai.app
-```
-
----
-
-## Résultat attendu
-
-Après un vrai workout de 45 min avec 18 séries (tracking avancé OFF) :
-```
-🏋️ Séance validée.
-
-18 séries réalisées en 45 min.
-
-Une de plus vers l'objectif.
-Qui s'entraîne aujourd'hui ?
-
-👉 https://www.pulse-ai.app
-```
-
-Aucune migration base de données, aucune edge function — 100% frontend.
