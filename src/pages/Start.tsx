@@ -289,31 +289,103 @@ const Start = () => {
             <Card className="p-8 animate-in">
               <h2 className="text-2xl font-bold mb-6">Commençons par les bases</h2>
               <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="birthDate">Date de naissance *</Label>
-                    <Input
-                      id="birthDate"
-                      type="date"
-                      value={formData.birthDate || ""}
-                      onChange={(e) => {
-                        const birthDate = e.target.value;
-                        updateField("birthDate", birthDate);
-                        if (birthDate) {
-                          const age = calculateAgeFromBirthDate(birthDate);
-                          updateField("age", age);
+                <div className="space-y-2">
+                  <Label>Date de naissance *</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Select
+                      value={formData.birthDate ? formData.birthDate.split("-")[2]?.replace(/^0/, "") : ""}
+                      onValueChange={(day) => {
+                        const parts = (formData.birthDate || "--").split("-");
+                        const yyyy = parts[0] || "";
+                        const mm = parts[1] || "";
+                        const dd = day.padStart(2, "0");
+                        if (yyyy && mm && dd) {
+                          const date = `${yyyy}-${mm}-${dd}`;
+                          updateField("birthDate", date);
+                          updateField("age", calculateAgeFromBirthDate(date));
                         }
                       }}
-                      max={new Date().toISOString().split('T')[0]}
-                      className={`mt-2 ${errors.birthDate ? "border-destructive" : ""}`}
-                    />
-                    {formData.birthDate && !errors.birthDate && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {calculateAgeFromBirthDate(formData.birthDate)} ans
-                      </p>
-                    )}
-                    {errors.birthDate && <p className="text-xs text-destructive mt-1">{errors.birthDate}</p>}
+                    >
+                      <SelectTrigger className={errors.birthDate ? "border-destructive" : ""}>
+                        <SelectValue placeholder="Jour" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: (() => {
+                          const parts = (formData.birthDate || "--").split("-");
+                          const m = parseInt(parts[1]);
+                          const y = parseInt(parts[0]);
+                          if (!m) return 31;
+                          return new Date(y || 2000, m, 0).getDate();
+                        })() }, (_, i) => (
+                          <SelectItem key={i + 1} value={String(i + 1)}>{i + 1}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={formData.birthDate ? String(parseInt(formData.birthDate.split("-")[1] || "0")) : ""}
+                      onValueChange={(month) => {
+                        const parts = (formData.birthDate || "--").split("-");
+                        const yyyy = parts[0] || "";
+                        const mm = month.padStart(2, "0");
+                        const dd = parts[2] || "";
+                        if (yyyy && mm && dd) {
+                          const maxDay = new Date(parseInt(yyyy) || 2000, parseInt(mm), 0).getDate();
+                          const safeDay = Math.min(parseInt(dd), maxDay).toString().padStart(2, "0");
+                          const date = `${yyyy}-${mm}-${safeDay}`;
+                          updateField("birthDate", date);
+                          updateField("age", calculateAgeFromBirthDate(date));
+                        } else {
+                          updateField("birthDate", `${yyyy}-${mm}-${dd}`);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className={errors.birthDate ? "border-destructive" : ""}>
+                        <SelectValue placeholder="Mois" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"].map((label, i) => (
+                          <SelectItem key={i + 1} value={String(i + 1)}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={formData.birthDate ? formData.birthDate.split("-")[0] : ""}
+                      onValueChange={(year) => {
+                        const parts = (formData.birthDate || "--").split("-");
+                        const mm = parts[1] || "";
+                        const dd = parts[2] || "";
+                        if (year && mm && dd) {
+                          const maxDay = new Date(parseInt(year), parseInt(mm), 0).getDate();
+                          const safeDay = Math.min(parseInt(dd), maxDay).toString().padStart(2, "0");
+                          const date = `${year}-${mm}-${safeDay}`;
+                          updateField("birthDate", date);
+                          updateField("age", calculateAgeFromBirthDate(date));
+                        } else {
+                          updateField("birthDate", `${year}-${mm}-${dd}`);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className={errors.birthDate ? "border-destructive" : ""}>
+                        <SelectValue placeholder="Année" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 86 }, (_, i) => {
+                          const y = new Date().getFullYear() - 15 - i;
+                          return <SelectItem key={y} value={String(y)}>{y}</SelectItem>;
+                        })}
+                      </SelectContent>
+                    </Select>
                   </div>
+                  {formData.birthDate && !errors.birthDate && formData.birthDate.split("-").every(p => p && p !== "") && (
+                    <p className="text-xs text-muted-foreground">
+                      {calculateAgeFromBirthDate(formData.birthDate)} ans
+                    </p>
+                  )}
+                  {errors.birthDate && <p className="text-xs text-destructive">{errors.birthDate}</p>}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="sex">Sexe *</Label>
                     <Select value={formData.sex} onValueChange={(value) => updateField("sex", value)}>
