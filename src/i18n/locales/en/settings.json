@@ -1,0 +1,42 @@
+{
+  "title": "Settings",
+  "subtitle": "Manage your account and preferences",
+  "backToHub": "Back to Hub",
+  "menu": {
+    "profile": "Profile",
+    "profileDesc": "Personal information",
+    "physicalInfo": "Physical info",
+    "physicalInfoDesc": "Age, weight, height, goals",
+    "trainingProgram": "Training program",
+    "trainingProgramDesc": "Goals and equipment",
+    "nutrition": "Nutrition",
+    "nutritionDesc": "Diet and food preferences",
+    "subscription": "Subscription",
+    "subscriptionDesc": "Manage your Pulse.ai subscription",
+    "support": "Help & Support",
+    "supportDesc": "FAQ, contact and legal notices",
+    "logout": "Log out",
+    "logoutDesc": "Sign out of the app",
+    "logoutConfirm": "Confirm logout",
+    "logoutConfirmDesc": "Are you sure you want to log out?",
+    "cancel": "Cancel",
+    "logoutButton": "Log out",
+    "logoutSuccess": "Logged out successfully",
+    "logoutSuccessDesc": "See you soon! 👋"
+  },
+  "preferences": {
+    "title": "App Preferences",
+    "subtitle": "Customize your Pulse.ai experience",
+    "language": "Language",
+    "units": "Units of measurement",
+    "metric": "Metric (kg, cm)",
+    "imperial": "Imperial (lbs, inches)",
+    "notifications": "Push notifications",
+    "notificationsDesc": "Receive reminders for your sessions",
+    "sounds": "Session sounds",
+    "soundsDesc": "Feedback sounds during exercises",
+    "syncInfo": "Preferences are synced with your account",
+    "updated": "Preference updated",
+    "updateError": "Error updating preference"
+  }
+}

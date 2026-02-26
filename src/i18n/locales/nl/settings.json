@@ -1,0 +1,42 @@
+{
+  "title": "Instellingen",
+  "subtitle": "Beheer je account en voorkeuren",
+  "backToHub": "Terug naar Hub",
+  "menu": {
+    "profile": "Profiel",
+    "profileDesc": "Persoonlijke informatie",
+    "physicalInfo": "Fysieke info",
+    "physicalInfoDesc": "Leeftijd, gewicht, lengte, doelen",
+    "trainingProgram": "Trainingsprogramma",
+    "trainingProgramDesc": "Doelen en apparatuur",
+    "nutrition": "Voeding",
+    "nutritionDesc": "Dieet en voedingsvoorkeuren",
+    "subscription": "Abonnement",
+    "subscriptionDesc": "Beheer je Pulse.ai abonnement",
+    "support": "Help & Ondersteuning",
+    "supportDesc": "FAQ, contact en juridische informatie",
+    "logout": "Uitloggen",
+    "logoutDesc": "Uitloggen uit de app",
+    "logoutConfirm": "Uitloggen bevestigen",
+    "logoutConfirmDesc": "Weet je zeker dat je wilt uitloggen?",
+    "cancel": "Annuleren",
+    "logoutButton": "Uitloggen",
+    "logoutSuccess": "Succesvol uitgelogd",
+    "logoutSuccessDesc": "Tot snel! 👋"
+  },
+  "preferences": {
+    "title": "App Voorkeuren",
+    "subtitle": "Pas je Pulse.ai ervaring aan",
+    "language": "Taal",
+    "units": "Maateenheden",
+    "metric": "Metrisch (kg, cm)",
+    "imperial": "Imperiaal (lbs, inches)",
+    "notifications": "Push notificaties",
+    "notificationsDesc": "Ontvang herinneringen voor je sessies",
+    "sounds": "Sessigeluiden",
+    "soundsDesc": "Feedbackgeluiden tijdens oefeningen",
+    "syncInfo": "Voorkeuren worden gesynchroniseerd met je account",
+    "updated": "Voorkeur bijgewerkt",
+    "updateError": "Fout bij bijwerken voorkeur"
+  }
+}

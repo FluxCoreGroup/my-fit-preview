@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import { Globe, Ruler, Bell, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 export const AppPreferencesSection = () => {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation("settings");
   const [loading, setLoading] = useState(true);
   const [preferences, setPreferences] = useState({
     language: "fr",
@@ -39,6 +41,10 @@ export const AppPreferencesSection = () => {
           notifications: data.notifications,
           sounds: data.sounds,
         });
+        // Sync i18next with DB preference
+        if (data.language && data.language !== i18n.language) {
+          i18n.changeLanguage(data.language);
+        }
       }
     } catch (error: any) {
       console.error("Error fetching preferences:", error);
@@ -53,14 +59,19 @@ export const AppPreferencesSection = () => {
     const updatedPreferences = { ...preferences, [key]: value };
     setPreferences(updatedPreferences);
 
+    // Sync i18next when language changes
+    if (key === "language") {
+      i18n.changeLanguage(value);
+    }
+
     try {
       await supabase.from("app_preferences").upsert({
         user_id: user.id,
         ...updatedPreferences,
       });
-      toast.success("Préférence mise à jour");
+      toast.success(t("preferences.updated", "Préférence mise à jour"));
     } catch (error: any) {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error(t("preferences.updateError", "Erreur lors de la mise à jour"));
       console.error(error);
     }
   };
@@ -76,15 +87,15 @@ export const AppPreferencesSection = () => {
   return (
     <Card className="p-6 space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-1">Préférences de l'Application</h2>
-        <p className="text-muted-foreground">Personnalise ton expérience Pulse.ai</p>
+        <h2 className="text-2xl font-bold mb-1">{t("preferences.title", "Préférences de l'Application")}</h2>
+        <p className="text-muted-foreground">{t("preferences.subtitle", "Personnalise ton expérience Pulse.ai")}</p>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="language" className="flex items-center gap-2">
             <Globe className="w-4 h-4" />
-            Langue
+            {t("preferences.language", "Langue")}
           </Label>
           <Select 
             value={preferences.language} 
@@ -96,6 +107,7 @@ export const AppPreferencesSection = () => {
             <SelectContent>
               <SelectItem value="fr">Français</SelectItem>
               <SelectItem value="en">English</SelectItem>
+              <SelectItem value="nl">Nederlands</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -103,7 +115,7 @@ export const AppPreferencesSection = () => {
         <div className="space-y-2">
           <Label htmlFor="units" className="flex items-center gap-2">
             <Ruler className="w-4 h-4" />
-            Unités de mesure
+            {t("preferences.units", "Unités de mesure")}
           </Label>
           <Select 
             value={preferences.units} 
@@ -113,8 +125,8 @@ export const AppPreferencesSection = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="metric">Métrique (kg, cm)</SelectItem>
-              <SelectItem value="imperial">Impérial (lbs, inches)</SelectItem>
+              <SelectItem value="metric">{t("preferences.metric", "Métrique (kg, cm)")}</SelectItem>
+              <SelectItem value="imperial">{t("preferences.imperial", "Impérial (lbs, inches)")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -123,9 +135,9 @@ export const AppPreferencesSection = () => {
           <div className="space-y-0.5 flex items-center gap-2">
             <Bell className="w-4 h-4" />
             <div>
-              <Label htmlFor="notifications" className="text-base">Notifications push</Label>
+              <Label htmlFor="notifications" className="text-base">{t("preferences.notifications", "Notifications push")}</Label>
               <p className="text-sm text-muted-foreground">
-                Recevoir des rappels pour tes séances
+                {t("preferences.notificationsDesc", "Recevoir des rappels pour tes séances")}
               </p>
             </div>
           </div>
@@ -138,9 +150,9 @@ export const AppPreferencesSection = () => {
 
         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
           <div className="space-y-0.5">
-            <Label htmlFor="sounds" className="text-base">Sons de séance</Label>
+            <Label htmlFor="sounds" className="text-base">{t("preferences.sounds", "Sons de séance")}</Label>
             <p className="text-sm text-muted-foreground">
-              Sons de feedback pendant les exercices
+              {t("preferences.soundsDesc", "Sons de feedback pendant les exercices")}
             </p>
           </div>
           <Switch
@@ -152,7 +164,7 @@ export const AppPreferencesSection = () => {
       </div>
 
       <p className="text-sm text-muted-foreground text-center pt-4">
-        Les préférences sont synchronisées avec ton compte
+        {t("preferences.syncInfo", "Les préférences sont synchronisées avec ton compte")}
       </p>
     </Card>
   );
