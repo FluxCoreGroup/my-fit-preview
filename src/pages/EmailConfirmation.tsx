@@ -5,16 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const emailProviders = [
-  { name: 'Gmail', url: 'https://mail.google.com', color: 'bg-red-500 hover:bg-red-600' },
-  { name: 'Outlook', url: 'https://outlook.live.com', color: 'bg-blue-500 hover:bg-blue-600' },
-  { name: 'Yahoo Mail', url: 'https://mail.yahoo.com', color: 'bg-purple-600 hover:bg-purple-700' },
-  { name: 'iCloud Mail', url: 'https://www.icloud.com/mail', color: 'bg-slate-700 hover:bg-slate-800' },
-  { name: 'ProtonMail', url: 'https://mail.protonmail.com', color: 'bg-purple-700 hover:bg-purple-800' },
+  { name: 'Gmail', url: 'https://mail.google.com' },
+  { name: 'Outlook', url: 'https://outlook.live.com' },
+  { name: 'Yahoo Mail', url: 'https://mail.yahoo.com' },
+  { name: 'iCloud Mail', url: 'https://www.icloud.com/mail' },
+  { name: 'ProtonMail', url: 'https://mail.protonmail.com' },
 ];
 
 export default function EmailConfirmation() {
+  const { t } = useTranslation("auth");
   const navigate = useNavigate();
   const { resendConfirmationEmail } = useAuth();
   const [email, setEmail] = useState<string>('');
@@ -22,10 +24,7 @@ export default function EmailConfirmation() {
 
   useEffect(() => {
     const pendingEmail = localStorage.getItem('pendingEmail');
-    if (!pendingEmail) {
-      navigate('/signup');
-      return;
-    }
+    if (!pendingEmail) { navigate('/signup'); return; }
     setEmail(pendingEmail);
   }, [navigate]);
 
@@ -34,11 +33,6 @@ export default function EmailConfirmation() {
     setIsResending(true);
     await resendConfirmationEmail(email);
     setIsResending(false);
-  };
-
-  const handleContinue = () => {
-    localStorage.removeItem('pendingEmail');
-    navigate('/');
   };
 
   return (
@@ -50,71 +44,39 @@ export default function EmailConfirmation() {
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
               <Mail className="w-8 h-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Vérifie ton email !</CardTitle>
+            <CardTitle className="text-2xl">{t("emailConfirmation.title")}</CardTitle>
             <CardDescription className="text-base">
-              Nous avons envoyé un email de confirmation à :<br />
+              {t("emailConfirmation.sentTo")}<br />
               <span className="font-semibold text-foreground">{email}</span>
             </CardDescription>
-            <p className="text-sm text-muted-foreground">
-              Clique sur le lien dans l'email pour activer ton compte.
-            </p>
+            <p className="text-sm text-muted-foreground">{t("emailConfirmation.clickLink")}</p>
             <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md">
               <p className="text-xs text-blue-800 dark:text-blue-200">
-                💡 <strong>Astuce</strong> : Si tu cliques sur le lien depuis un autre appareil (téléphone), 
-                tu devras te reconnecter manuellement sur cet appareil avec ton email et mot de passe.
+                💡 <strong>{t("emailConfirmation.tip")}</strong> : {t("emailConfirmation.tipText")}
               </p>
             </div>
           </CardHeader>
 
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground mb-3">
-                Accès rapide à ton email :
-              </p>
+              <p className="text-sm font-medium text-muted-foreground mb-3">{t("emailConfirmation.quickAccess")}</p>
               {emailProviders.map((provider) => (
-                <Button
-                  key={provider.name}
-                  variant="outline"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <a
-                    href={provider.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {provider.name}
-                  </a>
+                <Button key={provider.name} variant="outline" className="w-full justify-start" asChild>
+                  <a href={provider.url} target="_blank" rel="noopener noreferrer">{provider.name}</a>
                 </Button>
               ))}
             </div>
 
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={handleResendEmail}
-              disabled={isResending}
-            >
-              {isResending ? 'Envoi...' : 'Renvoyer l\'email de confirmation'}
+            <Button variant="ghost" className="w-full" onClick={handleResendEmail} disabled={isResending}>
+              {isResending ? t("emailConfirmation.resending") : t("emailConfirmation.resend")}
             </Button>
 
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                localStorage.removeItem('pendingEmail');
-                navigate('/auth');
-              }}
-            >
-              J'ai déjà confirmé, me connecter
+            <Button variant="outline" className="w-full" onClick={() => { localStorage.removeItem('pendingEmail'); navigate('/auth'); }}>
+              {t("emailConfirmation.alreadyConfirmed")}
             </Button>
 
-            <Button
-              variant="link"
-              className="w-full"
-              onClick={handleContinue}
-            >
-              Ou continuer sans confirmer
+            <Button variant="link" className="w-full" onClick={() => { localStorage.removeItem('pendingEmail'); navigate('/'); }}>
+              {t("emailConfirmation.continueWithout")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardContent>

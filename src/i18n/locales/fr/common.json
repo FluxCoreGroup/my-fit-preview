@@ -14,6 +14,7 @@
     "tryNow": "Essayer maintenant",
     "startFree": "Commencer gratuitement"
   },
+  "back": "Retour",
   "common": {
     "loading": "Chargement...",
     "error": "Erreur",
@@ -35,5 +36,35 @@
     "fr": "Français",
     "en": "English",
     "nl": "Nederlands"
+  },
+  "hub": {
+    "greetingMorning": "Bonjour",
+    "greetingAfternoon": "Bon après-midi",
+    "greetingEvening": "Bonsoir",
+    "readyToStart": "Prêt à commencer ta semaine ?",
+    "weekComplete": "🎉 Bravo, semaine complète !",
+    "oneSessionLeft": "💪 Plus qu'une séance !",
+    "sessionsLeft": "🔥 Plus que {{count}} séances cette semaine",
+    "sessions": "séances",
+    "premiumWelcome": "Bienvenue dans Pulse.ai Premium !",
+    "premiumDesc": "Ton abonnement est maintenant actif. Profite de toutes les fonctionnalités !",
+    "subscriptionExpired": "Ton abonnement a expiré",
+    "resubscribe": "Réabonne-toi pour accéder à tes entraînements et coachs IA.",
+    "resubscribeBtn": "Se réabonner",
+    "myTraining": "Mes entraînements",
+    "myNutrition": "Ma nutrition",
+    "coachSport": "Coach Sport",
+    "nutritionist": "Nutritionniste",
+    "help": "Aide"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "La page que tu cherches n'existe pas.",
+    "backHome": "Retour à l'accueil"
+  },
+  "paymentSuccess": {
+    "title": "Paiement réussi !",
+    "description": "Ton abonnement est maintenant actif.",
+    "goToHub": "Aller au Hub"
   }
 }

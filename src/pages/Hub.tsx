@@ -15,23 +15,25 @@ import { useSubscriptionContext } from "@/contexts/SubscriptionContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useTranslation } from "react-i18next";
 
-const getGreeting = () => {
+const getGreeting = (t: (key: string) => string) => {
   const hour = new Date().getHours();
-  if (hour < 12) return "Bonjour";
-  if (hour < 18) return "Bon après-midi";
-  return "Bonsoir";
+  if (hour < 12) return t("hub.greetingMorning");
+  if (hour < 18) return t("hub.greetingAfternoon");
+  return t("hub.greetingEvening");
 };
 
-const getSubtitle = (completed?: number, total?: number) => {
-  if (!total || total === 0) return "Prêt à commencer ta semaine ?";
+const getSubtitle = (t: (key: string, opts?: any) => string, completed?: number, total?: number) => {
+  if (!total || total === 0) return t("hub.readyToStart");
   const remaining = total - (completed || 0);
-  if (remaining <= 0) return "🎉 Bravo, semaine complète !";
-  if (remaining === 1) return "💪 Plus qu'une séance !";
-  return `🔥 Plus que ${remaining} séances cette semaine`;
+  if (remaining <= 0) return t("hub.weekComplete");
+  if (remaining === 1) return t("hub.oneSessionLeft");
+  return t("hub.sessionsLeft", { count: remaining });
 };
 
 const Hub = () => {
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
@@ -42,33 +44,27 @@ const Hub = () => {
   const [showComplete, setShowComplete] = useState(false);
   const [initDone, setInitDone] = useState(false);
 
-  // Handle subscription success from payment redirect
   useEffect(() => {
     if (searchParams.get("subscription") === "success") {
-      toast.success("Bienvenue dans Pulse.ai Premium !", {
-        description: "Ton abonnement est maintenant actif. Profite de toutes les fonctionnalités !",
+      toast.success(t("hub.premiumWelcome"), {
+        description: t("hub.premiumDesc"),
         duration: 5000,
       });
       searchParams.delete("subscription");
       setSearchParams(searchParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, t]);
 
   const { data: goals } = useQuery({
     queryKey: ["goals", user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data } = await supabase
-        .from("goals")
-        .select("frequency")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      const { data } = await supabase.from("goals").select("frequency").eq("user_id", user.id).maybeSingle();
       return data;
     },
     enabled: !!user,
   });
 
-  // Fetch sessions count for this week
   const { data: sessionsData } = useQuery({
     queryKey: ["sessions-count", user?.id],
     queryFn: async () => {
@@ -76,71 +72,33 @@ const Hub = () => {
       const startOfWeek = new Date();
       startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay() + 1);
       startOfWeek.setHours(0, 0, 0, 0);
-      
-      const { data } = await supabase
-        .from("sessions")
-        .select("completed")
-        .eq("user_id", user.id)
-        .gte("session_date", startOfWeek.toISOString());
-      
-      return {
-        completed: data?.filter(s => s.completed).length || 0,
-        total: data?.length || 0
-      };
+      const { data } = await supabase.from("sessions").select("completed").eq("user_id", user.id).gte("session_date", startOfWeek.toISOString());
+      return { completed: data?.filter(s => s.completed).length || 0, total: data?.length || 0 };
     },
     enabled: !!user,
   });
 
   const userName = user?.user_metadata?.name?.split(" ")[0] || "Champion";
 
-  // Initialize Hub: check training prefs + onboarding status
   useEffect(() => {
     const initializeHub = async () => {
       if (!user || onboardingLoading || initDone) return;
-      
-      const { data: prefs, error } = await supabase
-        .from('training_preferences')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (!prefs && !error) {
-        navigate('/onboarding-intro');
-        return;
-      }
-      
+      const { data: prefs, error } = await supabase.from('training_preferences').select('id').eq('user_id', user.id).maybeSingle();
+      if (!prefs && !error) { navigate('/onboarding-intro'); return; }
       const needsOnboarding = await checkOnboardingStatus();
-      
-      if (needsOnboarding) {
-        setShowWelcome(true);
-      }
-      
+      if (needsOnboarding) setShowWelcome(true);
       setInitDone(true);
     };
-    
     initializeHub();
   }, [user, onboardingLoading, initDone, navigate, checkOnboardingStatus]);
 
-  // Show completion modal when tour finishes
   useEffect(() => {
     if (state.phase === 'complete') {
       const justCompleted = localStorage.getItem('hub_onboarding_just_completed');
-      if (justCompleted) {
-        setShowComplete(true);
-        localStorage.removeItem('hub_onboarding_just_completed');
-      }
+      if (justCompleted) { setShowComplete(true); localStorage.removeItem('hub_onboarding_just_completed'); }
     }
   }, [state.phase]);
 
-  const handleWelcomeComplete = () => {
-    setShowWelcome(false);
-  };
-
-  const handleStartTour = () => {
-    startTour();
-  };
-
-  // Get spotlight state for each module based on current tour step
   const getModuleSpotlight = (moduleKey: string) => {
     if (!isOnboardingActive) return false;
     const currentStep = getCurrentStep();
@@ -149,153 +107,56 @@ const Hub = () => {
 
   return (
     <>
-      <WelcomeModal 
-        open={showWelcome} 
-        userName={userName}
-        onComplete={handleWelcomeComplete}
-        onStartTour={handleStartTour}
-        onSkipTour={skipTour}
-      />
-      
-      <OnboardingComplete 
-        open={showComplete}
-        onClose={() => {
-          setShowComplete(false);
-          localStorage.setItem("show_install_prompt", "true");
-        }}
-      />
-
+      <WelcomeModal open={showWelcome} userName={userName} onComplete={() => setShowWelcome(false)} onStartTour={startTour} onSkipTour={skipTour} />
+      <OnboardingComplete open={showComplete} onClose={() => { setShowComplete(false); localStorage.setItem("show_install_prompt", "true"); }} />
       <InstallAppPrompt trigger="onboarding-complete" />
-
-      {/* Hub Tour Overlay */}
       <HubTour />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-white to-blue-100/20 pb-8">
-        {/* Header */}
         <div className="relative overflow-hidden shadow-lg bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-500 px-4 py-5 text-white">
-          {/* Decorative depth layers */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
           <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-indigo-400/15 rounded-full blur-2xl" />
-
           <div className="relative z-10">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-sm text-white/80">{getGreeting()},</span>
+              <span className="text-sm text-white/80">{getGreeting(t)},</span>
               <h1 className="text-2xl font-bold">{userName} 👋</h1>
             </div>
             <p className="text-xs text-white/70 mt-1">
-              {getSubtitle(sessionsData?.completed, sessionsData?.total)}
+              {getSubtitle(t, sessionsData?.completed, sessionsData?.total)}
             </p>
             {sessionsData?.total && sessionsData.total > 0 ? (
               <div className="mt-3 bg-white/10 backdrop-blur-sm rounded-xl p-2.5">
                 <div className="flex justify-between text-[11px] text-white/60 mb-1">
-                  <span>{sessionsData.completed}/{sessionsData.total} séances</span>
+                  <span>{sessionsData.completed}/{sessionsData.total} {t("hub.sessions")}</span>
                   <span>{Math.round(((sessionsData.completed || 0) / sessionsData.total) * 100)}%</span>
                 </div>
-                <Progress
-                  value={((sessionsData.completed || 0) / sessionsData.total) * 100}
-                  className="h-1.5 bg-white/15 [&>div]:bg-white"
-                />
+                <Progress value={((sessionsData.completed || 0) / sessionsData.total) * 100} className="h-1.5 bg-white/15 [&>div]:bg-white" />
               </div>
             ) : null}
           </div>
-
-          {/* Bottom luminous line */}
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
         </div>
 
-        {/* Subscription expired banner */}
         {subscriptionStatus === "inactive" && (
           <div className="mx-4 mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="font-semibold text-destructive">Ton abonnement a expiré</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Réabonne-toi pour accéder à tes entraînements et coachs IA.
-              </p>
-              <Button
-                size="sm"
-                className="mt-3"
-                onClick={() => navigate("/tarif")}
-              >
-                Se réabonner
-              </Button>
+              <p className="font-semibold text-destructive">{t("hub.subscriptionExpired")}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t("hub.resubscribe")}</p>
+              <Button size="sm" className="mt-3" onClick={() => navigate("/tarif")}>{t("hub.resubscribeBtn")}</Button>
             </div>
           </div>
         )}
 
-        {/* Grid de modules */}
         <div className="p-4 max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Mes entraînements */}
-            <ModuleCard
-              icon={Dumbbell}
-              title="Mes entraînements"
-              badge={
-                sessionsData?.total
-                  ? `${sessionsData.completed}/${sessionsData.total}`
-                  : undefined
-              }
-              iconColor="217 91% 60%"
-              to="/training"
-              spotlight={getModuleSpotlight("training")}
-            />
-
-            {/* Ma nutrition */}
-            <ModuleCard
-              icon={Utensils}
-              title="Ma nutrition"
-              iconColor="210 70% 50%"
-              to="/nutrition"
-              spotlight={getModuleSpotlight("nutrition")}
-            />
-
-            {/* Alex (Coach IA) */}
-            <ModuleCard
-              icon={Target}
-              title="Alex"
-              subtitle="Coach Sport"
-              iconColor="190 75% 55%"
-              to="/coach/alex"
-              spotlight={getModuleSpotlight("alex")}
-            />
-
-            {/* Julie (Nutritionniste IA) */}
-            <ModuleCard
-              icon={Apple}
-              title="Julie"
-              subtitle="Nutritionniste"
-              iconColor="300 60% 60%"
-              to="/coach/julie"
-              spotlight={getModuleSpotlight("julie")}
-            />
-
-            {/* Paramètres */}
-            <ModuleCard
-              icon={Settings}
-              title="Paramètres"
-              iconColor="245 58% 55%"
-              to="/settings"
-              spotlight={getModuleSpotlight("settings")}
-            />
-
-            {/* Aide */}
-            <ModuleCard
-              icon={MessageCircleQuestion}
-              title="Aide"
-              iconColor="180 60% 50%"
-              to="/settings/support"
-            />
-
-            {/* Admin — conditionnel */}
-            {isAdmin && (
-              <ModuleCard
-                icon={ShieldCheck}
-                title="Admin"
-                subtitle="Dashboard"
-                iconColor="0 72% 51%"
-                to="/admin"
-              />
-            )}
+            <ModuleCard icon={Dumbbell} title={t("hub.myTraining")} badge={sessionsData?.total ? `${sessionsData.completed}/${sessionsData.total}` : undefined} iconColor="217 91% 60%" to="/training" spotlight={getModuleSpotlight("training")} />
+            <ModuleCard icon={Utensils} title={t("hub.myNutrition")} iconColor="210 70% 50%" to="/nutrition" spotlight={getModuleSpotlight("nutrition")} />
+            <ModuleCard icon={Target} title="Alex" subtitle={t("hub.coachSport")} iconColor="190 75% 55%" to="/coach/alex" spotlight={getModuleSpotlight("alex")} />
+            <ModuleCard icon={Apple} title="Julie" subtitle={t("hub.nutritionist")} iconColor="300 60% 60%" to="/coach/julie" spotlight={getModuleSpotlight("julie")} />
+            <ModuleCard icon={Settings} title={t("nav.settings")} iconColor="245 58% 55%" to="/settings" spotlight={getModuleSpotlight("settings")} />
+            <ModuleCard icon={MessageCircleQuestion} title={t("hub.help")} iconColor="180 60% 50%" to="/settings/support" />
+            {isAdmin && <ModuleCard icon={ShieldCheck} title="Admin" subtitle="Dashboard" iconColor="0 72% 51%" to="/admin" />}
           </div>
         </div>
       </div>
