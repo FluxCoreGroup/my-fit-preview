@@ -1,0 +1,42 @@
+{
+  "title": "Réglages",
+  "subtitle": "Gère ton compte et tes préférences",
+  "backToHub": "Retour au Hub",
+  "menu": {
+    "profile": "Profil",
+    "profileDesc": "Informations personnelles",
+    "physicalInfo": "Infos physiques",
+    "physicalInfoDesc": "Âge, poids, taille, objectifs",
+    "trainingProgram": "Programme d'entraînement",
+    "trainingProgramDesc": "Objectifs et matériel",
+    "nutrition": "Nutrition",
+    "nutritionDesc": "Régime et préférences alimentaires",
+    "subscription": "Abonnement",
+    "subscriptionDesc": "Gérer ton abonnement Pulse.ai",
+    "support": "Aide & Support",
+    "supportDesc": "FAQ, contact et mentions légales",
+    "logout": "Déconnexion",
+    "logoutDesc": "Se déconnecter de l'application",
+    "logoutConfirm": "Confirmer la déconnexion",
+    "logoutConfirmDesc": "Es-tu sûr(e) de vouloir te déconnecter ?",
+    "cancel": "Annuler",
+    "logoutButton": "Se déconnecter",
+    "logoutSuccess": "Déconnexion réussie",
+    "logoutSuccessDesc": "À bientôt ! 👋"
+  },
+  "preferences": {
+    "title": "Préférences de l'Application",
+    "subtitle": "Personnalise ton expérience Pulse.ai",
+    "language": "Langue",
+    "units": "Unités de mesure",
+    "metric": "Métrique (kg, cm)",
+    "imperial": "Impérial (lbs, inches)",
+    "notifications": "Notifications push",
+    "notificationsDesc": "Recevoir des rappels pour tes séances",
+    "sounds": "Sons de séance",
+    "soundsDesc": "Sons de feedback pendant les exercices",
+    "syncInfo": "Les préférences sont synchronisées avec ton compte",
+    "updated": "Préférence mise à jour",
+    "updateError": "Erreur lors de la mise à jour"
+  }
+}
