@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 interface CancellationFeedbackDialogProps {
   open: boolean;
@@ -16,105 +17,61 @@ interface CancellationFeedbackDialogProps {
   onConfirm: () => void;
 }
 
-export const CancellationFeedbackDialog = ({ 
-  open, 
-  onOpenChange, 
-  actionType,
-  onConfirm 
-}: CancellationFeedbackDialogProps) => {
+export const CancellationFeedbackDialog = ({ open, onOpenChange, actionType, onConfirm }: CancellationFeedbackDialogProps) => {
   const { user } = useAuth();
+  const { t } = useTranslation("settings");
   const [reason, setReason] = useState("");
   const [comments, setComments] = useState("");
   const [loading, setLoading] = useState(false);
 
   const reasons = [
-    "Trop cher",
-    "Je n'utilise pas assez l'app",
-    "Je n'ai pas trouvé ce que je cherchais",
-    "Problème technique",
-    "Mauvaise expérience utilisateur",
-    "Autre raison"
+    { key: "tooExpensive", label: t("cancellation.reasons.tooExpensive") },
+    { key: "notUsedEnough", label: t("cancellation.reasons.notUsedEnough") },
+    { key: "notFound", label: t("cancellation.reasons.notFound") },
+    { key: "technicalIssue", label: t("cancellation.reasons.technicalIssue") },
+    { key: "badUx", label: t("cancellation.reasons.badUx") },
+    { key: "other", label: t("cancellation.reasons.other") },
   ];
 
   const handleSubmit = async () => {
-    if (!reason) {
-      toast.error("Merci de sélectionner une raison");
-      return;
-    }
-
-    if (!user) {
-      toast.error("Session expirée. Veuillez vous reconnecter.");
-      return;
-    }
+    if (!reason) { toast.error(t("cancellation.selectReason")); return; }
+    if (!user) { toast.error(t("cancellation.sessionExpired")); return; }
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('cancellation_feedback')
-        .insert({
-          user_id: user.id,
-          action_type: actionType,
-          reason: reason,
-          additional_comments: comments || null
-        });
-
+      const { error } = await supabase.from('cancellation_feedback').insert({ user_id: user.id, action_type: actionType, reason, additional_comments: comments || null });
       if (error) throw error;
-
-      toast.success("Merci pour ton retour !");
+      toast.success(t("cancellation.thankYou"));
       onConfirm();
     } catch (error) {
-      toast.error("Erreur lors de l'enregistrement du feedback");
+      toast.error(t("cancellation.feedbackError"));
       console.error(error);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            {actionType === 'cancel_subscription' 
-              ? "Pourquoi annules-tu ton abonnement ?" 
-              : "Pourquoi supprimes-tu ton compte ?"}
-          </DialogTitle>
-          <DialogDescription>
-            Ton avis nous aide à améliorer Pulse.ai. Cela prend 30 secondes.
-          </DialogDescription>
+          <DialogTitle>{actionType === 'cancel_subscription' ? t("cancellation.cancelTitle") : t("cancellation.deleteTitle")}</DialogTitle>
+          <DialogDescription>{t("cancellation.feedbackDesc")}</DialogDescription>
         </DialogHeader>
-
         <div className="space-y-4">
           <RadioGroup value={reason} onValueChange={setReason}>
             {reasons.map((r) => (
-              <div key={r} className="flex items-center space-x-2">
-                <RadioGroupItem value={r} id={r} />
-                <Label htmlFor={r} className="cursor-pointer">{r}</Label>
+              <div key={r.key} className="flex items-center space-x-2">
+                <RadioGroupItem value={r.label} id={r.key} />
+                <Label htmlFor={r.key} className="cursor-pointer">{r.label}</Label>
               </div>
             ))}
           </RadioGroup>
-
-          <Textarea
-            placeholder="Commentaires supplémentaires (optionnel)"
-            value={comments}
-            onChange={(e) => setComments(e.target.value)}
-            rows={3}
-          />
+          <Textarea placeholder={t("cancellation.additionalComments")} value={comments} onChange={(e) => setComments(e.target.value)} rows={3} />
         </div>
-
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annuler
-          </Button>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={loading || !reason}
-            variant="destructive"
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("cancellation.cancel")}</Button>
+          <Button onClick={handleSubmit} disabled={loading || !reason} variant="destructive">
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-            {actionType === 'cancel_subscription' 
-              ? "Annuler mon abonnement" 
-              : "Supprimer mon compte"}
+            {actionType === 'cancel_subscription' ? t("cancellation.cancelSubscription") : t("cancellation.deleteMyAccount")}
           </Button>
         </DialogFooter>
       </DialogContent>
