@@ -1,149 +1,72 @@
-# Phases 3, 4, 5 — App bilingue complète
-
-Ce plan couvre l'intégralité des phases restantes. Vu le volume (~30+ fichiers frontend, 9 edge functions), je recommande de procéder en sous-étapes successives.
-
----
-
-## Phase 3 — Pages app bilingues
-
-### 3A. Créer les fichiers de traduction (6 fichiers JSON × 3 langues = 18 fichiers)
 
 
-| Namespace         | Contenu                                                                                                                     |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `auth.json`       | Login, reset password, signup, email confirmation                                                                           |
-| `onboarding.json` | Start (5 étapes), OnboardingIntro, TrainingSetup, Preview                                                                   |
-| `training.json`   | Training page, Session, Feedback, WeeklyFeedback                                                                            |
-| `nutrition.json`  | Nutrition page, MealGenerator, RecipeLibrary, HydrationTracker                                                              |
-| `coach.json`      | ChatInterface errors, CoachWelcome, DataConsent, shortcuts                                                                  |
-| `settings.json`   | Settings menu, toutes sous-pages (Profile, PhysicalInfo, TrainingProgram, Nutrition, Subscription, Support), AppPreferences |
+# Ce qui reste à faire pour FR/EN/NL
 
+## Etat actuel
 
-### 3B. Refactorer les pages frontend (~25 fichiers)
+**Fait (4 fichiers)** : `Landing.tsx`, `SocialProofStats.tsx`, `Header.tsx` (sélecteur langue), `AppPreferencesSection.tsx` (sync DB).
+**Fichiers JSON** : Les 18 fichiers de traduction (6 namespaces × 3 langues) existent déjà.
+**Infrastructure** : `i18n/index.ts`, `dateLocale.ts` — en place.
 
-Chaque fichier : ajouter `useTranslation()`, remplacer strings hardcodées par `t("key")`.
+## Ce qui reste
 
+### Phase 3B — Pages frontend (~25 fichiers, strings hardcodées en français)
 
-| Groupe     | Fichiers à modifier                                                                                                                                                         |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth       | `Auth.tsx`, `Signup.tsx`, `EmailConfirmation.tsx`, `EmailVerified.tsx`                                                                                                      |
-| Onboarding | `Start.tsx` (851 lignes — le plus gros), `OnboardingIntro.tsx`, `TrainingSetup.tsx`, `Preview.tsx`                                                                          |
-| Hub        | `Hub.tsx` (greetings, subtitles, module titles, subscription banner)                                                                                                        |
-| Training   | `Training.tsx` (554 lignes), `Session.tsx`, `Feedback.tsx`                                                                                                                  |
-| Nutrition  | `Nutrition.tsx`, `MealGenerator.tsx`, `RecipeLibrary.tsx`, `HydrationTracker.tsx`, `BodyMetricsTracker.tsx`                                                                 |
-| Coachs     | `CoachAlex.tsx`, `CoachJulie.tsx`, `CoachsIA.tsx`, `ChatInterface.tsx` (error messages, shortcuts)                                                                          |
-| Settings   | `Settings.tsx`, `Profile.tsx`, `PhysicalInfo.tsx`, `TrainingProgram.tsx`, `settings/Nutrition.tsx`, `Subscription.tsx`, `settings/Support.tsx`, `AppPreferencesSection.tsx` |
-| Autres     | `Tarif.tsx`, `Support.tsx`, `Legal.tsx`, `NotFound.tsx`, `PaymentSuccess.tsx`                                                                                               |
+| Groupe | Fichiers | Namespace |
+|---|---|---|
+| Auth | `Auth.tsx`, `Signup.tsx`, `EmailConfirmation.tsx`, `EmailVerified.tsx` | `auth` |
+| Onboarding | `Start.tsx`, `OnboardingIntro.tsx`, `TrainingSetup.tsx`, `Preview.tsx` | `onboarding` |
+| Hub | `Hub.tsx` | `common` |
+| Training | `Training.tsx`, `Session.tsx`, `Feedback.tsx` | `training` |
+| Nutrition | `Nutrition.tsx`, `MealGenerator.tsx`, `RecipeLibrary.tsx`, `HydrationTracker.tsx`, `BodyMetricsTracker.tsx` | `nutrition` |
+| Coachs | `CoachAlex.tsx`, `CoachJulie.tsx`, `CoachsIA.tsx`, `ChatInterface.tsx` | `coach` |
+| Settings | `Settings.tsx`, `Profile.tsx`, `PhysicalInfo.tsx`, `TrainingProgram.tsx`, `settings/Nutrition.tsx`, `Subscription.tsx`, `settings/Support.tsx` | `settings` |
+| Autres | `Tarif.tsx`, `Support.tsx`, `Legal.tsx`, `NotFound.tsx`, `PaymentSuccess.tsx` | `common` |
 
+### Phase 3C — Composants partagés (~10 fichiers)
 
-### 3C. Composants partagés
+`BackButton.tsx`, `EmptyState.tsx`, `WelcomeModal.tsx`, `HubTour.tsx`, `OnboardingComplete.tsx`, `SessionPreviewCard.tsx`, `SessionFeedbackModal.tsx`, `WeeklyFeedbackModal.tsx`, `InstallAppPrompt.tsx`, `PostWorkoutShareModal.tsx`, `QuickPreferencesModal.tsx`
 
+### Phase 3D — Date locale dynamique
 
-| Composant                                                                       | Strings à extraire     |
-| ------------------------------------------------------------------------------- | ---------------------- |
-| `BackButton.tsx`                                                                | "Retour au Hub" labels |
-| `EmptyState.tsx`                                                                | Messages vides         |
-| `WelcomeModal.tsx`, `HubTour.tsx`, `OnboardingComplete.tsx`                     | Textes d'onboarding    |
-| `SessionPreviewCard.tsx`, `SessionFeedbackModal.tsx`, `WeeklyFeedbackModal.tsx` | UI training            |
-| `InstallAppPrompt.tsx`                                                          | Tutoriel PWA           |
+`Training.tsx` et d'autres fichiers utilisent `date-fns/locale/fr` hardcodé — passer à `getDateLocale(i18n.language)`.
 
+### Phase 3E — Mois dans Start.tsx
 
-### 3D. Date locale dynamique
+Remplacer les noms de mois hardcodés en français par `t("onboarding.months.january")` etc.
 
-`Training.tsx` utilise `date-fns/locale/fr` hardcodé. Créer un helper :
+### Phase 4 — Edge functions bilingues (9 fonctions, 0 faites)
 
-```typescript
-// src/lib/dateLocale.ts
-import { fr } from "date-fns/locale/fr";
-import { enUS } from "date-fns/locale/en-US";
-import { nl } from "date-fns/locale/nl";
-const locales = { fr, en: enUS, nl };
-export const getDateLocale = (lang: string) => locales[lang] || fr;
-```
+Aucune edge function ne reçoit encore de paramètre `language`. Il faut :
 
-### 3E. Mois dans Start.tsx
+1. **Frontend** : Ajouter `language: i18n.language` dans le body de chaque `supabase.functions.invoke()` (~7 fichiers hooks/services)
+2. **Edge functions** : Extraire `language` du body et ajouter l'instruction au prompt système
 
-Les noms de mois du sélecteur de date de naissance sont hardcodés en français. Les remplacer par `t("months.january")` etc.
+| Edge function | Statut |
+|---|---|
+| `chat-alex/index.ts` | À faire |
+| `chat-julie/index.ts` | À faire |
+| `generate-weekly-program/index.ts` | À faire |
+| `generate-training-session/index.ts` | À faire |
+| `generate-training-plan/index.ts` | À faire |
+| `generate-nutrition-plan/index.ts` | À faire |
+| `generate-meal/index.ts` | À faire |
+| `format-health-data/index.ts` | À faire |
+| `send-weekly-digest/index.ts` | À faire |
 
----
+3. **`data/prompts.ts`** : Rendre `juliePromptWithoutAccessToData` multilingue
 
-## Phase 4 — Edge functions bilingues
+### Résumé chiffré
 
-### Principe
+| Phase | Fichiers restants | Statut |
+|---|---|---|
+| Phase 1 — Infra i18n | 0 | ✅ Fait |
+| Phase 2 — Landing | 0 | ✅ Fait |
+| Phase 3B — Pages app | ~25 | ❌ À faire |
+| Phase 3C — Composants | ~10 | ❌ À faire |
+| Phase 3D/E — Dates + mois | ~3 | ❌ À faire |
+| Phase 4 — Edge functions | ~9 + ~7 frontend | ❌ À faire |
+| Phase 5 — Sync DB | 0 | ✅ Fait |
 
-Le frontend envoie `language` (depuis `i18next.language` ou `app_preferences.language`) dans le body de chaque appel. Chaque edge function adapte le prompt système.
+**Total restant** : ~54 fichiers à modifier. Je recommande de procéder en 3-4 messages successifs pour ne rien oublier.
 
-### Map de langues (partagée)
-
-```typescript
-const languageInstructions: Record<string, string> = {
-  fr: "Réponds UNIQUEMENT en français.",
-  en: "Respond ONLY in English.",
-  nl: "Antwoord UITSLUITEND in het Nederlands.",
-};
-```
-
-### Fichiers à modifier
-
-
-| Edge function                        | Modification                                                                                            |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `chat-alex/index.ts`                 | Extraire `language` du body, ajouter instruction langue au system prompt                                |
-| `chat-julie/index.ts`                | Idem                                                                                                    |
-| `generate-weekly-program/index.ts`   | Extraire `language` du body, instruire le modèle de générer noms d'exercices + consignes dans la langue |
-| `generate-training-session/index.ts` | Idem                                                                                                    |
-| `generate-training-plan/index.ts`    | Idem                                                                                                    |
-| `generate-nutrition-plan/index.ts`   | Noms d'aliments + descriptions dans la langue                                                           |
-| `generate-meal/index.ts`             | Idem                                                                                                    |
-| `format-health-data/index.ts`        | Formatage dans la langue                                                                                |
-| `send-weekly-digest/index.ts`        | Email digest dans la langue (requiert fetch de `app_preferences.language`)                              |
-
-
-### Frontend : envoyer `language`
-
-Modifier chaque appel `supabase.functions.invoke()` pour inclure `language: i18n.language` dans le body. Fichiers concernés :
-
-- `src/hooks/useWeeklyTraining.tsx`
-- `src/hooks/useNutritionPlan.tsx`
-- `src/hooks/useMealGenerator.tsx`
-- `src/services/planner.ts`
-- `src/components/coach/ChatInterface.tsx`
-- `src/components/training/WeeklyFeedbackModal.tsx`
-- `src/pages/Preview.tsx`
-
-### Prompts data/prompts.ts
-
-`juliePromptWithoutAccessToData` est en français. Créer des versions EN/NL ou le rendre dynamique via un paramètre `language`.
-
----
-
-## Phase 5 — Sync DB + préférence NL et EN et FR
-
-### 5A. Ajouter NL et EN et FR dans AppPreferencesSection
-
-Fichier `src/components/settings/AppPreferencesSection.tsx` : ajouter `<SelectItem value="nl">Nederlands</SelectItem>` dans le select langue.
-
-### 5B. Sync i18next ↔ DB
-
-Quand `app_preferences.language` change :
-
-1. Appeler `i18n.changeLanguage(value)` dans `handlePreferenceChange`
-2. Au chargement, dans `fetchPreferences`, appeler `i18n.changeLanguage(data.language)`
-
-### 5C. Sync initiale au login
-
-Dans `src/i18n/index.ts` ou un hook dédié : après login, fetcher `app_preferences.language` et appeler `i18n.changeLanguage()`. La détection actuelle `localStorage > navigator` reste le fallback pour les non-connectés.
-
----
-
-## Ordre d'implémentation recommandé
-
-Vu le volume, je recommande de découper en **4-5 messages** :
-
-1. **Message 1** : Phase 5 (rapide, 2 fichiers) + Phase 3A (créer les 18 fichiers JSON de traduction)
-2. **Message 2** : Phase 3B partie 1 — Auth, Onboarding, Hub
-3. **Message 3** : Phase 3B partie 2 — Training, Nutrition, Settings
-4. **Message 4** : Phase 3B partie 3 — Coachs, composants partagés, date locale
-5. **Message 5** : Phase 4 — Toutes les edge functions
-
-Par quel groupe veux-tu commencer ? TOUS
