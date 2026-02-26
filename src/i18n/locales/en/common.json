@@ -14,6 +14,7 @@
     "tryNow": "Try now",
     "startFree": "Start for free"
   },
+  "back": "Back",
   "common": {
     "loading": "Loading...",
     "error": "Error",
@@ -35,5 +36,35 @@
     "fr": "Français",
     "en": "English",
     "nl": "Nederlands"
+  },
+  "hub": {
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "readyToStart": "Ready to start your week?",
+    "weekComplete": "🎉 Great job, week complete!",
+    "oneSessionLeft": "💪 Just one session left!",
+    "sessionsLeft": "🔥 {{count}} sessions left this week",
+    "sessions": "sessions",
+    "premiumWelcome": "Welcome to Pulse.ai Premium!",
+    "premiumDesc": "Your subscription is now active. Enjoy all features!",
+    "subscriptionExpired": "Your subscription has expired",
+    "resubscribe": "Resubscribe to access your workouts and AI coaches.",
+    "resubscribeBtn": "Resubscribe",
+    "myTraining": "My training",
+    "myNutrition": "My nutrition",
+    "coachSport": "Sport Coach",
+    "nutritionist": "Nutritionist",
+    "help": "Help"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist.",
+    "backHome": "Back to home"
+  },
+  "paymentSuccess": {
+    "title": "Payment successful!",
+    "description": "Your subscription is now active.",
+    "goToHub": "Go to Hub"
   }
 }

@@ -14,6 +14,7 @@
     "tryNow": "Nu proberen",
     "startFree": "Gratis beginnen"
   },
+  "back": "Terug",
   "common": {
     "loading": "Laden...",
     "error": "Fout",
@@ -35,5 +36,35 @@
     "fr": "Français",
     "en": "English",
     "nl": "Nederlands"
+  },
+  "hub": {
+    "greetingMorning": "Goedemorgen",
+    "greetingAfternoon": "Goedemiddag",
+    "greetingEvening": "Goedenavond",
+    "readyToStart": "Klaar om je week te beginnen?",
+    "weekComplete": "🎉 Geweldig, week compleet!",
+    "oneSessionLeft": "💪 Nog maar één sessie!",
+    "sessionsLeft": "🔥 Nog {{count}} sessies deze week",
+    "sessions": "sessies",
+    "premiumWelcome": "Welkom bij Pulse.ai Premium!",
+    "premiumDesc": "Je abonnement is nu actief. Geniet van alle functies!",
+    "subscriptionExpired": "Je abonnement is verlopen",
+    "resubscribe": "Abonneer je opnieuw om toegang te krijgen tot je trainingen en AI-coaches.",
+    "resubscribeBtn": "Opnieuw abonneren",
+    "myTraining": "Mijn training",
+    "myNutrition": "Mijn voeding",
+    "coachSport": "Sportcoach",
+    "nutritionist": "Voedingsdeskundige",
+    "help": "Hulp"
+  },
+  "notFound": {
+    "title": "Pagina niet gevonden",
+    "description": "De pagina die je zoekt bestaat niet.",
+    "backHome": "Terug naar home"
+  },
+  "paymentSuccess": {
+    "title": "Betaling geslaagd!",
+    "description": "Je abonnement is nu actief.",
+    "goToHub": "Naar Hub"
   }
 }
