@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "training": "Training",
+    "nutrition": "Nutrition",
+    "support": "Support",
+    "settings": "Settings",
+    "logout": "Log out",
+    "login": "Log in",
+    "admin": "Admin",
+    "back": "Back",
+    "goToHub": "Go to Hub",
+    "takeQuiz": "Take the quiz",
+    "tryNow": "Try now",
+    "startFree": "Start for free"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "next": "Next",
+    "previous": "Previous",
+    "yes": "Yes",
+    "no": "No",
+    "minutes": "min",
+    "preferenceUpdated": "Preference updated",
+    "updateError": "Error updating preference"
+  },
+  "language": {
+    "fr": "Français",
+    "en": "English",
+    "nl": "Nederlands"
+  }
+}

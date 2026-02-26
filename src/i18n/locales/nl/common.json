@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "training": "Training",
+    "nutrition": "Voeding",
+    "support": "Ondersteuning",
+    "settings": "Instellingen",
+    "logout": "Uitloggen",
+    "login": "Inloggen",
+    "admin": "Admin",
+    "back": "Terug",
+    "goToHub": "Naar Hub",
+    "takeQuiz": "Doe de quiz",
+    "tryNow": "Nu proberen",
+    "startFree": "Gratis beginnen"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fout",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "confirm": "Bevestigen",
+    "delete": "Verwijderen",
+    "edit": "Bewerken",
+    "close": "Sluiten",
+    "next": "Volgende",
+    "previous": "Vorige",
+    "yes": "Ja",
+    "no": "Nee",
+    "minutes": "min",
+    "preferenceUpdated": "Voorkeur bijgewerkt",
+    "updateError": "Fout bij het bijwerken"
+  },
+  "language": {
+    "fr": "Français",
+    "en": "English",
+    "nl": "Nederlands"
+  }
+}

@@ -1,0 +1,173 @@
+{
+  "hero": {
+    "title1": "Ton coach fitness",
+    "title2": "dans ta poche.",
+    "subtitle": "Obtiens un plan sport & nutrition <strong>100% personnalisé</strong>. Résultats visibles en 4 semaines, garantis.",
+    "heroBadge": "Nouveau",
+    "heroTrust": "Résultats visibles en 4 semaines, garantis",
+    "quizTime": "~2 min",
+    "heroAlt": "Interface du Hub Pulse.ai avec 6 modules : Entraînements, Nutrition, Coach Alex, Coach Julie, Paramètres et Aide"
+  },
+  "socialProof": {
+    "activeMembers": "Membres actifs",
+    "averageRating": "Note moyenne",
+    "completedSessions": "Séances complétées",
+    "forYourPlan": "Pour ton plan personnalisé",
+    "moneyBack": "Satisfait ou remboursé",
+    "aiCoachAvailable": "Coach IA disponible",
+    "disclaimer": "*Résultats individuels, peuvent varier selon les profils et l'assiduité.",
+    "ratingOn": "sur {{count}} membres"
+  },
+  "testimonials": {
+    "david": {
+      "role": "3 mois sans louper une séance",
+      "quote": "Les recommandations sont claires, adaptées à mon rythme de travail et faciles à suivre. J'ai rapidement repris une routine sportive durable."
+    },
+    "sophie": {
+      "role": "Maman qui a perdu 4kg en 2 mois",
+      "quote": "Je pensais que perdre du poids était impossible. L'application a créé un programme sportif et alimentaire qui s'adapte à mes semaines chargées. Pour la première fois, je suis régulière."
+    },
+    "thomas": {
+      "role": "A vu son corps changer après 6 semaines",
+      "quote": "Je m'entraînais sans vraie structure et je mangeais 'à peu près bien'. L'application m'a donné un plan clair, cohérent entre sport et alimentation, et les progrès sont enfin visibles."
+    }
+  },
+  "howItWorks": {
+    "title": "Comment ça marche ?",
+    "subtitle": "3 étapes simples pour transformer ton corps",
+    "step1Badge": "Étape 1 • 2 minutes",
+    "step1Title": "Réponds à 15 questions",
+    "step1Desc": "Âge, objectif, niveau, matériel disponible... Notre IA analyse ton profil pour créer un plan 100% personnalisé.",
+    "step1Check1": "Aucune connaissance requise",
+    "step1Check2": "Questions simples et rapides",
+    "step1Check3": "Adapté à ton emploi du temps",
+    "step1ImgAlt": "Questionnaire personnalisé",
+    "step1Caption": "Un questionnaire adaptatif selon tes objectifs.",
+    "step2Badge": "Étape 2 • Instantané",
+    "step2Title": "Reçois ton plan complet",
+    "step2Desc": "Nutrition (calories, macros, hydratation) + Programme d'entraînement adapté à ton matériel et ton emploi du temps.",
+    "step2Check1": "Plan généré en 15 secondes",
+    "step2Check2": "Explications détaillées de chaque métrique",
+    "step2Check3": "Ajustements automatiques chaque semaine",
+    "step2ImgAlt": "Création de programme IA",
+    "step2Caption": "L'IA crée ton programme sur mesure",
+    "step3Badge": "Étape 3 • Suivi continu",
+    "step3Title": "Lance ta 1ère séance gratuite",
+    "step3Desc": "Timer intégré, alternatives d'exercices, tracking RPE/RIR... Tout pour progresser efficacement.",
+    "step3Check1": "Vidéos de démonstration pour chaque exercice",
+    "step3Check2": "Ajustements automatiques selon tes feedbacks",
+    "step3Check3": "Historique complet de tes progrès",
+    "step3ImgAlt": "Séance d'entraînement",
+    "step3Caption": "Ta séance guidée pas à pas"
+  },
+  "benefits": {
+    "title": "Pourquoi Pulse.ai ?",
+    "personalized": "100% personnalisé",
+    "personalizedDesc": "Plans adaptés à ton âge, ton niveau, ton matériel et tes contraintes de temps.",
+    "fast": "Rapide & efficace",
+    "fastDesc": "Ton plan en moins de 5 minutes. Des séances de 30 à 60 minutes adaptées à ton emploi du temps.",
+    "tracking": "Suivi & progression",
+    "trackingDesc": "Feedback après chaque séance. Ajustements automatiques pour des résultats constants."
+  },
+  "features": {
+    "title": "Ce que tu obtiens",
+    "feature1": "Plans nutrition personnalisés (calories + macros)",
+    "feature2": "Séances d'entraînement détaillées avec alternatives",
+    "feature3": "Coach sport IA Alex disponible 24/7",
+    "feature4": "Nutritionniste IA Julie pour tes repas",
+    "feature5": "Timer intégré et suivi RPE/RIR",
+    "feature6": "Check-in hebdomadaire pour ajustements",
+    "feature7": "Exercices en vidéo avec consignes claires",
+    "feature8": "Support par email (réponse sous 48h)",
+    "homeOrGym": "À la maison ou en salle",
+    "homeOrGymDesc": "Que tu aies une salle complète ou juste ton poids du corps, Pulse.ai adapte tes séances à ton matériel disponible."
+  },
+  "coaches": {
+    "badge": "Intelligence Artificielle",
+    "title": "Tes Coachs IA 24/7",
+    "subtitle": "Des experts virtuels qui connaissent ton profil et répondent à toutes tes questions, jour et nuit",
+    "alexRole": "Coach Sport IA",
+    "alexCheck1": "Adapte tes séances en temps réel selon ta forme",
+    "alexCheck2": "Propose des alternatives si douleur ou fatigue",
+    "alexCheck3": "Répond à toutes tes questions entraînement",
+    "alexBadge1": "\"Simplifie ma séance\"",
+    "alexBadge2": "\"Alternative sans douleur\"",
+    "alexBadge3": "\"Séance de 30 min\"",
+    "julieRole": "Nutritionniste IA",
+    "julieCheck1": "Génère des recettes personnalisées à tes goûts",
+    "julieCheck2": "Ajuste tes macros selon tes objectifs",
+    "julieCheck3": "Crée ta liste de courses en 1 clic",
+    "julieBadge1": "\"Génère une journée-type\"",
+    "julieBadge2": "\"Remplace ce plat\"",
+    "julieBadge3": "\"Liste de courses\"",
+    "discoverCTA": "Découvrir mes coachs IA"
+  },
+  "comparison": {
+    "title": "Pourquoi choisir Pulse.ai ?",
+    "subtitle": "Compare notre approche avec les alternatives traditionnelles",
+    "recommended": "Recommandé",
+    "personalCoach": "Coach personnel",
+    "genericApps": "Apps génériques",
+    "price": "Prix",
+    "pulsePrice": "dès 6,99€/sem",
+    "coachPrice": "50-150€/mois",
+    "appsPrice": "0-15€/mois",
+    "aiPersonalization": "Personnalisation IA",
+    "autoAdjustments": "Ajustements automatiques",
+    "availability247": "Disponibilité 24/7",
+    "nutritionSport": "Plans nutrition + sport",
+    "aiCoach247": "Coach IA 24/7",
+    "support7d": "Support 7j/7",
+    "tryFree": "Essayer Pulse.ai gratuitement"
+  },
+  "integrations": {
+    "title": "Synchronise avec tes apps préférées",
+    "subtitle": "Connecte Pulse.ai à tes applications de santé et fitness pour un suivi optimal"
+  },
+  "faq": {
+    "title": "Questions fréquentes",
+    "subtitle": "Tout ce que tu dois savoir sur Pulse.ai",
+    "q1": "C'est vraiment gratuit pour commencer ?",
+    "a1": "Oui ! Tu obtiens un aperçu complet de ton plan nutrition et une séance d'entraînement gratuite. Ensuite, 3 formules s'offrent à toi : Hebdomadaire (6,99€/sem), Mensuel (14,99€/mois avec 7j d'essai) ou Annuel (149,99€/an avec 7j d'essai).",
+    "q2": "Je suis débutant(e), ça marche pour moi ?",
+    "a2": "Absolument ! Pulse.ai s'adapte à tous les niveaux, du débutant complet aux sportifs avancés. Les consignes sont claires, pédagogiques et les exercices sont montrés en vidéo.",
+    "q3": "Comment les plans sont-ils générés ?",
+    "a3": "Notre IA analyse tes réponses (âge, poids, objectif, niveau, matériel disponible, contraintes...) et crée un plan 100% sur mesure en quelques secondes. Il s'ajuste ensuite automatiquement selon tes feedbacks hebdomadaires.",
+    "q4": "Puis-je annuler à tout moment ?",
+    "a4": "Oui, tu peux annuler ton abonnement quand tu veux, directement depuis ton tableau de bord en 1 clic. Aucune question posée, aucun frais cachés.",
+    "q5": "Quel matériel ai-je besoin ?",
+    "a5": "Aucun matériel obligatoire ! Pulse.ai s'adapte à ce que tu as : poids du corps uniquement, haltères, barre, machines en salle... Tu sélectionnes ton équipement lors de la configuration.",
+    "q6": "Les résultats sont-ils garantis ?",
+    "a6": "Nous garantissons des résultats visibles en 4 semaines si tu suis ton plan à 80% minimum. Sinon, tu es remboursé(e) intégralement, sans justification.",
+    "q7": "Puis-je suivre mes progrès ?",
+    "a7": "Oui ! Dashboard complet avec historique des séances, évolution du poids/mensurations, graphiques de progression et ajustements automatiques du plan.",
+    "q8": "Le support est-il inclus ?",
+    "a8": "Oui ! Nos coachs IA Alex et Julie sont disponibles 24/7 pour t'accompagner. Pour le service client humain, nous répondons sous 48h (jours ouvrés) à general@pulse-ai.app.",
+    "noAnswer": "Tu n'as pas trouvé ta réponse ?",
+    "contactTeam": "Contacte notre équipe"
+  },
+  "cta": {
+    "title": "Prêt(e) à transformer ton corps ?",
+    "subtitle": "Rejoins <strong>1,247 membres</strong> qui progressent chaque jour avec Pulse.ai. Résultats visibles en 4 semaines.",
+    "noCommitment": "Sans engagement",
+    "setup2min": "Setup en 2 min",
+    "cancel1click": "Annulation en 1 clic"
+  },
+  "footer": {
+    "tagline": "Ton coach fitness IA, disponible 24/7 pour transformer ton corps.",
+    "securePay": "🔒 Paiement sécurisé",
+    "gdpr": "✓ RGPD",
+    "product": "Produit",
+    "how": "Comment ?",
+    "why": "Pourquoi ?",
+    "aiCoach": "Coach IA",
+    "pricing": "Prix",
+    "resources": "Ressources",
+    "legal": "Légal",
+    "legalNotice": "Mentions légales",
+    "terms": "CGU",
+    "privacy": "Confidentialité",
+    "copyright": "© 2025 Pulse.ai - Tous droits réservés",
+    "madeWith": "Fait avec ❤️ pour ta transformation"
+  }
+}

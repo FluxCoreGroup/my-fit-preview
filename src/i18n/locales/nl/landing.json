@@ -1,0 +1,173 @@
+{
+  "hero": {
+    "title1": "Jouw fitnesscoach",
+    "title2": "in je zak.",
+    "subtitle": "Krijg een <strong>100% gepersonaliseerd</strong> sport- & voedingsplan. Zichtbare resultaten in 4 weken, gegarandeerd.",
+    "heroBadge": "Nieuw",
+    "heroTrust": "Zichtbare resultaten in 4 weken, gegarandeerd",
+    "quizTime": "~2 min",
+    "heroAlt": "Pulse.ai Hub interface met 6 modules: Training, Voeding, Coach Alex, Coach Julie, Instellingen en Hulp"
+  },
+  "socialProof": {
+    "activeMembers": "Actieve leden",
+    "averageRating": "Gemiddelde beoordeling",
+    "completedSessions": "Voltooide sessies",
+    "forYourPlan": "Voor jouw gepersonaliseerd plan",
+    "moneyBack": "Niet goed, geld terug",
+    "aiCoachAvailable": "AI Coach beschikbaar",
+    "disclaimer": "*Individuele resultaten kunnen variëren afhankelijk van profiel en consistentie.",
+    "ratingOn": "op {{count}} leden"
+  },
+  "testimonials": {
+    "david": {
+      "role": "3 maanden zonder een sessie te missen",
+      "quote": "De aanbevelingen zijn duidelijk, aangepast aan mijn werkritme en makkelijk te volgen. Ik heb snel een duurzame sportroutine opgepakt."
+    },
+    "sophie": {
+      "role": "Mama die 4kg verloor in 2 maanden",
+      "quote": "Ik dacht dat afvallen onmogelijk was. De app maakte een sport- en voedingsprogramma dat zich aanpast aan mijn drukke weken. Voor het eerst ben ik consequent."
+    },
+    "thomas": {
+      "role": "Zag zijn lichaam veranderen na 6 weken",
+      "quote": "Ik trainde zonder echte structuur en at 'min of meer goed'. De app gaf me een duidelijk plan, consistent tussen sport en voeding, en de vooruitgang is eindelijk zichtbaar."
+    }
+  },
+  "howItWorks": {
+    "title": "Hoe werkt het?",
+    "subtitle": "3 eenvoudige stappen om je lichaam te transformeren",
+    "step1Badge": "Stap 1 • 2 minuten",
+    "step1Title": "Beantwoord 15 vragen",
+    "step1Desc": "Leeftijd, doel, niveau, beschikbaar materiaal... Onze AI analyseert je profiel om een 100% gepersonaliseerd plan te maken.",
+    "step1Check1": "Geen voorkennis vereist",
+    "step1Check2": "Eenvoudige en snelle vragen",
+    "step1Check3": "Aangepast aan jouw agenda",
+    "step1ImgAlt": "Gepersonaliseerde vragenlijst",
+    "step1Caption": "Een adaptieve vragenlijst op basis van jouw doelen.",
+    "step2Badge": "Stap 2 • Direct",
+    "step2Title": "Ontvang je complete plan",
+    "step2Desc": "Voeding (calorieën, macro's, hydratatie) + Trainingsprogramma aangepast aan je materiaal en agenda.",
+    "step2Check1": "Plan gegenereerd in 15 seconden",
+    "step2Check2": "Gedetailleerde uitleg voor elke metriek",
+    "step2Check3": "Automatische wekelijkse aanpassingen",
+    "step2ImgAlt": "AI programma creatie",
+    "step2Caption": "AI maakt jouw programma op maat",
+    "step3Badge": "Stap 3 • Continue tracking",
+    "step3Title": "Start je 1e gratis sessie",
+    "step3Desc": "Ingebouwde timer, oefenalternatieven, RPE/RIR tracking... Alles om effectief vooruit te gaan.",
+    "step3Check1": "Demovideo's voor elke oefening",
+    "step3Check2": "Automatische aanpassingen op basis van je feedback",
+    "step3Check3": "Volledige geschiedenis van je vooruitgang",
+    "step3ImgAlt": "Trainingssessie",
+    "step3Caption": "Je stap-voor-stap begeleide sessie"
+  },
+  "benefits": {
+    "title": "Waarom Pulse.ai?",
+    "personalized": "100% gepersonaliseerd",
+    "personalizedDesc": "Plannen aangepast aan je leeftijd, niveau, materiaal en tijdsbeperkingen.",
+    "fast": "Snel & effectief",
+    "fastDesc": "Je plan in minder dan 5 minuten. Sessies van 30 tot 60 minuten aangepast aan je agenda.",
+    "tracking": "Tracking & vooruitgang",
+    "trackingDesc": "Feedback na elke sessie. Automatische aanpassingen voor constante resultaten."
+  },
+  "features": {
+    "title": "Wat je krijgt",
+    "feature1": "Gepersonaliseerde voedingsplannen (calorieën + macro's)",
+    "feature2": "Gedetailleerde trainingssessies met alternatieven",
+    "feature3": "AI sportcoach Alex beschikbaar 24/7",
+    "feature4": "AI voedingsdeskundige Julie voor je maaltijden",
+    "feature5": "Ingebouwde timer en RPE/RIR tracking",
+    "feature6": "Wekelijkse check-in voor aanpassingen",
+    "feature7": "Oefenvideo's met duidelijke instructies",
+    "feature8": "E-mail support (antwoord binnen 48u)",
+    "homeOrGym": "Thuis of in de gym",
+    "homeOrGymDesc": "Of je nu een volledige gym hebt of alleen je lichaamsgewicht, Pulse.ai past je sessies aan je beschikbare materiaal aan."
+  },
+  "coaches": {
+    "badge": "Kunstmatige Intelligentie",
+    "title": "Jouw 24/7 AI Coaches",
+    "subtitle": "Virtuele experts die je profiel kennen en al je vragen beantwoorden, dag en nacht",
+    "alexRole": "AI Sportcoach",
+    "alexCheck1": "Past je sessies in realtime aan op basis van je vorm",
+    "alexCheck2": "Stelt alternatieven voor bij pijn of vermoeidheid",
+    "alexCheck3": "Beantwoordt al je trainingsvragen",
+    "alexBadge1": "\"Vereenvoudig mijn sessie\"",
+    "alexBadge2": "\"Pijnvrij alternatief\"",
+    "alexBadge3": "\"Sessie van 30 min\"",
+    "julieRole": "AI Voedingsdeskundige",
+    "julieCheck1": "Genereert gepersonaliseerde recepten naar jouw smaak",
+    "julieCheck2": "Past je macro's aan op basis van je doelen",
+    "julieCheck3": "Maakt je boodschappenlijst in 1 klik",
+    "julieBadge1": "\"Genereer een typische dag\"",
+    "julieBadge2": "\"Vervang dit gerecht\"",
+    "julieBadge3": "\"Boodschappenlijst\"",
+    "discoverCTA": "Ontdek mijn AI coaches"
+  },
+  "comparison": {
+    "title": "Waarom kiezen voor Pulse.ai?",
+    "subtitle": "Vergelijk onze aanpak met traditionele alternatieven",
+    "recommended": "Aanbevolen",
+    "personalCoach": "Persoonlijke coach",
+    "genericApps": "Generieke apps",
+    "price": "Prijs",
+    "pulsePrice": "vanaf €6,99/week",
+    "coachPrice": "€50-150/maand",
+    "appsPrice": "€0-15/maand",
+    "aiPersonalization": "AI Personalisatie",
+    "autoAdjustments": "Automatische aanpassingen",
+    "availability247": "24/7 Beschikbaarheid",
+    "nutritionSport": "Voeding + sportplannen",
+    "aiCoach247": "AI Coach 24/7",
+    "support7d": "7-dagen support",
+    "tryFree": "Probeer Pulse.ai gratis"
+  },
+  "integrations": {
+    "title": "Synchroniseer met je favoriete apps",
+    "subtitle": "Verbind Pulse.ai met je gezondheids- en fitness-apps voor optimale tracking"
+  },
+  "faq": {
+    "title": "Veelgestelde vragen",
+    "subtitle": "Alles wat je moet weten over Pulse.ai",
+    "q1": "Is het echt gratis om te beginnen?",
+    "a1": "Ja! Je krijgt een volledig overzicht van je voedingsplan en een gratis trainingssessie. Daarna zijn er 3 formules beschikbaar: Wekelijks (€6,99/week), Maandelijks (€14,99/maand met 7 dagen proefperiode) of Jaarlijks (€149,99/jaar met 7 dagen proefperiode).",
+    "q2": "Ik ben een beginner, werkt het voor mij?",
+    "a2": "Absoluut! Pulse.ai past zich aan alle niveaus aan, van complete beginners tot gevorderde sporters. Instructies zijn duidelijk, educatief en oefeningen worden op video getoond.",
+    "q3": "Hoe worden plannen gegenereerd?",
+    "a3": "Onze AI analyseert je antwoorden (leeftijd, gewicht, doel, niveau, beschikbaar materiaal, beperkingen...) en maakt een 100% op maat gemaakt plan in seconden. Het past zich vervolgens automatisch aan op basis van je wekelijkse feedback.",
+    "q4": "Kan ik op elk moment opzeggen?",
+    "a4": "Ja, je kunt je abonnement op elk moment opzeggen, rechtstreeks vanuit je dashboard in 1 klik. Geen vragen gesteld, geen verborgen kosten.",
+    "q5": "Welk materiaal heb ik nodig?",
+    "a5": "Geen materiaal vereist! Pulse.ai past zich aan wat je hebt: alleen lichaamsgewicht, dumbbells, halter, gym machines... Je selecteert je materiaal tijdens de setup.",
+    "q6": "Zijn resultaten gegarandeerd?",
+    "a6": "We garanderen zichtbare resultaten in 4 weken als je je plan minimaal 80% volgt. Anders krijg je volledige terugbetaling, zonder vragen.",
+    "q7": "Kan ik mijn vooruitgang volgen?",
+    "a7": "Ja! Compleet dashboard met sessiegeschiedenis, gewichts-/meetevolutie, voortgangsgrafieken en automatische planaanpassingen.",
+    "q8": "Is support inbegrepen?",
+    "a8": "Ja! Onze AI coaches Alex en Julie zijn 24/7 beschikbaar om je te begeleiden. Voor menselijke klantenservice reageren we binnen 48u (werkdagen) op general@pulse-ai.app.",
+    "noAnswer": "Geen antwoord gevonden?",
+    "contactTeam": "Contacteer ons team"
+  },
+  "cta": {
+    "title": "Klaar om je lichaam te transformeren?",
+    "subtitle": "Sluit je aan bij <strong>1.247 leden</strong> die elke dag vooruitgang boeken met Pulse.ai. Zichtbare resultaten in 4 weken.",
+    "noCommitment": "Zonder verplichtingen",
+    "setup2min": "Setup in 2 min",
+    "cancel1click": "Opzeggen in 1 klik"
+  },
+  "footer": {
+    "tagline": "Jouw AI fitnesscoach, 24/7 beschikbaar om je lichaam te transformeren.",
+    "securePay": "🔒 Veilige betaling",
+    "gdpr": "✓ AVG",
+    "product": "Product",
+    "how": "Hoe?",
+    "why": "Waarom?",
+    "aiCoach": "AI Coach",
+    "pricing": "Prijzen",
+    "resources": "Bronnen",
+    "legal": "Juridisch",
+    "legalNotice": "Juridische kennisgeving",
+    "terms": "Algemene voorwaarden",
+    "privacy": "Privacybeleid",
+    "copyright": "© 2025 Pulse.ai - Alle rechten voorbehouden",
+    "madeWith": "Gemaakt met ❤️ voor jouw transformatie"
+  }
+}

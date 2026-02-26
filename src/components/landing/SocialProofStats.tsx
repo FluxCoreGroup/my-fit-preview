@@ -2,24 +2,24 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePublicStats } from "@/hooks/usePublicStats";
 import { Star, ShieldCheck, Clock, Sparkles, MapPin, Bot } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const MINIMUM_USERS_FOR_STATS = 50;
 
 export const SocialProofStats = () => {
   const { data: stats } = usePublicStats();
+  const { t } = useTranslation("landing");
 
-  // Phase 1: Pre-launch - Show trust badges instead of fake stats
   const showRealStats = stats && stats.total_users >= MINIMUM_USERS_FOR_STATS;
 
-  // Phase 2+: Real stats
   if (showRealStats) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-12">
         <div>
           <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-            {stats.total_users.toLocaleString('fr-FR')}+
+            {stats.total_users.toLocaleString()}+
           </div>
-          <div className="text-muted-foreground">Membres actifs</div>
+          <div className="text-muted-foreground">{t("socialProof.activeMembers")}</div>
         </div>
         <div>
           <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
@@ -27,20 +27,19 @@ export const SocialProofStats = () => {
           </div>
           <div className="text-muted-foreground flex items-center justify-center gap-1">
             <Star className="w-4 h-4 fill-primary text-primary" />
-            Note moyenne
+            {t("socialProof.averageRating")}
           </div>
         </div>
         <div>
           <div className="text-4xl md:text-5xl font-bold text-primary mb-2">
-            {stats.completed_sessions.toLocaleString('fr-FR')}
+            {stats.completed_sessions.toLocaleString()}
           </div>
-          <div className="text-muted-foreground">Séances complétées</div>
+          <div className="text-muted-foreground">{t("socialProof.completedSessions")}</div>
         </div>
       </div>
     );
   }
 
-  // Phase 1: Trust badges & product metrics
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-12">
       <div className="flex flex-col items-center gap-3">
@@ -49,7 +48,7 @@ export const SocialProofStats = () => {
         </div>
         <div>
           <div className="text-2xl md:text-3xl font-bold text-primary mb-1">2 min</div>
-          <div className="text-muted-foreground text-sm">Pour ton plan personnalisé</div>
+          <div className="text-muted-foreground text-sm">{t("socialProof.forYourPlan")}</div>
         </div>
       </div>
       <div className="flex flex-col items-center gap-3">
@@ -58,7 +57,7 @@ export const SocialProofStats = () => {
         </div>
         <div>
           <div className="text-2xl md:text-3xl font-bold text-primary mb-1">30 jours</div>
-          <div className="text-muted-foreground text-sm">Satisfait ou remboursé</div>
+          <div className="text-muted-foreground text-sm">{t("socialProof.moneyBack")}</div>
         </div>
       </div>
       <div className="flex flex-col items-center gap-3">
@@ -67,40 +66,38 @@ export const SocialProofStats = () => {
         </div>
         <div>
           <div className="text-2xl md:text-3xl font-bold text-primary mb-1">24/7</div>
-          <div className="text-muted-foreground text-sm">Coach IA disponible</div>
+          <div className="text-muted-foreground text-sm">{t("socialProof.aiCoachAvailable")}</div>
         </div>
       </div>
     </div>
   );
 };
 
-// Hero social proof badge for Phase 1
 export const HeroSocialProof = () => {
   const { data: stats } = usePublicStats();
+  const { t } = useTranslation("landing");
   
   const showRealStats = stats && stats.total_users >= MINIMUM_USERS_FOR_STATS;
 
-  // Phase 2+: Real stats (smooth transition once data loads)
   if (showRealStats && stats.average_rating) {
     return (
       <div className="flex items-center justify-center gap-2 text-primary-foreground/90 py-2">
         <Star className="w-5 h-5 fill-accent text-accent" />
         <span className="text-base md:text-lg font-semibold">
-          {stats.average_rating.toFixed(1)}/5 sur {stats.total_users.toLocaleString('fr-FR')} membres
+          {stats.average_rating.toFixed(1)}/5 {t("socialProof.ratingOn", { count: stats.total_users })}
         </span>
       </div>
     );
   }
 
-  // Phase 1: Trust-oriented message
   return (
     <div className="flex items-center justify-center gap-3 text-primary-foreground/90 py-2 flex-wrap">
       <Badge variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/30">
         <Sparkles className="w-3 h-3 mr-1" />
-        Nouveau
+        {t("hero.heroBadge")}
       </Badge>
       <span className="text-base md:text-lg font-medium">
-        Résultats visibles en 4 semaines, garantis
+        {t("hero.heroTrust")}
       </span>
     </div>
   );
