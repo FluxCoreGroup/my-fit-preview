@@ -4,6 +4,66 @@
   "julieRole": "Nutritionist",
   "alexShortcuts": ["Adapt my session", "Replace an exercise", "Recovery tips"],
   "julieShortcuts": ["Generate a sample day", "Replace this meal", "Quick shopping list"],
+  "chat": {
+    "loadingConversation": "Loading conversation...",
+    "writeTo": "Write to {{name}}...",
+    "sessionExpired": "Session expired",
+    "reconnect": "Log in again to continue",
+    "notAuthenticated": "Not authenticated",
+    "loginToContinue": "Log in to continue",
+    "error": "Error",
+    "cannotContactCoach": "Unable to contact the AI coach",
+    "cannotCreateConversation": "Unable to create the conversation",
+    "cannotSavePreference": "Unable to save your preference",
+    "creditsExhausted": "Credits exhausted",
+    "creditsExhaustedDesc": "Contact support for more info.",
+    "subscriptionRequired": "Subscription required",
+    "tooManyRequests": "Too many requests",
+    "tooManyRequestsDesc": "Try again in a moment.",
+    "alexRole": "Sport Coach",
+    "alexDesc": "I help you plan your workouts, adapt your exercises, and reach your fitness goals.",
+    "julieRole": "Nutritionist",
+    "julieDesc": "I help you with your food choices, meal plans, and nutritional balance."
+  },
+  "welcome": {
+    "greeting": "Hi, I'm {{name}} 👋",
+    "startWith": "Start with one of these questions"
+  },
+  "header": {
+    "online": "Online"
+  },
+  "conversations": {
+    "newConversation": "New conversation",
+    "pinned": "Pinned",
+    "noConversations": "No conversations",
+    "createNew": "Create a new one to get started",
+    "count": "{{count}} conversation",
+    "countPlural": "{{count}} conversations",
+    "rename": "Rename",
+    "pin": "Pin",
+    "unpin": "Unpin",
+    "archive": "Archive",
+    "delete": "Delete"
+  },
+  "consent": {
+    "title": "Access to your data",
+    "description": "To give you a personalized answer, I need access to:",
+    "weightHistory": "Your weight history",
+    "trainingSessions": "Your training sessions",
+    "goalsSettings": "Your goals and settings",
+    "weeklyCheckins": "Your weekly check-ins",
+    "accept": "Allow",
+    "decline": "Answer without my data"
+  },
+  "dataSources": {
+    "title": "Data consulted",
+    "subtitle": "This data was used for the response",
+    "weightHistory": "Weight history",
+    "recentSessions": "Recent sessions",
+    "checkinStats": "Check-in stats",
+    "nextSession": "Next session",
+    "nutritionTargets": "Nutrition targets"
+  },
   "coachsPage": {
     "badge": "Artificial Intelligence",
     "title": "Your AI Coaches",
@@ -34,6 +94,10 @@
     "talkToAlex": "Talk to Alex",
     "talkToJulie": "Talk to Julie",
     "startTrial": "Start my free trial",
-    "testimonials": "What our users say"
+    "testimonials": "What our users say",
+    "footer": "© 2025 Pulse.ai - All rights reserved",
+    "pricing": "Pricing",
+    "legal": "Legal notices",
+    "home": "Home"
   }
 }

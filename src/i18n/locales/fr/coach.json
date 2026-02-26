@@ -4,6 +4,66 @@
   "julieRole": "Nutritionniste",
   "alexShortcuts": ["Adapter ma séance", "Remplacer un exercice", "Conseils récupération"],
   "julieShortcuts": ["Générer une journée-type", "Remplacer ce plat", "Liste de courses rapide"],
+  "chat": {
+    "loadingConversation": "Chargement de la conversation...",
+    "writeTo": "Écris à {{name}}...",
+    "sessionExpired": "Session expirée",
+    "reconnect": "Reconnecte-toi pour continuer",
+    "notAuthenticated": "Non authentifié",
+    "loginToContinue": "Connecte-toi pour continuer",
+    "error": "Erreur",
+    "cannotContactCoach": "Impossible de contacter le coach IA",
+    "cannotCreateConversation": "Impossible de créer la conversation",
+    "cannotSavePreference": "Impossible de sauvegarder ta préférence",
+    "creditsExhausted": "Crédits épuisés",
+    "creditsExhaustedDesc": "Contacte le support pour plus d'infos.",
+    "subscriptionRequired": "Abonnement requis",
+    "tooManyRequests": "Trop de requêtes",
+    "tooManyRequestsDesc": "Réessaye dans quelques instants.",
+    "alexRole": "Coach Sportif",
+    "alexDesc": "Je vous aide à planifier vos entraînements, adapter vos exercices et atteindre vos objectifs de forme physique.",
+    "julieRole": "Nutritionniste",
+    "julieDesc": "Je vous accompagne dans vos choix alimentaires, vos plans repas et votre équilibre nutritionnel."
+  },
+  "welcome": {
+    "greeting": "Salut, je suis {{name}} 👋",
+    "startWith": "Commencez par une de ces questions"
+  },
+  "header": {
+    "online": "En ligne"
+  },
+  "conversations": {
+    "newConversation": "Nouvelle conversation",
+    "pinned": "Épinglées",
+    "noConversations": "Aucune conversation",
+    "createNew": "Créez-en une nouvelle pour commencer",
+    "count": "{{count}} conversation",
+    "countPlural": "{{count}} conversations",
+    "rename": "Renommer",
+    "pin": "Épingler",
+    "unpin": "Désépingler",
+    "archive": "Archiver",
+    "delete": "Supprimer"
+  },
+  "consent": {
+    "title": "Accès à tes données",
+    "description": "Pour te donner une réponse personnalisée, j'ai besoin d'accéder à :",
+    "weightHistory": "Ton historique de poids",
+    "trainingSessions": "Tes séances d'entraînement",
+    "goalsSettings": "Tes objectifs et paramètres",
+    "weeklyCheckins": "Tes check-ins hebdomadaires",
+    "accept": "Autoriser",
+    "decline": "Répondre sans mes données"
+  },
+  "dataSources": {
+    "title": "Données consultées",
+    "subtitle": "Ces données ont été utilisées pour la réponse",
+    "weightHistory": "Historique poids",
+    "recentSessions": "Séances récentes",
+    "checkinStats": "Statistiques check-in",
+    "nextSession": "Prochaine séance",
+    "nutritionTargets": "Objectifs nutrition"
+  },
   "coachsPage": {
     "badge": "Intelligence Artificielle",
     "title": "Tes Coachs IA",
@@ -34,6 +94,10 @@
     "talkToAlex": "Parler à Alex",
     "talkToJulie": "Parler à Julie",
     "startTrial": "Commencer mon essai gratuit",
-    "testimonials": "Ce que disent nos utilisateurs"
+    "testimonials": "Ce que disent nos utilisateurs",
+    "footer": "© 2025 Pulse.ai - Tous droits réservés",
+    "pricing": "Tarifs",
+    "legal": "Mentions légales",
+    "home": "Accueil"
   }
 }
