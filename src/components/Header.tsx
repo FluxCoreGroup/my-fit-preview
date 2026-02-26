@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
-import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, ArrowRight, ShieldCheck, Globe } from "lucide-react";
+import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, ArrowRight, ShieldCheck } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -64,21 +64,25 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
     i18n.changeLanguage(lng);
   };
 
-  const LanguageSelector = ({ className }: { className?: string }) => (
+  const LANG_FLAGS: Record<string, string> = { fr: "🇫🇷", en: "🇬🇧", nl: "🇳🇱" };
+  const currentLang = i18n.language?.substring(0, 2) || "fr";
+
+  const LanguageSelector = ({ className, compact = false }: { className?: string; compact?: boolean }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className={className}>
-          <Globe className="w-4 h-4 mr-1" />
-          {i18n.language?.substring(0, 2).toUpperCase() || "FR"}
+        <Button variant="ghost" size={compact ? "icon" : "sm"} className={cn("gap-1.5 min-w-0", className)}>
+          <span className="text-base leading-none">{LANG_FLAGS[currentLang] || "🌐"}</span>
+          {!compact && <span className="hidden sm:inline text-xs font-medium">{currentLang.toUpperCase()}</span>}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="min-w-[140px]">
         {LANGUAGES.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
             onClick={() => changeLanguage(lang.code)}
-            className={cn(i18n.language?.startsWith(lang.code) && "font-bold text-primary")}
+            className={cn("gap-2 py-2.5", i18n.language?.startsWith(lang.code) && "font-bold text-primary")}
           >
+            <span className="text-base">{LANG_FLAGS[lang.code]}</span>
             {t(`language.${lang.code}`)}
           </DropdownMenuItem>
         ))}
@@ -163,7 +167,7 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
                     </Link>
                   )}
                   <div className="border-t pt-4 mt-4 space-y-4">
-                    <LanguageSelector className="w-full justify-start text-lg" />
+                    <LanguageSelector className="w-full justify-start text-lg" compact={false} />
                     <Link to="/settings" onClick={closeMobileMenu} className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2">
                       <Settings className="w-5 h-5" />
                       {t("nav.settings")}
