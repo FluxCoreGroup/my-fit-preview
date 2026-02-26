@@ -1,46 +1,34 @@
 
 
-## Problemes identifies
+## Bug identifie
 
-### 1. Sélecteur de langue pas mobile-friendly (marketing header)
-Le header marketing a "Pulse.ai" en position absolute au centre (`absolute left-1/2 -translate-x-1/2`) et le `LanguageSelector` a droite. Sur mobile, le drapeau emoji se retrouve visuellement confondu avec le titre car l'espace est trop restreint. Le bouton de langue n'a pas assez de separation visuelle.
+Les 3 fichiers `settings.json` (FR, EN, NL) ne contiennent que les sections `menu` et `preferences`. Il manque **8 sections completes** utilisees par les composants settings :
 
-### 2. Pas de sauvegarde en base de donnees
-La fonction `changeLanguage` dans Header.tsx fait uniquement `i18n.changeLanguage(lng)` - elle ne persiste PAS la preference dans la table `app_preferences`. Seul le composant `AppPreferencesSection` (page Settings) fait un upsert en base. Donc si un utilisateur change la langue via le header, au prochain login la preference DB ecrase le choix.
+| Section manquante | Composant qui l'utilise |
+|---|---|
+| `profile` | `ProfileSection.tsx` (30+ cles) |
+| `physicalInfo` | `PhysicalInfoSection.tsx` (20+ cles) |
+| `trainingProgram` | `TrainingProgramSection.tsx` (25+ cles) |
+| `nutritionSection` | `NutritionSection.tsx` (12+ cles) |
+| `subscription` | `SubscriptionSection.tsx` (20+ cles) |
+| `healthConditions` | `HealthConditionsSection.tsx` (10+ cles) |
+| `cardioMobility` | `CardioMobilitySection.tsx` (15+ cles) |
+| `cancellation` | `CancellationFeedbackDialog.tsx` (12+ cles) |
 
----
+Tous les `t("trainingProgram.title")`, `t("profile.email")`, etc. retournent la cle brute car ces objets n'existent pas dans les JSON.
 
-## Plan d'implementation
+## Plan
 
-### Tache 1 : Rendre le sélecteur mobile-friendly
+### Tache unique : Ajouter les 8 sections manquantes aux 3 fichiers settings.json
 
-- **Marketing header** : Deplacer le `LanguageSelector` a gauche du bouton login/dashboard, avec un `size="icon"` sur mobile (uniquement le drapeau, pas de texte). Ajouter un `gap-1` entre les elements pour eviter le chevauchement avec "Pulse.ai".
-- **App header (mobile menu)** : Remplacer le dropdown par 3 boutons drapeaux inline (pas besoin d'ouvrir un sous-menu dans un menu). Plus intuitif et plus rapide en touch.
-- **Onboarding header** : Ajouter le `LanguageSelector` (actuellement absent) a droite du bouton suivant, en mode compact (icon only).
+Pour chaque langue (FR, EN, NL), ajouter toutes les cles utilisees dans les composants :
 
-### Tache 2 : Synchroniser la preference en base
-
-- Modifier `changeLanguage` dans `Header.tsx` pour qu'il fasse un upsert dans `app_preferences` si l'utilisateur est connecte (`user` existe).
-- Importer `supabase` et utiliser le meme pattern que `AppPreferencesSection.handlePreferenceChange`.
-- Si l'utilisateur n'est pas connecte (landing page), sauvegarder uniquement en localStorage via i18next (comportement actuel).
-
-### Details techniques
-
-```text
-Header.tsx changeLanguage():
-  1. i18n.changeLanguage(lng)           ← existant
-  2. if (user) {                         ← nouveau
-       supabase.from("app_preferences")
-         .upsert({ user_id, language: lng })
-     }
-```
-
-Pour le mobile menu (app variant), remplacer le `<LanguageSelector>` dropdown par des boutons flags inline :
-```text
-┌──────────────────────┐
-│ 🇫🇷  🇬🇧  🇳🇱           │  ← 3 boutons touch-friendly
-│ ⚙️ Parametres         │
-│ 🚪 Deconnexion        │
-└──────────────────────┘
-```
+- **`profile`** : title, subtitle, email, emailReadonly, firstName, namePlaceholder, save, password, resetPassword, resetPasswordDesc, nameEmpty, nameUpdated, nameUpdateError, resetEmailSent, resetEmailError, sessionExpired, accountDeleted, deleteError, deleteAccount, confirmDeleteTitle, activeSubscription, endDate, plan, subscriptionCancelled, allDataDeleted, confirmCheckbox, irreversible, cancel, deleteForever
+- **`physicalInfo`** : title, subtitle, readonlyInfo, birthDate, notProvided, years, sex, male, female, notSpecified, initialWeight, weeklyCheckins, editableInfo, height, targetWeightLoss, activityLevel, selectPlaceholder, sedentary, light, moderate, active, veryActive, saveChanges, updated, updateError
+- **`trainingProgram`** : title, subtitle, goals, muscleGain, weightLoss, strength, endurance, generalFitness, frequency, sessionDuration, location, selectPlaceholder, home, gym, outdoor, experienceLevel, beginner, intermediate, advanced, sessionType, fullBody, split, pushPullLegs, favoriteExercises, favoriteExercisesPlaceholder, exercisesToAvoid, exercisesToAvoidPlaceholder, saveChanges, updated, updateError
+- **`nutritionSection`** : title, subtitle, mealsPerDay, hasBreakfast, hasBreakfastDesc, restrictions, restrictionsPlaceholder, restrictionsHelper, allergies, allergiesPlaceholder, allergiesHelper, saveChanges, updated, updateError
+- **`subscription`** : title, subtitle, freeTrial, duringTrial, trialEnd, afterTrial, manageSubscription, redirecting, addPayment, active, nextRenewal, managePayment, noSubscription, subscribeDesc, subscribeNow, loadingError, portalError, cannotVerify, retry
+- **`healthConditions`** : title, subtitle, important, disclaimer, label, placeholder, helper, saveChanges, updated, updateError
+- **`cardioMobility`** : title, subtitle, addCardio, addCardioDesc, cardioFrequency, cardioIntensity, selectPlaceholder, low, moderateCardio, high, mobilityPref, none, lightMobility, moderateMobility, extensive, mobilityDesc, saveChanges, updated, updateError
+- **`cancellation`** : cancelTitle, deleteTitle, feedbackDesc, reasons (tooExpensive, notUsedEnough, notFound, technicalIssue, badUx, other), selectReason, sessionExpired, thankYou, feedbackError, additionalComments, cancel, cancelSubscription, deleteMyAccount
 
