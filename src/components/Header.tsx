@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
 
 interface HeaderProps {
   variant?: "marketing" | "onboarding" | "app";
@@ -36,6 +37,8 @@ const LANGUAGES = [
   { code: "nl", label: "NL" },
 ];
 
+const LANG_FLAGS: Record<string, string> = { fr: "🇫🇷", en: "🇬🇧", nl: "🇳🇱" };
+
 export const Header = ({ variant = "marketing", showBack = false, backLabel, onBack, hideAuthButton = false, disableNavigation = false, onNext }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -43,6 +46,8 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
   const [scrolled, setScrolled] = useState(false);
   const { isAdmin } = useAdminRole();
   const { t, i18n } = useTranslation();
+
+  const currentLang = i18n.language?.substring(0, 2) || "fr";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -60,19 +65,26 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
-  const changeLanguage = (lng: string) => {
+  const changeLanguage = async (lng: string) => {
     i18n.changeLanguage(lng);
+    if (user) {
+      try {
+        await supabase.from("app_preferences").upsert({
+          user_id: user.id,
+          language: lng,
+        });
+      } catch (error) {
+        console.error("Error saving language preference:", error);
+      }
+    }
   };
 
-  const LANG_FLAGS: Record<string, string> = { fr: "🇫🇷", en: "🇬🇧", nl: "🇳🇱" };
-  const currentLang = i18n.language?.substring(0, 2) || "fr";
-
+  // Compact dropdown (marketing & onboarding)
   const LanguageSelector = ({ className, compact = false }: { className?: string; compact?: boolean }) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size={compact ? "icon" : "sm"} className={cn("gap-1.5 min-w-0", className)}>
-          <span className="text-base leading-none">{LANG_FLAGS[currentLang] || "🌐"}</span>
-          {!compact && <span className="hidden sm:inline text-xs font-medium">{currentLang.toUpperCase()}</span>}
+        <Button variant="ghost" size="icon" className={cn("min-w-[44px] min-h-[44px]", className)}>
+          <span className="text-lg leading-none">{LANG_FLAGS[currentLang] || "🌐"}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px]">
@@ -80,7 +92,7 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
           <DropdownMenuItem
             key={lang.code}
             onClick={() => changeLanguage(lang.code)}
-            className={cn("gap-2 py-2.5", i18n.language?.startsWith(lang.code) && "font-bold text-primary")}
+            className={cn("gap-2 py-2.5", currentLang === lang.code && "font-bold text-primary")}
           >
             <span className="text-base">{LANG_FLAGS[lang.code]}</span>
             {t(`language.${lang.code}`)}
@@ -88,6 +100,27 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+
+  // Inline flag buttons for mobile menu
+  const InlineLanguageFlags = () => (
+    <div className="flex items-center gap-2">
+      {LANGUAGES.map((lang) => (
+        <button
+          key={lang.code}
+          onClick={() => changeLanguage(lang.code)}
+          className={cn(
+            "w-11 h-11 rounded-lg flex items-center justify-center text-xl transition-all",
+            currentLang === lang.code
+              ? "bg-primary/10 ring-2 ring-primary"
+              : "hover:bg-muted"
+          )}
+          aria-label={lang.label}
+        >
+          {LANG_FLAGS[lang.code]}
+        </button>
+      ))}
+    </div>
   );
 
   // Header App
@@ -167,7 +200,7 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
                     </Link>
                   )}
                   <div className="border-t pt-4 mt-4 space-y-4">
-                    <LanguageSelector className="w-full justify-start text-lg" compact={false} />
+                    <InlineLanguageFlags />
                     <Link to="/settings" onClick={closeMobileMenu} className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2">
                       <Settings className="w-5 h-5" />
                       {t("nav.settings")}
@@ -208,32 +241,35 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
             </Link>
           )}
 
-          {!hideAuthButton && !disableNavigation && (
-            <div className="flex items-center gap-3">
-              {user ? (
-                <Link to="/hub">
-                  <Button size="sm">{t("nav.dashboard")}</Button>
-                </Link>
-              ) : (
-                <Button 
-                  size="icon" 
-                  onClick={() => {
-                    if (onNext) { onNext(); return; }
-                    const dataStr = localStorage.getItem("onboardingData");
-                    if (!dataStr) { navigate("/start"); return; }
-                    try {
-                      const data = JSON.parse(dataStr);
-                      const isComplete = !!(data.birthDate && data.sex && data.height && data.weight && data.goal && data.goal.length > 0 && data.goalHorizon && data.activityLevel && data.frequency && data.sessionDuration && data.location);
-                      navigate(isComplete ? "/preview" : "/start");
-                    } catch { navigate("/start"); }
-                  }}
-                  className="w-10 h-10 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                </Button>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            <LanguageSelector compact />
+            {!hideAuthButton && !disableNavigation && (
+              <>
+                {user ? (
+                  <Link to="/hub">
+                    <Button size="sm">{t("nav.dashboard")}</Button>
+                  </Link>
+                ) : (
+                  <Button 
+                    size="icon" 
+                    onClick={() => {
+                      if (onNext) { onNext(); return; }
+                      const dataStr = localStorage.getItem("onboardingData");
+                      if (!dataStr) { navigate("/start"); return; }
+                      try {
+                        const data = JSON.parse(dataStr);
+                        const isComplete = !!(data.birthDate && data.sex && data.height && data.weight && data.goal && data.goal.length > 0 && data.goalHorizon && data.activityLevel && data.frequency && data.sessionDuration && data.location);
+                        navigate(isComplete ? "/preview" : "/start");
+                      } catch { navigate("/start"); }
+                    }}
+                    className="w-10 h-10 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </header>
     );
@@ -250,13 +286,13 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel, onB
           <Dumbbell className={cn("w-7 h-7 transition-colors duration-300", scrolled ? "text-primary" : "text-primary-foreground")} />
         </Link>
         
-        <div className="absolute left-1/2 -translate-x-1/2">
+        <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
           <span className={cn("text-xl font-bold transition-colors duration-300", scrolled ? "text-foreground" : "text-primary-foreground")}>
             Pulse.ai
           </span>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <LanguageSelector className={cn(
             "transition-all duration-300",
             scrolled ? "" : "text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10"
