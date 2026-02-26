@@ -15,7 +15,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { Header } from "@/components/Header";
 import { InstallAppPrompt } from "@/components/InstallAppPrompt";
+import { useTranslation } from "react-i18next";
+
 const Start = () => {
+  const { t } = useTranslation("onboarding");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data, saveProgress } = useOnboarding();
@@ -23,14 +26,14 @@ const Start = () => {
   const [loading, setLoading] = useState(false);
   const totalSteps = 5;
   const [formData, setFormData] = useState<Partial<OnboardingInput>>({
-  age: 31,
-  birthDate: (() => {
-    const date = new Date();
-    const year = date.getFullYear() - 31;
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  })(),
+    age: 31,
+    birthDate: (() => {
+      const date = new Date();
+      const year = date.getFullYear() - 31;
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    })(),
     sex: undefined,
     height: undefined,
     weight: undefined,
@@ -51,6 +54,12 @@ const Start = () => {
     healthConditions: "",
   });
 
+  const monthNames = [
+    t("start.months.january"), t("start.months.february"), t("start.months.march"),
+    t("start.months.april"), t("start.months.may"), t("start.months.june"),
+    t("start.months.july"), t("start.months.august"), t("start.months.september"),
+    t("start.months.october"), t("start.months.november"), t("start.months.december")
+  ];
 
   useEffect(() => {
     if (step === 1 && formData.birthDate) {
@@ -58,7 +67,7 @@ const Start = () => {
       if (isNaN(age) || age < 15 || age > 100) {
         setErrors((prev) => ({
           ...prev,
-          birthDate: age < 15 ? "Tu dois avoir au moins 15 ans" : age > 100 ? "Âge maximum : 100 ans" : "Date invalide"
+          birthDate: age < 15 ? t("start.validationErrors.tooYoung") : age > 100 ? t("start.validationErrors.tooOld") : t("start.validationErrors.invalidDate")
         }));
       } else {
         setErrors((prev) => {
@@ -68,45 +77,30 @@ const Start = () => {
         });
       }
     }
-  }, [formData.birthDate, step]);
+  }, [formData.birthDate, step, t]);
 
-
-  // Load saved progress on mount
   useEffect(() => {
-    console.log("formData", formData.birthDate);
     if (Object.keys(data).length > 0) {
-      setFormData((prev) => ({
-        ...prev,
-        ...data,
-      }));
+      setFormData((prev) => ({ ...prev, ...data }));
     }
   }, []);
 
-  // Scroll to top when step changes
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [step]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Debounced save pour limiter les écritures localStorage
   const updateField = useCallback(
     (field: keyof OnboardingInput, value: any) => {
       setFormData((prev) => {
-        const updated = {
-          ...prev,
-          [field]: value,
-        };
+        const updated = { ...prev, [field]: value };
         saveProgress(updated);
         return updated;
       });
       if (errors[field]) {
         setErrors((prev) => {
-          const newErrors = {
-            ...prev,
-          };
+          const newErrors = { ...prev };
           delete newErrors[field];
           return newErrors;
         });
@@ -130,167 +124,139 @@ const Start = () => {
     switch (step) {
       case 1:
         const age = formData.birthDate ? calculateAgeFromBirthDate(formData.birthDate) : 0;
-        return !!(
-          formData.birthDate &&
-          age >= 15 &&
-          age <= 100 &&
-          formData.sex &&
-          formData.height &&
-          formData.height >= 120 &&
-          formData.height <= 250 &&
-          formData.weight &&
-          formData.weight >= 30 &&
-          formData.weight <= 300
-        );
+        return !!(formData.birthDate && age >= 15 && age <= 100 && formData.sex && formData.height && formData.height >= 120 && formData.height <= 250 && formData.weight && formData.weight >= 30 && formData.weight <= 300);
       case 2:
-        return !!(
-          formData.goal && formData.goal.length > 0 &&
-          formData.goalHorizon &&
-          (!formData.goal.includes("weight-loss") ||
-            !formData.targetWeightLoss ||
-            (formData.targetWeightLoss >= 1 && formData.targetWeightLoss <= 50)) &&
-          (formData.hasCardio === false || (formData.hasCardio === true && formData.cardioFrequency))
-        );
+        return !!(formData.goal && formData.goal.length > 0 && formData.goalHorizon && (!formData.goal.includes("weight-loss") || !formData.targetWeightLoss || (formData.targetWeightLoss >= 1 && formData.targetWeightLoss <= 50)) && (formData.hasCardio === false || (formData.hasCardio === true && formData.cardioFrequency)));
       case 3:
         return !!formData.activityLevel;
       case 4:
-        return !!(
-          formData.frequency &&
-          formData.sessionDuration &&
-          formData.location &&
-          (formData.location === "gym" || (formData.equipment && formData.equipment.length > 0))
-        );
+        return !!(formData.frequency && formData.sessionDuration && formData.location && (formData.location === "gym" || (formData.equipment && formData.equipment.length > 0)));
       case 5:
         return true;
-      // Toujours valide
       default:
         return false;
     }
   }, [step, formData]);
 
-  // Validation par étape avec messages d'erreur (memoized)
   const validateStep = useCallback((): boolean => {
     const newErrors: Record<string, string> = {};
     switch (step) {
       case 1:
         if (!formData.birthDate) {
-          newErrors.birthDate = "Date de naissance requise";
+          newErrors.birthDate = t("start.validationErrors.birthDateRequired");
         } else {
           const age = calculateAgeFromBirthDate(formData.birthDate);
           if (isNaN(age) || age < 15 || age > 100) {
-            newErrors.birthDate = age < 15 || age > 100 ? "Âge doit être entre 15 et 100 ans" : "Date invalide";
+            newErrors.birthDate = t("start.validationErrors.ageRange");
           }
         }
-        if (!formData.sex) newErrors.sex = "Sexe requis";
+        if (!formData.sex) newErrors.sex = t("start.validationErrors.sexRequired");
         if (!formData.height || formData.height < 120 || formData.height > 250)
-          newErrors.height = "Taille requise (120-250cm)";
+          newErrors.height = t("start.validationErrors.heightRequired");
         if (!formData.weight || formData.weight < 30 || formData.weight > 300)
-          newErrors.weight = "Poids requis (30-300kg)";
+          newErrors.weight = t("start.validationErrors.weightRequired");
         break;
       case 2:
-        if (!formData.goal || formData.goal.length === 0) newErrors.goal = "Sélectionne au moins un objectif";
-        if (!formData.goalHorizon) newErrors.goalHorizon = "Période requise";
-        if (
-          formData.goal?.includes("weight-loss") &&
-          formData.targetWeightLoss &&
-          (formData.targetWeightLoss < 1 || formData.targetWeightLoss > 50)
-        ) {
-          newErrors.targetWeightLoss = "Entre 1 et 50 kg";
+        if (!formData.goal || formData.goal.length === 0) newErrors.goal = t("start.validationErrors.goalRequired");
+        if (!formData.goalHorizon) newErrors.goalHorizon = t("start.validationErrors.horizonRequired");
+        if (formData.goal?.includes("weight-loss") && formData.targetWeightLoss && (formData.targetWeightLoss < 1 || formData.targetWeightLoss > 50)) {
+          newErrors.targetWeightLoss = t("start.validationErrors.weightLossRange");
         }
-        if (formData.hasCardio === undefined) newErrors.hasCardio = "Réponds à la question sur le cardio";
-        if (formData.hasCardio === true && !formData.cardioFrequency) newErrors.cardioFrequency = "Fréquence requise";
+        if (formData.hasCardio === undefined) newErrors.hasCardio = t("start.validationErrors.cardioRequired");
+        if (formData.hasCardio === true && !formData.cardioFrequency) newErrors.cardioFrequency = t("start.validationErrors.cardioFreqRequired");
         break;
       case 3:
-        if (!formData.activityLevel) newErrors.activityLevel = "Niveau d'activité requis";
+        if (!formData.activityLevel) newErrors.activityLevel = t("start.validationErrors.activityRequired");
         break;
       case 4:
-        if (!formData.frequency) newErrors.frequency = "Fréquence requise";
-        if (!formData.sessionDuration) newErrors.sessionDuration = "Durée requise";
-        if (!formData.location) newErrors.location = "Lieu requis";
+        if (!formData.frequency) newErrors.frequency = t("start.validationErrors.frequencyRequired");
+        if (!formData.sessionDuration) newErrors.sessionDuration = t("start.validationErrors.durationRequired");
+        if (!formData.location) newErrors.location = t("start.validationErrors.locationRequired");
         if (formData.location === "home" && (!formData.equipment || formData.equipment.length === 0)) {
-          newErrors.equipment = "Sélectionne au moins un équipement";
+          newErrors.equipment = t("start.validationErrors.equipmentRequired");
         }
         break;
       case 5:
-        // Étape 5 est toujours valide (champs pré-remplis et optionnels)
         break;
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [step, formData]);
+  }, [step, formData, t]);
+
   const handleNext = useCallback(async () => {
     if (step < totalSteps) {
       if (validateStep()) {
         setStep(step + 1);
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
         toast({
-          title: "Informations manquantes",
-          description: "Remplis tous les champs obligatoires",
+          title: t("start.missingInfo"),
+          description: t("start.fillRequired"),
           variant: "destructive",
         });
       }
     } else {
       if (!validateStep()) {
         toast({
-          title: "Informations manquantes",
-          description: "Remplis tous les champs obligatoires",
+          title: t("start.missingInfo"),
+          description: t("start.fillRequired"),
           variant: "destructive",
         });
         return;
       }
       setLoading(true);
       try {
-        // Toujours sauvegarder dans localStorage pour l'aperçu
         localStorage.setItem("onboardingData", JSON.stringify(formData));
         navigate("/preview");
       } catch (error) {
         console.error("Error saving data:", error);
         toast({
-          title: "Erreur",
-          description: "Impossible de sauvegarder tes informations. Réessaye.",
+          title: t("start.error"),
+          description: t("start.saveError"),
           variant: "destructive",
         });
       } finally {
         setLoading(false);
       }
     }
-  }, [step, totalSteps, validateStep, formData, toast, navigate]);
+  }, [step, totalSteps, validateStep, formData, toast, navigate, t]);
+
   const handleBack = useCallback(() => {
     if (step > 1) setStep(step - 1);
   }, [step]);
+
   const progress = (step / totalSteps) * 100;
 
-  console.log("=== DEBUG ===");
-  console.log("formData complet:", formData);
-  console.log("formData.birthDate:", formData.birthDate);
-  console.log("Type:", typeof formData.birthDate);
-  console.log("step:", step);
+  const equipmentItems = [
+    { key: "dumbbells", label: t("start.equipmentOptions.dumbbells") },
+    { key: "barbell", label: t("start.equipmentOptions.barbell") },
+    { key: "bands", label: t("start.equipmentOptions.bands") },
+    { key: "kettlebell", label: t("start.equipmentOptions.kettlebell") },
+    { key: "bench", label: t("start.equipmentOptions.bench") },
+    { key: "pullupBar", label: t("start.equipmentOptions.pullupBar") },
+    { key: "none", label: t("start.equipmentOptions.none") },
+  ];
 
   return (
     <>
-      <Header variant="onboarding" showBack={true} backLabel="Quitter" onBack={() => navigate("/")} onNext={handleNext} />
+      <Header variant="onboarding" showBack={true} backLabel={t("start.quit")} onBack={() => navigate("/")} onNext={handleNext} />
       <div className="min-h-screen bg-muted/30 py-8 px-4 pt-24">
         <div className="max-w-2xl mx-auto">
-          {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Ton évaluation</h1>
+            <h1 className="text-3xl font-bold mb-2">{t("start.title")}</h1>
             <p className="text-muted-foreground">
-              Étape {step} sur {totalSteps}
+              {t("start.stepOf", { step, total: totalSteps })}
             </p>
             <Progress value={progress} className="mt-4 h-2" />
           </div>
 
-          {/* Step 1: Profil de base */}
+          {/* Step 1 */}
           {step === 1 && (
             <Card className="p-8 animate-in">
-              <h2 className="text-2xl font-bold mb-6">Commençons par les bases</h2>
+              <h2 className="text-2xl font-bold mb-6">{t("start.step1Title")}</h2>
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label>Date de naissance *</Label>
+                  <Label>{t("start.birthDate")}</Label>
                   <div className="grid grid-cols-3 gap-2">
                     <Select
                       value={formData.birthDate ? formData.birthDate.split("-")[2]?.replace(/^0/, "") : ""}
@@ -307,7 +273,7 @@ const Start = () => {
                       }}
                     >
                       <SelectTrigger className={errors.birthDate ? "border-destructive" : ""}>
-                        <SelectValue placeholder="Jour" />
+                        <SelectValue placeholder={t("start.day")} />
                       </SelectTrigger>
                       <SelectContent>
                         {Array.from({ length: (() => {
@@ -341,10 +307,10 @@ const Start = () => {
                       }}
                     >
                       <SelectTrigger className={errors.birthDate ? "border-destructive" : ""}>
-                        <SelectValue placeholder="Mois" />
+                        <SelectValue placeholder={t("start.month")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"].map((label, i) => (
+                        {monthNames.map((label, i) => (
                           <SelectItem key={i + 1} value={String(i + 1)}>{label}</SelectItem>
                         ))}
                       </SelectContent>
@@ -368,7 +334,7 @@ const Start = () => {
                       }}
                     >
                       <SelectTrigger className={errors.birthDate ? "border-destructive" : ""}>
-                        <SelectValue placeholder="Année" />
+                        <SelectValue placeholder={t("start.year")} />
                       </SelectTrigger>
                       <SelectContent>
                         {Array.from({ length: 86 }, (_, i) => {
@@ -380,21 +346,21 @@ const Start = () => {
                   </div>
                   {formData.birthDate && !errors.birthDate && formData.birthDate.split("-").every(p => p && p !== "") && (
                     <p className="text-xs text-muted-foreground">
-                      {calculateAgeFromBirthDate(formData.birthDate)} ans
+                      {t("start.yearsOld", { age: calculateAgeFromBirthDate(formData.birthDate) })}
                     </p>
                   )}
                   {errors.birthDate && <p className="text-xs text-destructive">{errors.birthDate}</p>}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="sex">Sexe *</Label>
+                    <Label htmlFor="sex">{t("start.sex")}</Label>
                     <Select value={formData.sex} onValueChange={(value) => updateField("sex", value)}>
                       <SelectTrigger className={`mt-2 ${errors.sex ? "border-destructive" : ""}`}>
-                        <SelectValue placeholder="Choisir..." />
+                        <SelectValue placeholder={t("start.choose")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="male">Homme</SelectItem>
-                        <SelectItem value="female">Femme</SelectItem>
+                        <SelectItem value="male">{t("start.male")}</SelectItem>
+                        <SelectItem value="female">{t("start.female")}</SelectItem>
                       </SelectContent>
                     </Select>
                     {errors.sex && <p className="text-xs text-destructive mt-1">{errors.sex}</p>}
@@ -403,28 +369,13 @@ const Start = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="height">Taille (cm) *</Label>
-                    <Input
-                      id="height"
-                      type="number"
-                      placeholder="175"
-                      value={formData.height || ""}
-                      onChange={(e) => updateField("height", parseInt(e.target.value))}
-                      className={`mt-2 ${errors.height ? "border-destructive" : ""}`}
-                    />
+                    <Label htmlFor="height">{t("start.height")}</Label>
+                    <Input id="height" type="number" placeholder="175" value={formData.height || ""} onChange={(e) => updateField("height", parseInt(e.target.value))} className={`mt-2 ${errors.height ? "border-destructive" : ""}`} />
                     {errors.height && <p className="text-xs text-destructive mt-1">{errors.height}</p>}
                   </div>
                   <div>
-                    <Label htmlFor="weight">Poids (kg) *</Label>
-                    <Input
-                      id="weight"
-                      type="number"
-                      step="0.1"
-                      placeholder="70,5"
-                      value={formData.weight || ""}
-                      onChange={(e) => updateField("weight", parseFloat(e.target.value))}
-                      className={`mt-2 ${errors.weight ? "border-destructive" : ""}`}
-                    />
+                    <Label htmlFor="weight">{t("start.weight")}</Label>
+                    <Input id="weight" type="number" step="0.1" placeholder="70,5" value={formData.weight || ""} onChange={(e) => updateField("weight", parseFloat(e.target.value))} className={`mt-2 ${errors.weight ? "border-destructive" : ""}`} />
                     {errors.weight && <p className="text-xs text-destructive mt-1">{errors.weight}</p>}
                   </div>
                 </div>
@@ -432,18 +383,18 @@ const Start = () => {
             </Card>
           )}
 
-          {/* Step 2: Objectif */}
+          {/* Step 2 */}
           {step === 2 && (
             <Card className="p-8 animate-in">
-              <h2 className="text-2xl font-bold mb-2">Quels sont tes objectifs ?</h2>
-              <p className="text-sm text-muted-foreground mb-6">Sélectionne 1 ou 2 objectifs maximum</p>
+              <h2 className="text-2xl font-bold mb-2">{t("start.step2Title")}</h2>
+              <p className="text-sm text-muted-foreground mb-6">{t("start.selectGoals")}</p>
               <div className="space-y-4">
                 {[
-                  { value: "weight-loss", label: "Perte de poids" },
-                  { value: "muscle-gain", label: "Prise de muscle" },
-                  { value: "endurance", label: "Endurance" },
-                  { value: "strength", label: "Force" },
-                  { value: "wellness", label: "Bien-être général" },
+                  { value: "weight-loss", label: t("start.goals.weight-loss") },
+                  { value: "muscle-gain", label: t("start.goals.muscle-gain") },
+                  { value: "endurance", label: t("start.goals.endurance") },
+                  { value: "strength", label: t("start.goals.strength") },
+                  { value: "wellness", label: t("start.goals.wellness") },
                 ].map((option) => {
                   const isSelected = formData.goal?.includes(option.value as any) || false;
                   const isDisabled = !isSelected && (formData.goal?.length || 0) >= 2;
@@ -469,15 +420,15 @@ const Start = () => {
               </div>
 
               <div className="mt-6">
-                <Label htmlFor="horizon">À quelle échéance souhaites-tu cet objectif ? *</Label>
+                <Label htmlFor="horizon">{t("start.horizon")}</Label>
                 <Select value={formData.goalHorizon} onValueChange={(value) => updateField("goalHorizon", value)}>
                   <SelectTrigger className={`mt-2 ${errors.goalHorizon ? "border-destructive" : ""}`}>
-                    <SelectValue placeholder="Choisir..." />
+                    <SelectValue placeholder={t("start.choose")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="short">Court terme (3 mois)</SelectItem>
-                    <SelectItem value="medium">Moyen terme (6–12 mois)</SelectItem>
-                    <SelectItem value="long">Long terme (+1 an)</SelectItem>
+                    <SelectItem value="short">{t("start.horizons.short")}</SelectItem>
+                    <SelectItem value="medium">{t("start.horizons.medium")}</SelectItem>
+                    <SelectItem value="long">{t("start.horizons.long")}</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.goalHorizon && <p className="text-xs text-destructive mt-1">{errors.goalHorizon}</p>}
@@ -485,38 +436,21 @@ const Start = () => {
 
               {formData.goal?.includes("weight-loss") && (
                 <div className="mt-6">
-                  <Label htmlFor="targetWeightLoss">Combien de kg veux-tu perdre ? (optionnel)</Label>
+                  <Label htmlFor="targetWeightLoss">{t("start.targetWeightLoss")}</Label>
                   <div className="mt-4">
-                    <Slider
-                      value={[formData.targetWeightLoss || 5]}
-                      onValueChange={(value) => updateField("targetWeightLoss", value[0])}
-                      min={1}
-                      max={50}
-                      step={1}
-                      className="mb-2"
-                    />
-                    <div className="text-center text-2xl font-bold text-primary">
-                      {formData.targetWeightLoss || 5} kg
-                    </div>
+                    <Slider value={[formData.targetWeightLoss || 5]} onValueChange={(value) => updateField("targetWeightLoss", value[0])} min={1} max={50} step={1} className="mb-2" />
+                    <div className="text-center text-2xl font-bold text-primary">{formData.targetWeightLoss || 5} kg</div>
                   </div>
-                  {errors.targetWeightLoss && (
-                    <p className="text-xs text-destructive mt-1">{errors.targetWeightLoss}</p>
-                  )}
+                  {errors.targetWeightLoss && <p className="text-xs text-destructive mt-1">{errors.targetWeightLoss}</p>}
                 </div>
               )}
 
               <div className="mt-6">
-                <Label>Souhaites-tu faire du cardio régulièrement ? *</Label>
+                <Label>{t("start.hasCardio")}</Label>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
                   {[
-                    {
-                      value: true,
-                      label: "Oui",
-                    },
-                    {
-                      value: false,
-                      label: "Non",
-                    },
+                    { value: true, label: t("start.yes") },
+                    { value: false, label: t("start.no") },
                   ].map((option) => (
                     <button
                       key={option.label}
@@ -532,19 +466,14 @@ const Start = () => {
 
               {formData.hasCardio === true && (
                 <div className="mt-6">
-                  <Label htmlFor="cardioFrequency">Combien de fois par semaine souhaiterais-tu en faire ? *</Label>
-                  <Select
-                    value={formData.cardioFrequency?.toString()}
-                    onValueChange={(value) => updateField("cardioFrequency", parseInt(value))}
-                  >
+                  <Label htmlFor="cardioFrequency">{t("start.cardioFrequency")}</Label>
+                  <Select value={formData.cardioFrequency?.toString()} onValueChange={(value) => updateField("cardioFrequency", parseInt(value))}>
                     <SelectTrigger className={`mt-2 ${errors.cardioFrequency ? "border-destructive" : ""}`}>
-                      <SelectValue placeholder="Choisir..." />
+                      <SelectValue placeholder={t("start.choose")} />
                     </SelectTrigger>
                     <SelectContent>
                       {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                        <SelectItem key={n} value={n.toString()}>
-                          {n} fois par semaine
-                        </SelectItem>
+                        <SelectItem key={n} value={n.toString()}>{t("start.timesPerWeek", { n })}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -554,33 +483,17 @@ const Start = () => {
             </Card>
           )}
 
-          {/* Step 3: Niveau d'activité */}
+          {/* Step 3 */}
           {step === 3 && (
             <Card className="p-8 animate-in">
-              <h2 className="text-2xl font-bold mb-6">Ton niveau d'activité quotidien</h2>
+              <h2 className="text-2xl font-bold mb-6">{t("start.step3Title")}</h2>
               <div className="space-y-4">
-                <Label>Hors entraînement, tu es plutôt... *</Label>
+                <Label>{t("start.activityLabel")}</Label>
                 {[
-                  {
-                    value: "sedentary",
-                    label: "Sédentaire",
-                    desc: "Bureau, peu de déplacements",
-                  },
-                  {
-                    value: "light",
-                    label: "Légèrement actif",
-                    desc: "Marche quotidienne, quelques déplacements",
-                  },
-                  {
-                    value: "moderate",
-                    label: "Modérément actif",
-                    desc: "Travail physique léger, beaucoup de marche",
-                  },
-                  {
-                    value: "high",
-                    label: "Très actif",
-                    desc: "Travail physique intense, très mobile",
-                  },
+                  { value: "sedentary", label: t("start.activityLevels.sedentary"), desc: t("start.activityLevels.sedentaryDesc") },
+                  { value: "light", label: t("start.activityLevels.light"), desc: t("start.activityLevels.lightDesc") },
+                  { value: "moderate", label: t("start.activityLevels.moderate"), desc: t("start.activityLevels.moderateDesc") },
+                  { value: "high", label: t("start.activityLevels.high"), desc: t("start.activityLevels.highDesc") },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -596,25 +509,20 @@ const Start = () => {
             </Card>
           )}
 
-          {/* Step 4: Entraînement */}
+          {/* Step 4 */}
           {step === 4 && (
             <Card className="p-8 animate-in">
-              <h2 className="text-2xl font-bold mb-6">Ton entraînement</h2>
+              <h2 className="text-2xl font-bold mb-6">{t("start.step4Title")}</h2>
               <div className="space-y-6">
                 <div>
-                  <Label htmlFor="frequency">Séances par semaine souhaitées *</Label>
-                  <Select
-                    value={formData.frequency?.toString()}
-                    onValueChange={(value) => updateField("frequency", parseInt(value))}
-                  >
+                  <Label htmlFor="frequency">{t("start.frequency")}</Label>
+                  <Select value={formData.frequency?.toString()} onValueChange={(value) => updateField("frequency", parseInt(value))}>
                     <SelectTrigger className={`mt-2 ${errors.frequency ? "border-destructive" : ""}`}>
-                      <SelectValue placeholder="Choisir..." />
+                      <SelectValue placeholder={t("start.choose")} />
                     </SelectTrigger>
                     <SelectContent>
                       {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                        <SelectItem key={n} value={n.toString()}>
-                          {n} fois par semaine
-                        </SelectItem>
+                        <SelectItem key={n} value={n.toString()}>{t("start.timesPerWeek", { n })}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -622,35 +530,20 @@ const Start = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="duration">Durée par séance souhaitée * (Min 30min - Max 120min)</Label>
+                  <Label htmlFor="duration">{t("start.sessionDuration")}</Label>
                   <div className="mt-4">
-                    <Slider
-                      value={[formData.sessionDuration || 60]}
-                      onValueChange={(value) => updateField("sessionDuration", value[0])}
-                      min={30}
-                      max={120}
-                      step={15}
-                      className="mb-2"
-                    />
-                    <div className="text-center text-2xl font-bold text-primary">
-                      {formData.sessionDuration || 60} minutes
-                    </div>
+                    <Slider value={[formData.sessionDuration || 60]} onValueChange={(value) => updateField("sessionDuration", value[0])} min={30} max={120} step={15} className="mb-2" />
+                    <div className="text-center text-2xl font-bold text-primary">{t("start.minutes", { n: formData.sessionDuration || 60 })}</div>
                   </div>
                   {errors.sessionDuration && <p className="text-xs text-destructive mt-1">{errors.sessionDuration}</p>}
                 </div>
 
                 <div>
-                  <Label>Auras-tu la possibilité d'aller en salle de sport ? *</Label>
+                  <Label>{t("start.gymQuestion")}</Label>
                   <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-2">
                     {[
-                      {
-                        value: true,
-                        label: "Oui",
-                      },
-                      {
-                        value: false,
-                        label: "Non",
-                      },
+                      { value: true, label: t("start.yes") },
+                      { value: false, label: t("start.no") },
                     ].map((option) => (
                       <button
                         key={option.label}
@@ -658,29 +551,15 @@ const Start = () => {
                         onClick={() => {
                           const nextLocation: "gym" | "home" = option.value ? "gym" : "home";
                           const nextEquipment = option.value
-                            ? [
-                                "Haltères",
-                                "Barre + poids",
-                                "Banc de musculation",
-                                "Barre de traction",
-                                "Machines guidées",
-                              ]
+                            ? [t("start.equipmentOptions.dumbbells"), t("start.equipmentOptions.barbell"), t("start.equipmentOptions.bench"), t("start.equipmentOptions.pullupBar"), "Machines guidées"]
                             : [];
                           setFormData((prev) => {
-                            const updated = {
-                              ...prev,
-                              location: nextLocation,
-                              equipment: nextEquipment,
-                            };
+                            const updated = { ...prev, location: nextLocation, equipment: nextEquipment };
                             saveProgress(updated);
                             return updated;
                           });
-
-                          // Clear related errors
                           setErrors((prevErr) => {
-                            const e = {
-                              ...prevErr,
-                            };
+                            const e = { ...prevErr };
                             delete e.location;
                             delete e.equipment;
                             return e;
@@ -695,37 +574,21 @@ const Start = () => {
                   {errors.location && <p className="text-xs text-destructive mt-1">{errors.location}</p>}
                 </div>
 
-                {/* Afficher l'équipement seulement si location = "home" */}
                 {formData.location === "home" && (
                   <div>
-                    <Label>De quel équipement disposes-tu à la maison ? (minimum 1) *</Label>
-                    <div
-                      className={`mt-3 space-y-3 ${errors.equipment ? "p-3 border-2 border-destructive rounded-lg" : ""}`}
-                    >
-                      {[
-                        "Haltères",
-                        "Barre + poids",
-                        "Élastiques",
-                        "Kettlebell",
-                        "Banc de musculation",
-                        "Barre de traction",
-                        "Aucun (poids du corps)",
-                      ].map((item) => (
-                        <div key={item} className="flex items-center space-x-2">
+                    <Label>{t("start.equipment")}</Label>
+                    <div className={`mt-3 space-y-3 ${errors.equipment ? "p-3 border-2 border-destructive rounded-lg" : ""}`}>
+                      {equipmentItems.map((item) => (
+                        <div key={item.key} className="flex items-center space-x-2">
                           <Checkbox
-                            id={item}
-                            checked={formData.equipment?.includes(item)}
+                            id={item.key}
+                            checked={formData.equipment?.includes(item.label)}
                             onCheckedChange={(checked) => {
                               const current = formData.equipment || [];
-                              updateField(
-                                "equipment",
-                                checked ? [...current, item] : current.filter((e) => e !== item),
-                              );
+                              updateField("equipment", checked ? [...current, item.label] : current.filter((e) => e !== item.label));
                             }}
                           />
-                          <Label htmlFor={item} className="font-normal cursor-pointer">
-                            {item}
-                          </Label>
+                          <Label htmlFor={item.key} className="font-normal cursor-pointer">{item.label}</Label>
                         </div>
                       ))}
                     </div>
@@ -736,85 +599,48 @@ const Start = () => {
             </Card>
           )}
 
-          {/* Step 5: Alimentation (optionnel mais pré-rempli) */}
+          {/* Step 5 */}
           {step === 5 && (
             <Card className="p-8 animate-in">
-              <h2 className="text-2xl font-bold mb-6">Tes préférences alimentaires</h2>
+              <h2 className="text-2xl font-bold mb-6">{t("start.step5Title")}</h2>
               <div className="space-y-6">
                 <div>
-                  <Label htmlFor="mealsPerDay">Combien de repas souhaites-tu par jour ? *</Label>
-                  <p className="text-sm text-muted-foreground mt-1 mb-2">
-                    Les collations comptent comme des repas, mais pas le grignotage occasionnel
-                  </p>
-                  <Select
-                    value={formData.mealsPerDay?.toString()}
-                    onValueChange={(value) => updateField("mealsPerDay", parseInt(value))}
-                  >
+                  <Label htmlFor="mealsPerDay">{t("start.mealsPerDay")}</Label>
+                  <p className="text-sm text-muted-foreground mt-1 mb-2">{t("start.mealsPerDayHint")}</p>
+                  <Select value={formData.mealsPerDay?.toString()} onValueChange={(value) => updateField("mealsPerDay", parseInt(value))}>
                     <SelectTrigger className="mt-2">
-                      <SelectValue placeholder="Choisir..." />
+                      <SelectValue placeholder={t("start.choose")} />
                     </SelectTrigger>
                     <SelectContent>
                       {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                        <SelectItem key={n} value={n.toString()}>
-                          {n} repas par jour
-                        </SelectItem>
+                        <SelectItem key={n} value={n.toString()}>{t("start.mealsPerDayOption", { n })}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="hasBreakfast"
-                    checked={formData.hasBreakfast}
-                    onCheckedChange={(checked) => updateField("hasBreakfast", checked)}
-                  />
-                  <Label htmlFor="hasBreakfast" className="font-normal cursor-pointer">
-                    Je souhaite prendre un petit-déjeuner
-                  </Label>
+                  <Checkbox id="hasBreakfast" checked={formData.hasBreakfast} onCheckedChange={(checked) => updateField("hasBreakfast", checked)} />
+                  <Label htmlFor="hasBreakfast" className="font-normal cursor-pointer">{t("start.hasBreakfast")}</Label>
                 </div>
 
                 <div>
-                  <Label htmlFor="allergies">Allergies ou intolérances (optionnel)</Label>
-                  <Textarea
-                    id="allergies"
-                    placeholder="Allergique aux fruits à coque (noisettes, amandes), intolérant(e) au lactose..."
-                    value={formData.allergies || ""}
-                    onChange={(e) => updateField("allergies", e.target.value)}
-                    className="mt-2"
-                    rows={2}
-                  />
+                  <Label htmlFor="allergies">{t("start.allergies")}</Label>
+                  <Textarea id="allergies" placeholder={t("start.allergiesPlaceholder")} value={formData.allergies || ""} onChange={(e) => updateField("allergies", e.target.value)} className="mt-2" rows={2} />
                 </div>
 
                 <div>
-                  <Label htmlFor="restrictions">Aliments que tu ne veux pas (optionnel)</Label>
-                  <Textarea
-                    id="restrictions"
-                    placeholder="Je n’aime pas la coriandre ni les fruits de mer"
-                    value={formData.restrictions || ""}
-                    onChange={(e) => updateField("restrictions", e.target.value)}
-                    className="mt-2"
-                    rows={2}
-                  />
+                  <Label htmlFor="restrictions">{t("start.restrictions")}</Label>
+                  <Textarea id="restrictions" placeholder={t("start.restrictionsPlaceholder")} value={formData.restrictions || ""} onChange={(e) => updateField("restrictions", e.target.value)} className="mt-2" rows={2} />
                 </div>
 
                 <div>
-                  <Label htmlFor="healthConditions">Conditions de santé (optionnel)</Label>
-                  <Textarea
-                    id="healthConditions"
-                    placeholder="Antécédents d’asthme et d’hypertension légère"
-                    value={formData.healthConditions || ""}
-                    onChange={(e) => updateField("healthConditions", e.target.value)}
-                    className="mt-2"
-                    rows={2}
-                  />
+                  <Label htmlFor="healthConditions">{t("start.healthConditions")}</Label>
+                  <Textarea id="healthConditions" placeholder={t("start.healthConditionsPlaceholder")} value={formData.healthConditions || ""} onChange={(e) => updateField("healthConditions", e.target.value)} className="mt-2" rows={2} />
                 </div>
 
                 <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    ⚠️ <strong>Important :</strong> Pulse.ai propose des conseils bien-être généraux et ne remplace pas
-                    un avis médical. Si tu as des conditions particulières, consulte un professionnel de santé.
-                  </p>
+                  <p className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("start.medicalWarning") }} />
                 </div>
               </div>
             </Card>
@@ -824,22 +650,16 @@ const Start = () => {
           <div className="mt-8 flex justify-between">
             <Button variant="outline" onClick={handleBack} disabled={loading || step === 1}>
               <ChevronLeft className="w-4 h-4 mr-2" />
-              Retour
+              {t("start.back")}
             </Button>
-            <Button
-              onClick={handleNext}
-              disabled={loading || !isStepValid}
-              className={`${!isStepValid ? "opacity-50 cursor-not-allowed" : ""}`}
-            >
-              {loading ? "Chargement..." : step === totalSteps ? "Voir mon plan" : "Suivant"}
+            <Button onClick={handleNext} disabled={loading || !isStepValid} className={`${!isStepValid ? "opacity-50 cursor-not-allowed" : ""}`}>
+              {loading ? t("start.loading") : step === totalSteps ? t("start.seePlan") : t("start.next")}
               {!loading && <ChevronRight className="w-4 h-4 ml-2" />}
             </Button>
           </div>
 
           {!isStepValid && step < 5 && (
-            <p className="text-sm text-destructive text-center mt-4">
-              Remplis tous les champs obligatoires (*) pour continuer
-         </p>
+            <p className="text-sm text-destructive text-center mt-4">{t("start.fillRequiredHint")}</p>
           )}
         </div>
       </div>

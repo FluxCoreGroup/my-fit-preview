@@ -15,6 +15,7 @@ import { useOnboarding } from "@/hooks/useOnboarding";
 import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import { 
   getRecommendedSessionType, 
   getRecommendedCardioIntensity, 
@@ -22,6 +23,7 @@ import {
 } from "@/services/planner";
 
 const TrainingSetup = () => {
+  const { t } = useTranslation("onboarding");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
@@ -31,26 +33,14 @@ const TrainingSetup = () => {
   const [submitting, setSubmitting] = useState(false);
   const totalSteps = 6;
 
-  // Requête combinée optimisée avec React Query
   const { data: userData, isLoading: checkingGoals } = useQuery({
     queryKey: ['training-setup-data', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('No user');
-      
-      // Requête parallèle optimisée
       const [goalsResult, preferencesResult] = await Promise.all([
-        supabase
-          .from("goals")
-          .select("goal_type")
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from('training_preferences')
-          .select('id')
-          .eq('user_id', user.id)
-          .maybeSingle()
+        supabase.from("goals").select("goal_type").eq("user_id", user.id).maybeSingle(),
+        supabase.from('training_preferences').select('id').eq('user_id', user.id).maybeSingle()
       ]);
-
       return {
         goals: goalsResult.data,
         preferences: preferencesResult.data,
@@ -59,37 +49,24 @@ const TrainingSetup = () => {
       };
     },
     enabled: !!user && !authLoading,
-    staleTime: 1000 * 60 * 5, // Cache 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 
-  // Gestion de la redirection
   useEffect(() => {
     if (authLoading || checkingGoals) return;
-
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
+    if (!user) { navigate("/auth"); return; }
     if (userData?.preferences) {
-      toast({
-        title: "Préférences déjà configurées",
-        description: "Tu peux les modifier dans Paramètres > Programme d'entraînement",
-      });
+      toast({ title: t("trainingSetup.alreadyConfigured"), description: t("trainingSetup.alreadyConfiguredDesc") });
       navigate('/hub');
       return;
     }
-
     if (!userData?.goals?.goal_type || userData.goals.goal_type.length === 0) {
       navigate("/start");
       return;
     }
-  }, [user, authLoading, checkingGoals, userData, navigate, toast]);
+  }, [user, authLoading, checkingGoals, userData, navigate, toast, t]);
 
-  // Scroll to top when step changes
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step]);
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }); }, [step]);
 
   const [formData, setFormData] = useState({
     sessionType: trainingData.sessionType || undefined,
@@ -113,55 +90,33 @@ const TrainingSetup = () => {
 
   const toggleArrayItem = (field: "priorityZones" | "limitations", value: string) => {
     const current = formData[field];
-    const updated = current.includes(value)
-      ? current.filter((v) => v !== value)
-      : [...current, value];
+    const updated = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
     updateField(field, updated);
   };
 
   const isStepValid = (): boolean => {
     switch (step) {
-      case 1:
-        return !!formData.sessionType;
-      case 2:
-        return !!formData.experienceLevel;
+      case 1: return !!formData.sessionType;
+      case 2: return !!formData.experienceLevel;
       case 3:
-        if (formData.sessionType === "strength" || formData.sessionType === "mixed" || formData.sessionType === "mobility") {
-          return !!formData.splitPreference;
-        }
-        if (formData.sessionType === "cardio") {
-          return !!formData.cardioIntensity;
-        }
+        if (formData.sessionType === "strength" || formData.sessionType === "mixed" || formData.sessionType === "mobility") return !!formData.splitPreference;
+        if (formData.sessionType === "cardio") return !!formData.cardioIntensity;
         return true;
-      case 4:
-        return formData.priorityZones.length > 0;
-      case 5:
-        return formData.limitations.length > 0;
-      case 6:
-        return !!formData.progressionFocus && !!formData.mobilityPreference;
-      default:
-        return false;
+      case 4: return formData.priorityZones.length > 0;
+      case 5: return formData.limitations.length > 0;
+      case 6: return !!formData.progressionFocus && !!formData.mobilityPreference;
+      default: return false;
     }
   };
 
   const handleNext = async () => {
-    if (step < totalSteps) {
-      setStep(step + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      await handleSubmit();
-    }
+    if (step < totalSteps) { setStep(step + 1); } else { await handleSubmit(); }
   };
 
-  const handleBack = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
+  const handleBack = () => { if (step > 1) setStep(step - 1); };
 
   const handleSubmit = async () => {
     if (!user) return;
-
     setSubmitting(true);
     try {
       const { error } = await supabase.from("training_preferences").insert({
@@ -179,125 +134,93 @@ const TrainingSetup = () => {
         progression_focus: formData.progressionFocus!,
         mobility_preference: formData.mobilityPreference!,
       });
-
       if (error) throw error;
 
-      // Vérifier que les données goals existent avant de continuer
-      const { data: goalsData, error: goalsError } = await supabase
-        .from("goals")
-        .select("id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (goalsError) {
-        console.error("Error checking goals:", goalsError);
-      }
-
+      const { data: goalsData } = await supabase.from("goals").select("id").eq("user_id", user.id).maybeSingle();
       if (!goalsData) {
-        toast({
-          title: "Données manquantes",
-          description: "Complète d'abord le questionnaire d'onboarding.",
-          variant: "destructive",
-        });
+        toast({ title: t("trainingSetup.missingData"), description: t("trainingSetup.missingDataDesc"), variant: "destructive" });
         navigate("/start");
         return;
       }
-
       clearTrainingSetup();
       localStorage.removeItem("onboardingData");
-      
-      // Redirect to Hub for the guided tour
       navigate("/hub");
     } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: t("trainingSetup.error"), description: error.message, variant: "destructive" });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const recommendedSessionTypes = onboardingData.goal && onboardingData.goal.length > 0
-    ? getRecommendedSessionType(onboardingData.goal) 
-    : [];
-
-  const recommendedCardioIntensities = 
-    onboardingData.goal && onboardingData.goal.length > 0 && formData.experienceLevel
-      ? getRecommendedCardioIntensity(onboardingData.goal, formData.experienceLevel)
-      : [];
-
-  const recommendedSplits = 
-    onboardingData.frequency && formData.experienceLevel
-      ? getRecommendedSplit(onboardingData.frequency, formData.experienceLevel)
-      : [];
+  const recommendedSessionTypes = onboardingData.goal && onboardingData.goal.length > 0 ? getRecommendedSessionType(onboardingData.goal) : [];
+  const recommendedCardioIntensities = onboardingData.goal && onboardingData.goal.length > 0 && formData.experienceLevel ? getRecommendedCardioIntensity(onboardingData.goal, formData.experienceLevel) : [];
+  const recommendedSplits = onboardingData.frequency && formData.experienceLevel ? getRecommendedSplit(onboardingData.frequency, formData.experienceLevel) : [];
 
   const sessionTypeOptions = [
-    { value: "strength", label: "Musculation / Renfo", icon: Dumbbell },
-    { value: "cardio", label: "Cardio / HIIT", icon: Flame },
-    { value: "mixed", label: "Mixte", icon: Heart },
-    { value: "mobility", label: "Mobilité / Stretching", icon: Wind },
+    { value: "strength", label: t("trainingSetup.sessionTypes.strength"), icon: Dumbbell },
+    { value: "cardio", label: t("trainingSetup.sessionTypes.cardio"), icon: Flame },
+    { value: "mixed", label: t("trainingSetup.sessionTypes.mixed"), icon: Heart },
+    { value: "mobility", label: t("trainingSetup.sessionTypes.mobility"), icon: Wind },
   ];
 
   const experienceLevelOptions = [
-    { value: "beginner", label: "Débutant", desc: "moins de 6 mois" },
-    { value: "intermediate", label: "Intermédiaire", desc: "6 mois - 2 ans" },
-    { value: "advanced", label: "Avancé", desc: "plus de 2 ans" },
-    { value: "expert", label: "Expert", desc: "compétiteur / athlète" },
+    { value: "beginner", label: t("trainingSetup.experienceLevels.beginner"), desc: t("trainingSetup.experienceLevels.beginnerDesc") },
+    { value: "intermediate", label: t("trainingSetup.experienceLevels.intermediate"), desc: t("trainingSetup.experienceLevels.intermediateDesc") },
+    { value: "advanced", label: t("trainingSetup.experienceLevels.advanced"), desc: t("trainingSetup.experienceLevels.advancedDesc") },
+    { value: "expert", label: t("trainingSetup.experienceLevels.expert"), desc: t("trainingSetup.experienceLevels.expertDesc") },
   ];
 
   const splitOptions = [
-    { value: "full_body", label: "Full Body", desc: "tout le corps à chaque séance" },
-    { value: "upper_lower", label: "Upper/Lower", desc: "haut puis bas alterné" },
-    { value: "ppl", label: "Push/Pull/Legs", desc: "poussée, tirage, jambes" },
-    { value: "body_part", label: "Split par muscle", desc: "pecs, dos, épaules, etc." },
+    { value: "full_body", label: t("trainingSetup.splits.full_body"), desc: t("trainingSetup.splits.full_bodyDesc") },
+    { value: "upper_lower", label: t("trainingSetup.splits.upper_lower"), desc: t("trainingSetup.splits.upper_lowerDesc") },
+    { value: "ppl", label: t("trainingSetup.splits.ppl"), desc: t("trainingSetup.splits.pplDesc") },
+    { value: "body_part", label: t("trainingSetup.splits.body_part"), desc: t("trainingSetup.splits.body_partDesc") },
   ];
 
   const cardioIntensityOptions = [
-    { value: "liss", label: "LISS", desc: "effort faible, longue durée" },
-    { value: "miss", label: "MISS", desc: "effort modéré" },
-    { value: "hiit", label: "HIIT", desc: "effort maximal par intervalles" },
-    { value: "mixed", label: "Mixte", desc: "varier selon les séances" },
+    { value: "liss", label: t("trainingSetup.cardioIntensities.liss"), desc: t("trainingSetup.cardioIntensities.lissDesc") },
+    { value: "miss", label: t("trainingSetup.cardioIntensities.miss"), desc: t("trainingSetup.cardioIntensities.missDesc") },
+    { value: "hiit", label: t("trainingSetup.cardioIntensities.hiit"), desc: t("trainingSetup.cardioIntensities.hiitDesc") },
+    { value: "mixed", label: t("trainingSetup.cardioIntensities.mixed"), desc: t("trainingSetup.cardioIntensities.mixedDesc") },
   ];
 
   const priorityZoneOptions = [
-    { value: "upper", label: "Haut du corps" },
-    { value: "legs", label: "Jambes" },
-    { value: "glutes", label: "Fessiers" },
-    { value: "core", label: "Abdos / Core" },
-    { value: "balanced", label: "Pas de préférence (équilibré)" },
+    { value: "upper", label: t("trainingSetup.priorityZones.upper") },
+    { value: "legs", label: t("trainingSetup.priorityZones.legs") },
+    { value: "glutes", label: t("trainingSetup.priorityZones.glutes") },
+    { value: "core", label: t("trainingSetup.priorityZones.core") },
+    { value: "balanced", label: t("trainingSetup.priorityZones.balanced") },
   ];
 
   const limitationOptions = [
-    { value: "none", label: "Aucune limitation" },
-    { value: "shoulders", label: "Problèmes d'épaules" },
-    { value: "knees", label: "Problèmes de genoux" },
-    { value: "back", label: "Problèmes de dos (lombaires)" },
-    { value: "wrists", label: "Problèmes de poignets" },
-    { value: "ankles", label: "Problèmes de chevilles" },
-    { value: "other", label: "Autres" },
+    { value: "none", label: t("trainingSetup.limitations.none") },
+    { value: "shoulders", label: t("trainingSetup.limitations.shoulders") },
+    { value: "knees", label: t("trainingSetup.limitations.knees") },
+    { value: "back", label: t("trainingSetup.limitations.back") },
+    { value: "wrists", label: t("trainingSetup.limitations.wrists") },
+    { value: "ankles", label: t("trainingSetup.limitations.ankles") },
+    { value: "other", label: t("trainingSetup.limitations.other") },
   ];
 
   const progressionFocusOptions = [
-    { value: "strength", label: "Augmenter les charges (force)" },
-    { value: "reps", label: "Augmenter les répétitions (endurance musculaire)" },
-    { value: "rest", label: "Réduire les temps de repos (capacité cardiovasculaire)" },
-    { value: "technique", label: "Améliorer la technique (qualité de mouvement)" },
-    { value: "auto", label: "Pas de préférence (automatique)" },
+    { value: "strength", label: t("trainingSetup.progressionOptions.strength") },
+    { value: "reps", label: t("trainingSetup.progressionOptions.reps") },
+    { value: "rest", label: t("trainingSetup.progressionOptions.rest") },
+    { value: "technique", label: t("trainingSetup.progressionOptions.technique") },
+    { value: "auto", label: t("trainingSetup.progressionOptions.auto") },
   ];
 
   const mobilityPreferenceOptions = [
-    { value: "every_session", label: "Oui, à chaque séance (5-10 min)" },
-    { value: "dedicated", label: "Oui, en séance dédiée (1x/semaine)" },
-    { value: "occasional", label: "Occasionnellement" },
-    { value: "none", label: "Non merci" },
+    { value: "every_session", label: t("trainingSetup.mobilityOptions.every_session") },
+    { value: "dedicated", label: t("trainingSetup.mobilityOptions.dedicated") },
+    { value: "occasional", label: t("trainingSetup.mobilityOptions.occasional") },
+    { value: "none", label: t("trainingSetup.mobilityOptions.none") },
   ];
 
   const renderRecommendedBadge = () => (
     <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-primary/10 text-primary">
       <Sparkles className="w-3 h-3" />
-      Recommandé
+      {t("trainingSetup.recommended")}
     </span>
   );
 
@@ -306,19 +229,19 @@ const TrainingSetup = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-center">
           <div className="w-16 h-16 gradient-hero rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Chargement...</p>
+          <p className="text-muted-foreground">{t("trainingSetup.loading")}</p>
         </div>
       </div>
     );
   }
 
   const stepLabels = [
-    "Type",
-    "Niveau", 
-    "Split",
-    "Zones",
-    "Limites",
-    "Objectifs"
+    t("trainingSetup.stepLabels.type"),
+    t("trainingSetup.stepLabels.level"),
+    t("trainingSetup.stepLabels.split"),
+    t("trainingSetup.stepLabels.zones"),
+    t("trainingSetup.stepLabels.limits"),
+    t("trainingSetup.stepLabels.goals"),
   ];
 
   return (
@@ -327,108 +250,47 @@ const TrainingSetup = () => {
         <Header variant="onboarding" disableNavigation={true} />
       
       <div className="container mx-auto px-4 py-8 pt-24">
-        {/* Stepper visuel */}
         <div className="mb-8">
           <div className="mb-4 relative max-w-xs mx-auto md:max-w-xl">
-            {/* Ligne de base continue */}
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-muted" />
-            <div 
-              className="absolute top-4 left-0 h-0.5 bg-primary transition-all duration-600"
-              style={{ width: `${((step - 1) / (totalSteps - 1)) * 100}%` }}
-            />
-            
-            {/* Cercles et labels positionnés en absolu */}
+            <div className="absolute top-4 left-0 h-0.5 bg-primary transition-all duration-600" style={{ width: `${((step - 1) / (totalSteps - 1)) * 100}%` }} />
             <div className="relative flex justify-between">
               {stepLabels.map((label, index) => {
                 const stepNumber = index + 1;
                 const isActive = step === stepNumber;
                 const isCompleted = step > stepNumber;
-
                 return (
-                  <div 
-                    key={stepNumber} 
-                    className="flex flex-col items-center top-1"
-                    style={{ 
-                      position: 'absolute',
-                      left: `${(index / (stepLabels.length - 1)) * 100}%`,
-                      transform: 'translateX(-50%)'
-                    }}
-                  >
-                    <div 
-                      className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-                        isCompleted 
-                          ? 'bg-primary text-primary-foreground' 
-                          : isActive 
-                            ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' 
-                            : 'bg-muted text-muted-foreground'
-                      }`}
-                    >
+                  <div key={stepNumber} className="flex flex-col items-center top-1" style={{ position: 'absolute', left: `${(index / (stepLabels.length - 1)) * 100}%`, transform: 'translateX(-50%)' }}>
+                    <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${isCompleted ? 'bg-primary text-primary-foreground' : isActive ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' : 'bg-muted text-muted-foreground'}`}>
                       {isCompleted ? '✓' : stepNumber}
                     </div>
-                    
-                    <span 
-                      className={`mt-2 text-xs text-center hidden sm:block ${
-                        isActive ? 'text-primary font-medium' : 'text-muted-foreground'
-                      }`}
-                      style={{ whiteSpace: 'nowrap' }}
-                    >
-                      {label}
-                    </span>
+                    <span className={`mt-2 text-xs text-center hidden sm:block ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'}`} style={{ whiteSpace: 'nowrap' }}>{label}</span>
                   </div>
                 );
               })}
             </div>
-            
-            {/* Spacer pour la hauteur */}
             <div className="h-16" />
           </div>
-          
-          {/* Titre et description */}
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Configure ton entraînement</h1>
-            <p className="text-muted-foreground mt-1">
-              Étape {step} sur {totalSteps} — {stepLabels[step - 1]}
-            </p>
+            <h1 className="text-2xl font-bold">{t("trainingSetup.title")}</h1>
+            <p className="text-muted-foreground mt-1">{t("trainingSetup.stepOf", { step, total: totalSteps, label: stepLabels[step - 1] })}</p>
           </div>
         </div>
 
         <Card className="p-6">
-          {/* STEP 1: Type de séances */}
           {step === 1 && (
             <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold mb-4">
-                  Quels types de séances te motivent le plus ?
-                </h2>
-              </div>
-              <RadioGroup
-                value={formData.sessionType}
-                onValueChange={(value) => updateField("sessionType", value)}
-              >
+              <h2 className="text-2xl font-semibold mb-4">{t("trainingSetup.step1Title")}</h2>
+              <RadioGroup value={formData.sessionType} onValueChange={(value) => updateField("sessionType", value)}>
                 <div className="space-y-3">
                   {sessionTypeOptions.map((option) => {
                     const Icon = option.icon;
                     const isRecommended = recommendedSessionTypes.includes(option.value as any);
                     return (
-                      <div
-                        key={option.value}
-                        className={`relative flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                          formData.sessionType === option.value
-                            ? "border-primary bg-primary/5"
-                            : isRecommended
-                            ? "border-primary/40 hover:border-primary/60"
-                            : "border-border hover:border-primary/30"
-                        }`}
-                        onClick={() => updateField("sessionType", option.value)}
-                      >
+                      <div key={option.value} className={`relative flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${formData.sessionType === option.value ? "border-primary bg-primary/5" : isRecommended ? "border-primary/40 hover:border-primary/60" : "border-border hover:border-primary/30"}`} onClick={() => updateField("sessionType", option.value)}>
                         <RadioGroupItem value={option.value} id={option.value} />
                         <Icon className="w-5 h-5 text-primary" />
-                        <Label
-                          htmlFor={option.value}
-                          className="flex-1 cursor-pointer font-medium"
-                        >
-                          {option.label}
-                        </Label>
+                        <Label htmlFor={option.value} className="flex-1 cursor-pointer font-medium">{option.label}</Label>
                         {isRecommended && renderRecommendedBadge()}
                       </div>
                     );
@@ -438,29 +300,13 @@ const TrainingSetup = () => {
             </div>
           )}
 
-          {/* STEP 2: Niveau d'expérience */}
           {step === 2 && (
             <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-semibold mb-4">
-                  Quel est ton niveau en musculation ?
-                </h2>
-              </div>
-              <RadioGroup
-                value={formData.experienceLevel}
-                onValueChange={(value) => updateField("experienceLevel", value)}
-              >
+              <h2 className="text-2xl font-semibold mb-4">{t("trainingSetup.step2Title")}</h2>
+              <RadioGroup value={formData.experienceLevel} onValueChange={(value) => updateField("experienceLevel", value)}>
                 <div className="space-y-3">
                   {experienceLevelOptions.map((option) => (
-                    <div
-                      key={option.value}
-                      className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                        formData.experienceLevel === option.value
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/30"
-                      }`}
-                      onClick={() => updateField("experienceLevel", option.value)}
-                    >
+                    <div key={option.value} className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${formData.experienceLevel === option.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`} onClick={() => updateField("experienceLevel", option.value)}>
                       <RadioGroupItem value={option.value} id={option.value} />
                       <Label htmlFor={option.value} className="flex-1 cursor-pointer">
                         <div className="font-medium">{option.label}</div>
@@ -473,34 +319,17 @@ const TrainingSetup = () => {
             </div>
           )}
 
-          {/* STEP 3: Split / Cardio intensity (conditional) */}
           {step === 3 && (
             <div className="space-y-6">
-              {/* Show split preference if strength or mixed */}
               {(formData.sessionType === "strength" || formData.sessionType === "mixed" || formData.sessionType === "mobility") && (
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-semibold">
-                    Comment préfères-tu organiser tes séances ?
-                  </h2>
-                  <RadioGroup
-                    value={formData.splitPreference}
-                    onValueChange={(value) => updateField("splitPreference", value)}
-                  >
+                  <h2 className="text-2xl font-semibold">{t("trainingSetup.step3SplitTitle")}</h2>
+                  <RadioGroup value={formData.splitPreference} onValueChange={(value) => updateField("splitPreference", value)}>
                     <div className="space-y-3">
                       {splitOptions.map((option) => {
                         const isRecommended = recommendedSplits.includes(option.value as any);
                         return (
-                          <div
-                            key={option.value}
-                            className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                              formData.splitPreference === option.value
-                                ? "border-primary bg-primary/5"
-                                : isRecommended
-                                ? "border-primary/40 hover:border-primary/60"
-                                : "border-border hover:border-primary/30"
-                            }`}
-                            onClick={() => updateField("splitPreference", option.value)}
-                          >
+                          <div key={option.value} className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${formData.splitPreference === option.value ? "border-primary bg-primary/5" : isRecommended ? "border-primary/40 hover:border-primary/60" : "border-border hover:border-primary/30"}`} onClick={() => updateField("splitPreference", option.value)}>
                             <RadioGroupItem value={option.value} id={option.value} />
                             <Label htmlFor={option.value} className="flex-1 cursor-pointer">
                               <div className="font-medium">{option.label}</div>
@@ -515,31 +344,15 @@ const TrainingSetup = () => {
                 </div>
               )}
 
-              {/* Show cardio intensity if cardio or mixed */}
               {(formData.sessionType === "cardio" || formData.sessionType === "mixed") && (
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-semibold">
-                    Quelle intensité de cardio préfères-tu ?
-                  </h2>
-                  <RadioGroup
-                    value={formData.cardioIntensity}
-                    onValueChange={(value) => updateField("cardioIntensity", value)}
-                  >
+                  <h2 className="text-2xl font-semibold">{t("trainingSetup.step3CardioTitle")}</h2>
+                  <RadioGroup value={formData.cardioIntensity} onValueChange={(value) => updateField("cardioIntensity", value)}>
                     <div className="space-y-3">
                       {cardioIntensityOptions.map((option) => {
                         const isRecommended = recommendedCardioIntensities.includes(option.value as any);
                         return (
-                          <div
-                            key={option.value}
-                            className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                              formData.cardioIntensity === option.value
-                                ? "border-primary bg-primary/5"
-                                : isRecommended
-                                ? "border-primary/40 hover:border-primary/60"
-                                : "border-border hover:border-primary/30"
-                            }`}
-                            onClick={() => updateField("cardioIntensity", option.value)}
-                          >
+                          <div key={option.value} className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${formData.cardioIntensity === option.value ? "border-primary bg-primary/5" : isRecommended ? "border-primary/40 hover:border-primary/60" : "border-border hover:border-primary/30"}`} onClick={() => updateField("cardioIntensity", option.value)}>
                             <RadioGroupItem value={option.value} id={option.value} />
                             <Label htmlFor={option.value} className="flex-1 cursor-pointer">
                               <div className="font-medium">{option.label}</div>
@@ -556,140 +369,68 @@ const TrainingSetup = () => {
             </div>
           )}
 
-          {/* STEP 4: Priority zones */}
           {step === 4 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-semibold mb-4">
-                  Sur quelles zones veux-tu mettre l'accent ?
-                </h2>
-                <p className="text-sm text-muted-foreground">Sélection multiple possible</p>
+                <h2 className="text-2xl font-semibold mb-4">{t("trainingSetup.step4Title")}</h2>
+                <p className="text-sm text-muted-foreground">{t("trainingSetup.multipleSelection")}</p>
               </div>
               <div className="space-y-3">
                 {priorityZoneOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                      formData.priorityZones.includes(option.value)
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/30"
-                    }`}
-                    onClick={() => toggleArrayItem("priorityZones", option.value)}
-                  >
-                    <Checkbox
-                      checked={formData.priorityZones.includes(option.value)}
-                      onCheckedChange={() => toggleArrayItem("priorityZones", option.value)}
-                    />
-                    <Label className="flex-1 cursor-pointer font-medium">
-                      {option.label}
-                    </Label>
+                  <div key={option.value} className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${formData.priorityZones.includes(option.value) ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`} onClick={() => toggleArrayItem("priorityZones", option.value)}>
+                    <Checkbox checked={formData.priorityZones.includes(option.value)} onCheckedChange={() => toggleArrayItem("priorityZones", option.value)} />
+                    <Label className="flex-1 cursor-pointer font-medium">{option.label}</Label>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* STEP 5: Limitations */}
           {step === 5 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-semibold mb-4">
-                  As-tu des limitations physiques ou blessures actuelles ?
-                </h2>
-                <p className="text-sm text-muted-foreground">Sélection multiple possible</p>
+                <h2 className="text-2xl font-semibold mb-4">{t("trainingSetup.step5Title")}</h2>
+                <p className="text-sm text-muted-foreground">{t("trainingSetup.multipleSelection")}</p>
               </div>
               <div className="space-y-3">
-              {limitationOptions.map((option) => (
-                  <div
-                    key={option.value}
-                    className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                      formData.limitations.includes(option.value)
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/30"
-                    }`}
-                    onClick={() => toggleArrayItem("limitations", option.value)}
-                  >
-                    <Checkbox
-                      checked={formData.limitations.includes(option.value)}
-                      onCheckedChange={() => toggleArrayItem("limitations", option.value)}
-                    />
-                    <Label className="flex-1 cursor-pointer font-medium">
-                      {option.label}
-                    </Label>
+                {limitationOptions.map((option) => (
+                  <div key={option.value} className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${formData.limitations.includes(option.value) ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`} onClick={() => toggleArrayItem("limitations", option.value)}>
+                    <Checkbox checked={formData.limitations.includes(option.value)} onCheckedChange={() => toggleArrayItem("limitations", option.value)} />
+                    <Label className="flex-1 cursor-pointer font-medium">{option.label}</Label>
                   </div>
                 ))}
 
                 {formData.limitations.includes("other") && (
                   <div className="mt-3">
-                    <Label htmlFor="limitationsOther">Précise ta limitation</Label>
-                    <Textarea
-                      id="limitationsOther"
-                      placeholder="Ex: Tendinite au coude, prothèse de hanche..."
-                      value={formData.limitationsOther}
-                      onChange={(e) => updateField("limitationsOther", e.target.value)}
-                      rows={2}
-                      className="mt-1"
-                    />
+                    <Label htmlFor="limitationsOther">{t("trainingSetup.otherDetails")}</Label>
+                    <Textarea id="limitationsOther" placeholder={t("trainingSetup.otherPlaceholder")} value={formData.limitationsOther} onChange={(e) => updateField("limitationsOther", e.target.value)} rows={2} className="mt-1" />
                   </div>
                 )}
               </div>
 
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="favorites">
-                    Y a-t-il des exercices que tu aimes particulièrement ? (optionnel)
-                  </Label>
-                  <Textarea
-                    id="favorites"
-                    placeholder="Ex: J'adore les tractions, je préfère les exercices avec haltères..."
-                    value={formData.favoriteExercises}
-                    onChange={(e) => updateField("favoriteExercises", e.target.value)}
-                    rows={3}
-                  />
+                  <Label htmlFor="favorites">{t("trainingSetup.favoriteExercises")}</Label>
+                  <Textarea id="favorites" placeholder={t("trainingSetup.favoriteExercisesPlaceholder")} value={formData.favoriteExercises} onChange={(e) => updateField("favoriteExercises", e.target.value)} rows={3} />
                 </div>
-
                 <div className="space-y-2">
-                  <Label htmlFor="avoid">
-                    Y a-t-il des exercices que tu veux absolument éviter ? (optionnel)
-                  </Label>
-                  <Textarea
-                    id="avoid"
-                    placeholder="Ex: Pas de burpees, je déteste le squat..."
-                    value={formData.exercisesToAvoid}
-                    onChange={(e) => updateField("exercisesToAvoid", e.target.value)}
-                    rows={3}
-                  />
+                  <Label htmlFor="avoid">{t("trainingSetup.exercisesToAvoid")}</Label>
+                  <Textarea id="avoid" placeholder={t("trainingSetup.exercisesToAvoidPlaceholder")} value={formData.exercisesToAvoid} onChange={(e) => updateField("exercisesToAvoid", e.target.value)} rows={3} />
                 </div>
               </div>
             </div>
           )}
 
-          {/* STEP 6: Progression & Mobility */}
           {step === 6 && (
             <div className="space-y-8">
               <div className="space-y-4">
-                <h2 className="text-2xl font-semibold">
-                  Comment veux-tu suivre ta progression ?
-                </h2>
-                <RadioGroup
-                  value={formData.progressionFocus}
-                  onValueChange={(value) => updateField("progressionFocus", value)}
-                >
+                <h2 className="text-2xl font-semibold">{t("trainingSetup.step6ProgressionTitle")}</h2>
+                <RadioGroup value={formData.progressionFocus} onValueChange={(value) => updateField("progressionFocus", value)}>
                   <div className="space-y-3">
                     {progressionFocusOptions.map((option) => (
-                      <div
-                        key={option.value}
-                        className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                          formData.progressionFocus === option.value
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/30"
-                        }`}
-                        onClick={() => updateField("progressionFocus", option.value)}
-                      >
+                      <div key={option.value} className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${formData.progressionFocus === option.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`} onClick={() => updateField("progressionFocus", option.value)}>
                         <RadioGroupItem value={option.value} id={option.value} />
-                        <Label htmlFor={option.value} className="flex-1 cursor-pointer">
-                          {option.label}
-                        </Label>
+                        <Label htmlFor={option.value} className="flex-1 cursor-pointer">{option.label}</Label>
                       </div>
                     ))}
                   </div>
@@ -697,28 +438,13 @@ const TrainingSetup = () => {
               </div>
 
               <div className="space-y-4">
-                <h2 className="text-2xl font-semibold">
-                  Veux-tu inclure du travail de mobilité / stretching ?
-                </h2>
-                <RadioGroup
-                  value={formData.mobilityPreference}
-                  onValueChange={(value) => updateField("mobilityPreference", value)}
-                >
+                <h2 className="text-2xl font-semibold">{t("trainingSetup.step6MobilityTitle")}</h2>
+                <RadioGroup value={formData.mobilityPreference} onValueChange={(value) => updateField("mobilityPreference", value)}>
                   <div className="space-y-3">
                     {mobilityPreferenceOptions.map((option) => (
-                      <div
-                        key={option.value}
-                        className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${
-                          formData.mobilityPreference === option.value
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/30"
-                        }`}
-                        onClick={() => updateField("mobilityPreference", option.value)}
-                      >
+                      <div key={option.value} className={`flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all ${formData.mobilityPreference === option.value ? "border-primary bg-primary/5" : "border-border hover:border-primary/30"}`} onClick={() => updateField("mobilityPreference", option.value)}>
                         <RadioGroupItem value={option.value} id={option.value} />
-                        <Label htmlFor={option.value} className="flex-1 cursor-pointer">
-                          {option.label}
-                        </Label>
+                        <Label htmlFor={option.value} className="flex-1 cursor-pointer">{option.label}</Label>
                       </div>
                     ))}
                   </div>
@@ -728,25 +454,17 @@ const TrainingSetup = () => {
           )}
         </Card>
 
-        {/* Navigation */}
         <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            disabled={step === 1}
-          >
+          <Button variant="outline" onClick={handleBack} disabled={step === 1}>
             <ChevronLeft className="w-4 h-4 mr-2" />
-            Retour
+            {t("trainingSetup.back")}
           </Button>
-          <Button
-            onClick={handleNext}
-            disabled={!isStepValid() || submitting}
-          >
+          <Button onClick={handleNext} disabled={!isStepValid() || submitting}>
             {step === totalSteps ? (
-              submitting ? "Enregistrement..." : "Terminer"
+              submitting ? t("trainingSetup.submitting") : t("trainingSetup.submit")
             ) : (
               <>
-                Suivant
+                {t("trainingSetup.next")}
                 <ChevronRight className="w-4 h-4 ml-2" />
               </>
             )}
