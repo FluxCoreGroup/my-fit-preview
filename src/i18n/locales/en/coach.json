@@ -27,18 +27,20 @@
   },
   "welcome": {
     "greeting": "Hi, I'm {{name}} 👋",
-    "startWith": "Start with one of these questions"
+    "startWith": "Start with one of these questions",
+    "online": "Online"
   },
+  "alex": { "role": "Sport Coach" },
+  "julie": { "role": "Nutritionist" },
   "header": {
     "online": "Online"
   },
   "conversations": {
-    "newConversation": "New conversation",
+    "new": "New conversation",
+    "count": "{{count}} conversation(s)",
     "pinned": "Pinned",
-    "noConversations": "No conversations",
-    "createNew": "Create a new one to get started",
-    "count": "{{count}} conversation",
-    "countPlural": "{{count}} conversations",
+    "empty": "No conversations",
+    "emptyHint": "Create a new one to get started",
     "rename": "Rename",
     "pin": "Pin",
     "unpin": "Unpin",
@@ -52,12 +54,12 @@
     "trainingSessions": "Your training sessions",
     "goalsSettings": "Your goals and settings",
     "weeklyCheckins": "Your weekly check-ins",
-    "accept": "Allow",
+    "authorize": "Allow",
     "decline": "Answer without my data"
   },
   "dataSources": {
     "title": "Data consulted",
-    "subtitle": "This data was used for the response",
+    "description": "This data was used for the response",
     "weightHistory": "Weight history",
     "recentSessions": "Recent sessions",
     "checkinStats": "Check-in stats",
@@ -98,6 +100,34 @@
     "footer": "© 2025 Pulse.ai - All rights reserved",
     "pricing": "Pricing",
     "legal": "Legal notices",
-    "home": "Home"
+    "home": "Home",
+    "alexConversations": [
+      {
+        "user": "My right knee hurts, can I still do my leg session?",
+        "assistant": "I understand your situation. For today's leg session, I suggest alternatives without knee impact: replace squats with leg press with reduced range, avoid lunges and focus on hamstring extensions on machine. Same volume, but protecting your joint. Want me to generate an adapted session?"
+      },
+      {
+        "user": "I only have 30 minutes today instead of 1 hour",
+        "assistant": "No problem! I'll condense your session. We'll keep the 3 main exercises (bench press, rowing, squat) with 3 sets instead of 4, and reduce rest times to 90 seconds. You'll have an effective workout in 28 minutes. Ready?"
+      },
+      {
+        "user": "I've been stuck on bench press for 2 weeks",
+        "assistant": "Classic plateau! Here are 3 solutions: 1) Add a 2-second pause at the bottom next week, 2) Try incline bench as your main exercise for 2 weeks, 3) Increase volume: go from 3x8 to 4x6 with the same weight. Which option appeals to you?"
+      }
+    ],
+    "julieConversations": [
+      {
+        "user": "I'm vegetarian, can you adapt my nutrition plan?",
+        "assistant": "Of course! Your protein intake (140g/day) will be provided by: tofu, tempeh, legumes, eggs and plant-based protein powder. I'll replace chicken with marinated tofu, beef with lentils, and add grain + legume combinations for complete proteins. Want me to generate a typical day?"
+      },
+      {
+        "user": "I don't like broccoli, what can I replace it with?",
+        "assistant": "No problem! Here are equivalent alternatives in fiber and micronutrients: green beans, spinach, zucchini, or cauliflower. For your 200g of vegetables per meal, you can alternate these options. Shall I update your plan with your preferences?"
+      },
+      {
+        "user": "Generate my shopping list for the week",
+        "assistant": "Here's your 7-day shopping list:\n\n🥩 Proteins: 1kg chicken, 500g salmon, 12 eggs, 500g lean ground beef\n🥬 Vegetables: 1kg broccoli, 500g spinach, 6 zucchini, 2kg tomatoes\n🍚 Starchy foods: 1kg basmati rice, 500g oats, 1kg sweet potatoes\n🥛 Dairy: 1L milk, 6 plain Greek yogurts\n🥜 Other: olive oil, almonds, bananas\n\nEstimated total: €45-55. Want me to email this list?"
+      }
+    ]
   }
 }

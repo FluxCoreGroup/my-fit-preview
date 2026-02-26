@@ -15,6 +15,7 @@ import TypingIndicator from "./TypingIndicator";
 import DataConsentMessage from "./DataConsentMessage";
 import coachAlexAvatar from "@/assets/coach-alex-avatar.png";
 import coachJulieAvatar from "@/assets/coach-julie-avatar.png";
+import { useTranslation } from "react-i18next";
 
 interface Message {
   role: "user" | "assistant";
@@ -35,20 +36,20 @@ interface ChatInterfaceProps {
   onConversationCreated?: (conversationId: string) => void;
 }
 
-const coachConfig = {
+const getCoachConfig = (t: (key: string) => string) => ({
   alex: {
     avatar: coachAlexAvatar,
-    role: "Coach Sportif",
-    description: "Je vous aide à planifier vos entraînements, adapter vos exercices et atteindre vos objectifs de forme physique.",
+    role: t("chat.alexRole"),
+    description: t("chat.alexDesc"),
     primaryColor: "primary",
   },
   julie: {
     avatar: coachJulieAvatar,
-    role: "Nutritionniste",
-    description: "Je vous accompagne dans vos choix alimentaires, vos plans repas et votre équilibre nutritionnel.",
+    role: t("chat.julieRole"),
+    description: t("chat.julieDesc"),
     primaryColor: "secondary",
   },
-};
+});
 
 export const ChatInterface = ({
   conversationId,
@@ -74,11 +75,12 @@ export const ChatInterface = ({
   const loadedConversationRef = useRef<string | null>(null);
   const { toast } = useToast();
   const { session } = useAuth();
+  const { t } = useTranslation("coach");
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${functionName}`;
   
   const { messages: dbMessages, isLoading: messagesLoading, saveMessage } = useChatMessages(conversationId);
   const { createConversation, updateDataConsent } = useConversations(coachType);
-  const config = coachConfig[coachType];
+  const config = getCoachConfig(t)[coachType];
   
   useAutoGenerateTitle(conversationId, coachType);
 
@@ -144,10 +146,10 @@ export const ChatInterface = ({
   // Gestion des erreurs HTTP avec messages appropriés
   const handleHttpError = (status: number, serverMessage: string) => {
     const errorMessages: Record<number, { title: string; description: string }> = {
-      401: { title: "Non authentifié", description: "Reconnecte-toi pour continuer" },
-      402: { title: "Crédits épuisés", description: "Contacte le support pour plus d'infos." },
-      403: { title: "Abonnement requis", description: serverMessage || "Un abonnement est nécessaire pour continuer à utiliser le coach IA." },
-      429: { title: "Trop de requêtes", description: "Réessaye dans quelques instants." },
+      401: { title: t("chat.notAuthenticated"), description: t("chat.reconnect") },
+      402: { title: t("chat.creditsExhausted"), description: t("chat.creditsExhaustedDesc") },
+      403: { title: t("chat.subscriptionRequired"), description: serverMessage || t("chat.subscriptionRequired") },
+      429: { title: t("chat.tooManyRequests"), description: t("chat.tooManyRequestsDesc") },
     };
 
     const error = errorMessages[status];
@@ -163,8 +165,8 @@ export const ChatInterface = ({
     const token = session?.access_token;
     if (!token) {
       toast({
-        title: "Session expirée",
-        description: "Reconnecte-toi pour continuer",
+        title: t("chat.sessionExpired"),
+        description: t("chat.reconnect"),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -280,8 +282,8 @@ export const ChatInterface = ({
     } catch (error) {
       console.error("Chat error:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de contacter le coach IA",
+        title: t("chat.error"),
+        description: t("chat.cannotContactCoach"),
         variant: "destructive",
       });
     } finally {
@@ -294,8 +296,8 @@ export const ChatInterface = ({
 
     if (!session?.user) {
       toast({
-        title: "Non authentifié",
-        description: "Connecte-toi pour continuer",
+        title: t("chat.notAuthenticated"),
+        description: t("chat.loginToContinue"),
         variant: "destructive",
       });
       return;
@@ -317,8 +319,8 @@ export const ChatInterface = ({
       } catch (error) {
         console.error("Failed to create conversation:", error);
         toast({
-          title: "Erreur",
-          description: `Impossible de créer la conversation`,
+          title: t("chat.error"),
+          description: t("chat.cannotCreateConversation"),
           variant: "destructive",
         });
         return;
@@ -378,8 +380,8 @@ export const ChatInterface = ({
       setIsLoading(false);
     } catch (error) {
       toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder ta préférence",
+        title: t("chat.error"),
+        description: t("chat.cannotSavePreference"),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -407,8 +409,8 @@ export const ChatInterface = ({
     } catch (error) {
       console.error("Failed to update consent:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder ta préférence",
+        title: t("chat.error"),
+        description: t("chat.cannotSavePreference"),
         variant: "destructive",
       });
       setIsLoading(false);
@@ -430,7 +432,7 @@ export const ChatInterface = ({
     return (
       <div className="flex flex-col h-[calc(100vh-12rem)] items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground mt-2">Chargement de la conversation...</p>
+        <p className="text-sm text-muted-foreground mt-2">{t("chat.loadingConversation")}</p>
       </div>
     );
   }
@@ -459,7 +461,7 @@ export const ChatInterface = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`Écris à ${name}...`}
+              placeholder={t("chat.writeTo", { name })}
               className="resize-none rounded-xl min-h-[44px] max-h-32"
               rows={1}
               disabled={isLoading || isCreatingConversation}
@@ -566,7 +568,7 @@ export const ChatInterface = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={`Écris à ${name}...`}
+            placeholder={t("chat.writeTo", { name })}
             className="resize-none rounded-xl min-h-[44px] max-h-32 text-base"
             rows={1}
             disabled={isLoading}
