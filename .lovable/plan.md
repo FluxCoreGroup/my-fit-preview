@@ -1,146 +1,149 @@
+# Phases 3, 4, 5 — App bilingue complète
 
-
-# Plan complet : App bilingue EN + NL
-
-## Scope
-
-L'app est 100% en français avec des strings hardcodées dans ~30 fichiers frontend + ~9 edge functions avec des prompts IA en français. Il n'y a aucun système d'internationalisation (i18n) en place.
-
-**Langues cibles** : Anglais (en), Néerlandais (nl) — le français (fr) reste la langue par défaut.
+Ce plan couvre l'intégralité des phases restantes. Vu le volume (~30+ fichiers frontend, 9 edge functions), je recommande de procéder en sous-étapes successives.
 
 ---
 
-## Architecture i18n
+## Phase 3 — Pages app bilingues
 
-### Librairie : `react-i18next` + `i18next`
+### 3A. Créer les fichiers de traduction (6 fichiers JSON × 3 langues = 18 fichiers)
 
-Pattern standard React, léger, bien supporté. Pas besoin de SSR (Vite SPA).
 
-```text
-src/
-├── i18n/
-│   ├── index.ts              ← config i18next (détection langue, fallback fr)
-│   ├── locales/
-│   │   ├── fr/
-│   │   │   ├── common.json   ← nav, boutons, labels génériques
-│   │   │   ├── landing.json  ← textes landing page
-│   │   │   ├── onboarding.json
-│   │   │   ├── training.json
-│   │   │   ├── nutrition.json
-│   │   │   ├── coach.json
-│   │   │   ├── settings.json
-│   │   │   └── auth.json
-│   │   ├── en/
-│   │   │   └── (mêmes fichiers)
-│   │   └── nl/
-│   │       └── (mêmes fichiers)
+| Namespace         | Contenu                                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `auth.json`       | Login, reset password, signup, email confirmation                                                                           |
+| `onboarding.json` | Start (5 étapes), OnboardingIntro, TrainingSetup, Preview                                                                   |
+| `training.json`   | Training page, Session, Feedback, WeeklyFeedback                                                                            |
+| `nutrition.json`  | Nutrition page, MealGenerator, RecipeLibrary, HydrationTracker                                                              |
+| `coach.json`      | ChatInterface errors, CoachWelcome, DataConsent, shortcuts                                                                  |
+| `settings.json`   | Settings menu, toutes sous-pages (Profile, PhysicalInfo, TrainingProgram, Nutrition, Subscription, Support), AppPreferences |
+
+
+### 3B. Refactorer les pages frontend (~25 fichiers)
+
+Chaque fichier : ajouter `useTranslation()`, remplacer strings hardcodées par `t("key")`.
+
+
+| Groupe     | Fichiers à modifier                                                                                                                                                         |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth       | `Auth.tsx`, `Signup.tsx`, `EmailConfirmation.tsx`, `EmailVerified.tsx`                                                                                                      |
+| Onboarding | `Start.tsx` (851 lignes — le plus gros), `OnboardingIntro.tsx`, `TrainingSetup.tsx`, `Preview.tsx`                                                                          |
+| Hub        | `Hub.tsx` (greetings, subtitles, module titles, subscription banner)                                                                                                        |
+| Training   | `Training.tsx` (554 lignes), `Session.tsx`, `Feedback.tsx`                                                                                                                  |
+| Nutrition  | `Nutrition.tsx`, `MealGenerator.tsx`, `RecipeLibrary.tsx`, `HydrationTracker.tsx`, `BodyMetricsTracker.tsx`                                                                 |
+| Coachs     | `CoachAlex.tsx`, `CoachJulie.tsx`, `CoachsIA.tsx`, `ChatInterface.tsx` (error messages, shortcuts)                                                                          |
+| Settings   | `Settings.tsx`, `Profile.tsx`, `PhysicalInfo.tsx`, `TrainingProgram.tsx`, `settings/Nutrition.tsx`, `Subscription.tsx`, `settings/Support.tsx`, `AppPreferencesSection.tsx` |
+| Autres     | `Tarif.tsx`, `Support.tsx`, `Legal.tsx`, `NotFound.tsx`, `PaymentSuccess.tsx`                                                                                               |
+
+
+### 3C. Composants partagés
+
+
+| Composant                                                                       | Strings à extraire     |
+| ------------------------------------------------------------------------------- | ---------------------- |
+| `BackButton.tsx`                                                                | "Retour au Hub" labels |
+| `EmptyState.tsx`                                                                | Messages vides         |
+| `WelcomeModal.tsx`, `HubTour.tsx`, `OnboardingComplete.tsx`                     | Textes d'onboarding    |
+| `SessionPreviewCard.tsx`, `SessionFeedbackModal.tsx`, `WeeklyFeedbackModal.tsx` | UI training            |
+| `InstallAppPrompt.tsx`                                                          | Tutoriel PWA           |
+
+
+### 3D. Date locale dynamique
+
+`Training.tsx` utilise `date-fns/locale/fr` hardcodé. Créer un helper :
+
+```typescript
+// src/lib/dateLocale.ts
+import { fr } from "date-fns/locale/fr";
+import { enUS } from "date-fns/locale/en-US";
+import { nl } from "date-fns/locale/nl";
+const locales = { fr, en: enUS, nl };
+export const getDateLocale = (lang: string) => locales[lang] || fr;
 ```
 
-### Détection de la langue
+### 3E. Mois dans Start.tsx
 
-1. Préférence utilisateur en DB (`app_preferences.language`) — priorité si connecté
-2. `localStorage` — pour visiteurs non connectés
-3. Navigateur (`navigator.language`) — fallback initial
-4. Français — fallback final
-
-### Sélecteur de langue
-
-- **Landing page** : sélecteur dans le Header (globe icon + dropdown FR/EN/NL)
-- **App** : déjà présent dans Settings > Préférences, ajouter "nl" comme option
-- Changement de langue = `i18next.changeLanguage()` + mise à jour DB si connecté
+Les noms de mois du sélecteur de date de naissance sont hardcodés en français. Les remplacer par `t("months.january")` etc.
 
 ---
 
-## Étapes d'implémentation
+## Phase 4 — Edge functions bilingues
 
-### Phase 1 — Infrastructure i18n (3 fichiers créés, 2 modifiés)
+### Principe
 
-| Action | Fichier |
-|---|---|
-| Installer `react-i18next` + `i18next` + `i18next-browser-languagedetector` | package.json |
-| Créer config i18n | `src/i18n/index.ts` |
-| Créer fichiers JSON fr/en/nl (common, landing) | `src/i18n/locales/*/` |
-| Initialiser i18n dans main.tsx | `src/main.tsx` |
-| Ajouter sélecteur langue dans Header | `src/components/Header.tsx` |
+Le frontend envoie `language` (depuis `i18next.language` ou `app_preferences.language`) dans le body de chaque appel. Chaque edge function adapte le prompt système.
 
-### Phase 2 — Landing page bilingue (~3 fichiers modifiés)
+### Map de langues (partagée)
 
-| Action | Fichier |
-|---|---|
-| Extraire toutes les strings dans `landing.json` (hero, bénéfices, FAQ, témoignages, CTA) | `src/pages/Landing.tsx` |
-| Traduire `landing.json` en EN et NL | `src/i18n/locales/en/landing.json`, `nl/landing.json` |
-| Traduire les composants landing annexes | `SocialProofStats.tsx`, `Header.tsx` |
-
-### Phase 3 — Pages app bilingues (~15 fichiers modifiés)
-
-Extraire les strings hardcodées et les remplacer par `t("key")` dans chaque page :
-
-| Groupe | Fichiers |
-|---|---|
-| Auth | `Auth.tsx`, `Signup.tsx`, `EmailConfirmation.tsx`, `EmailVerified.tsx` |
-| Onboarding | `Start.tsx`, `OnboardingIntro.tsx`, `TrainingSetup.tsx`, `Preview.tsx` |
-| Hub / Training | `Hub.tsx`, `Training.tsx`, `Session.tsx`, `Feedback.tsx` |
-| Nutrition | `Nutrition.tsx`, composants nutrition |
-| Settings | `Settings.tsx`, toutes les sous-pages settings |
-| Coachs | `CoachAlex.tsx`, `CoachJulie.tsx`, `CoachsIA.tsx` |
-| Autres | `Tarif.tsx`, `Support.tsx`, `Legal.tsx`, `NotFound.tsx`, `PaymentSuccess.tsx` |
-
-### Phase 4 — Prompts IA bilingues (9 edge functions modifiées)
-
-Chaque edge function reçoit la `language` de l'utilisateur et adapte le prompt système.
-
-| Edge function | Modification |
-|---|---|
-| `chat-alex/index.ts` | Prompt système en FR/EN/NL selon langue user, réponses dans la langue user |
-| `chat-julie/index.ts` | Idem |
-| `generate-weekly-program/index.ts` | Noms d'exercices + consignes dans la langue user |
-| `generate-training-session/index.ts` | Idem |
-| `generate-training-plan/index.ts` | Idem |
-| `generate-nutrition-plan/index.ts` | Noms d'aliments + descriptions dans la langue user |
-| `generate-meal/index.ts` | Idem |
-| `format-health-data/index.ts` | Formatage dans la langue user |
-| `send-weekly-digest/index.ts` | Email digest dans la langue user |
-
-**Méthode** : Le frontend envoie `language` dans le body de chaque requête. L'edge function ajoute une instruction au prompt : `"Réponds UNIQUEMENT en ${languageMap[lang]}"` et adapte les noms de concepts (exercices, aliments).
-
-### Phase 5 — Préférence NL dans la DB + composants
-
-| Action | Fichier |
-|---|---|
-| Ajouter "nl" comme option dans le select langue | `AppPreferencesSection.tsx` |
-| Sync `app_preferences.language` avec `i18next.changeLanguage()` | `AppPreferencesSection.tsx` |
-| Prompts client-side (toast, confirmations) via `t()` | Tous les fichiers avec `toast()` |
-
----
-
-## Détail technique — Prompts IA
-
-Chaque edge function recevra un paramètre `language` et ajoutera au prompt :
-
-```text
-// EN
-"You are Alex, an expert fitness coach. Respond ONLY in English."
-
-// NL  
-"Je bent Alex, een expert fitnesscoach. Antwoord UITSLUITEND in het Nederlands."
-
-// FR (défaut, inchangé)
-"Tu es Alex, coach sportif expert..."
+```typescript
+const languageInstructions: Record<string, string> = {
+  fr: "Réponds UNIQUEMENT en français.",
+  en: "Respond ONLY in English.",
+  nl: "Antwoord UITSLUITEND in het Nederlands.",
+};
 ```
 
-Les noms d'exercices et d'aliments seront générés dans la langue cible par le modèle IA (pas de dictionnaire statique).
+### Fichiers à modifier
+
+
+| Edge function                        | Modification                                                                                            |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `chat-alex/index.ts`                 | Extraire `language` du body, ajouter instruction langue au system prompt                                |
+| `chat-julie/index.ts`                | Idem                                                                                                    |
+| `generate-weekly-program/index.ts`   | Extraire `language` du body, instruire le modèle de générer noms d'exercices + consignes dans la langue |
+| `generate-training-session/index.ts` | Idem                                                                                                    |
+| `generate-training-plan/index.ts`    | Idem                                                                                                    |
+| `generate-nutrition-plan/index.ts`   | Noms d'aliments + descriptions dans la langue                                                           |
+| `generate-meal/index.ts`             | Idem                                                                                                    |
+| `format-health-data/index.ts`        | Formatage dans la langue                                                                                |
+| `send-weekly-digest/index.ts`        | Email digest dans la langue (requiert fetch de `app_preferences.language`)                              |
+
+
+### Frontend : envoyer `language`
+
+Modifier chaque appel `supabase.functions.invoke()` pour inclure `language: i18n.language` dans le body. Fichiers concernés :
+
+- `src/hooks/useWeeklyTraining.tsx`
+- `src/hooks/useNutritionPlan.tsx`
+- `src/hooks/useMealGenerator.tsx`
+- `src/services/planner.ts`
+- `src/components/coach/ChatInterface.tsx`
+- `src/components/training/WeeklyFeedbackModal.tsx`
+- `src/pages/Preview.tsx`
+
+### Prompts data/prompts.ts
+
+`juliePromptWithoutAccessToData` est en français. Créer des versions EN/NL ou le rendre dynamique via un paramètre `language`.
 
 ---
 
-## Estimation
+## Phase 5 — Sync DB + préférence NL et EN et FR
 
-| Phase | Fichiers touchés | Complexité |
-|---|---|---|
-| 1. Infrastructure | ~5 | Moyenne |
-| 2. Landing | ~4 | Faible (extraction strings) |
-| 3. Pages app | ~20 | Élevée (volume) |
-| 4. Prompts IA | ~9 | Moyenne |
-| 5. Sync DB | ~2 | Faible |
+### 5A. Ajouter NL et EN et FR dans AppPreferencesSection
 
-**Recommandation** : Implémenter phase par phase en commençant par la phase 1 + 2 (landing bilingue fonctionnelle), puis étendre progressivement.
+Fichier `src/components/settings/AppPreferencesSection.tsx` : ajouter `<SelectItem value="nl">Nederlands</SelectItem>` dans le select langue.
 
+### 5B. Sync i18next ↔ DB
+
+Quand `app_preferences.language` change :
+
+1. Appeler `i18n.changeLanguage(value)` dans `handlePreferenceChange`
+2. Au chargement, dans `fetchPreferences`, appeler `i18n.changeLanguage(data.language)`
+
+### 5C. Sync initiale au login
+
+Dans `src/i18n/index.ts` ou un hook dédié : après login, fetcher `app_preferences.language` et appeler `i18n.changeLanguage()`. La détection actuelle `localStorage > navigator` reste le fallback pour les non-connectés.
+
+---
+
+## Ordre d'implémentation recommandé
+
+Vu le volume, je recommande de découper en **4-5 messages** :
+
+1. **Message 1** : Phase 5 (rapide, 2 fichiers) + Phase 3A (créer les 18 fichiers JSON de traduction)
+2. **Message 2** : Phase 3B partie 1 — Auth, Onboarding, Hub
+3. **Message 3** : Phase 3B partie 2 — Training, Nutrition, Settings
+4. **Message 4** : Phase 3B partie 3 — Coachs, composants partagés, date locale
+5. **Message 5** : Phase 4 — Toutes les edge functions
+
+Par quel groupe veux-tu commencer ? TOUS
