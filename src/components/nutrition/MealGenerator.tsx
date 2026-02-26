@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Utensils, Apple, Coffee, Drumstick, Loader2 } from "lucide-react";
 import { useMealGenerator } from "@/hooks/useMealGenerator";
+import { useTranslation } from "react-i18next";
 
 export const MealGenerator = () => {
+  const { t } = useTranslation("nutrition");
   const { generatedMeal, isGenerating, generateMeal } = useMealGenerator();
   
   const [protein, setProtein] = useState([50]);
@@ -17,13 +19,7 @@ export const MealGenerator = () => {
   const [category, setCategory] = useState<"breakfast" | "lunch" | "dinner" | "snack">("lunch");
 
   const handleGenerate = () => {
-    generateMeal({
-      protein: protein[0],
-      carbs: carbs[0],
-      fats: fats[0],
-      type,
-      category,
-    });
+    generateMeal({ protein: protein[0], carbs: carbs[0], fats: fats[0], type, category });
   };
 
   const getCategoryIcon = () => {
@@ -37,147 +33,66 @@ export const MealGenerator = () => {
 
   return (
     <Card className="p-6 bg-gradient-to-br from-primary/5 to-transparent border-primary/20 shadow-lg shadow-primary/5 backdrop-blur-xl transition-all duration-300 hover:border-primary/50">
-      <h3 className="text-lg font-bold mb-4">🍽️ Générateur de repas type</h3>
-
+      <h3 className="text-lg font-bold mb-4">{t("mealGenerator.title", { defaultValue: "🍽️ Meal generator" })}</h3>
       <div className="space-y-4 mb-6">
-        {/* Protein Slider */}
         <div>
-          <label className="text-sm font-semibold mb-2 block">
-            Protéines : <span className="text-primary">{protein[0]}g</span>
-          </label>
-          <Slider
-            value={protein}
-            onValueChange={setProtein}
-            min={10}
-            max={150}
-            step={5}
-            className="w-full"
-          />
+          <label className="text-sm font-semibold mb-2 block">{t("proteins")} : <span className="text-primary">{protein[0]}g</span></label>
+          <Slider value={protein} onValueChange={setProtein} min={10} max={150} step={5} className="w-full" />
         </div>
-
-        {/* Carbs Slider */}
         <div>
-          <label className="text-sm font-semibold mb-2 block">
-            Glucides : <span className="text-accent">{carbs[0]}g</span>
-          </label>
-          <Slider
-            value={carbs}
-            onValueChange={setCarbs}
-            min={10}
-            max={200}
-            step={5}
-            className="w-full"
-          />
+          <label className="text-sm font-semibold mb-2 block">{t("carbs")} : <span className="text-accent">{carbs[0]}g</span></label>
+          <Slider value={carbs} onValueChange={setCarbs} min={10} max={200} step={5} className="w-full" />
         </div>
-
-        {/* Fats Slider */}
         <div>
-          <label className="text-sm font-semibold mb-2 block">
-            Lipides : <span className="text-secondary">{fats[0]}g</span>
-          </label>
-          <Slider
-            value={fats}
-            onValueChange={setFats}
-            min={5}
-            max={100}
-            step={5}
-            className="w-full"
-          />
+          <label className="text-sm font-semibold mb-2 block">{t("fats")} : <span className="text-secondary">{fats[0]}g</span></label>
+          <Slider value={fats} onValueChange={setFats} min={5} max={100} step={5} className="w-full" />
         </div>
-
-        {/* Type Select */}
         <div>
-          <label className="text-sm font-semibold mb-2 block">Type</label>
+          <label className="text-sm font-semibold mb-2 block">{t("mealGenerator.type", { defaultValue: "Type" })}</label>
           <Select value={type} onValueChange={(v) => setType(v as "sweet" | "salty")}>
-            <SelectTrigger className="bg-background/50 border-primary/20">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="bg-background/50 border-primary/20"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="salty">Salé 🧂</SelectItem>
-              <SelectItem value="sweet">Sucré 🍰</SelectItem>
+              <SelectItem value="salty">{t("mealGenerator.savory", { defaultValue: "Savory 🧂" })}</SelectItem>
+              <SelectItem value="sweet">{t("mealGenerator.sweet", { defaultValue: "Sweet 🍰" })}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        {/* Category Select */}
         <div>
-          <label className="text-sm font-semibold mb-2 block">Catégorie</label>
+          <label className="text-sm font-semibold mb-2 block">{t("mealGenerator.category", { defaultValue: "Category" })}</label>
           <Select value={category} onValueChange={(v) => setCategory(v as any)}>
-            <SelectTrigger className="bg-background/50 border-primary/20">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="bg-background/50 border-primary/20"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="breakfast">Petit-déjeuner</SelectItem>
-              <SelectItem value="lunch">Déjeuner</SelectItem>
-              <SelectItem value="dinner">Dîner</SelectItem>
-              <SelectItem value="snack">Snack</SelectItem>
+              <SelectItem value="breakfast">{t("mealGenerator.breakfast", { defaultValue: "Breakfast" })}</SelectItem>
+              <SelectItem value="lunch">{t("mealGenerator.lunch", { defaultValue: "Lunch" })}</SelectItem>
+              <SelectItem value="dinner">{t("mealGenerator.dinner", { defaultValue: "Dinner" })}</SelectItem>
+              <SelectItem value="snack">{t("mealGenerator.snack", { defaultValue: "Snack" })}</SelectItem>
             </SelectContent>
           </Select>
         </div>
-
-        <Button 
-          onClick={handleGenerate} 
-          disabled={isGenerating}
-          className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Génération en cours...
-            </>
-          ) : (
-            <>
-              <Utensils className="w-4 h-4 mr-2" />
-              Générer mon repas type
-            </>
-          )}
+        <Button onClick={handleGenerate} disabled={isGenerating} className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300">
+          {isGenerating ? (<><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("mealGenerator.generating", { defaultValue: "Generating..." })}</>) : (<><Utensils className="w-4 h-4 mr-2" />{t("mealGenerator.generate", { defaultValue: "Generate my meal" })}</>)}
         </Button>
       </div>
-
-      {/* Generated Meal Display */}
       {generatedMeal && (
         <div className="p-4 rounded-lg bg-background/40 border border-primary/20 space-y-3 animate-fade-in">
-          <div className="flex items-center gap-2">
-            {getCategoryIcon()}
-            <h4 className="font-bold text-lg">{generatedMeal.name}</h4>
-          </div>
-          
+          <div className="flex items-center gap-2">{getCategoryIcon()}<h4 className="font-bold text-lg">{generatedMeal.name}</h4></div>
           <p className="text-sm text-muted-foreground">{generatedMeal.description}</p>
-
           <div className="flex gap-2 flex-wrap">
-            <Badge className="bg-primary/20 text-primary border-primary/30">
-              P: {generatedMeal.macros.protein}g
-            </Badge>
-            <Badge className="bg-accent/20 text-accent border-accent/30">
-              G: {generatedMeal.macros.carbs}g
-            </Badge>
-            <Badge className="bg-secondary/20 text-secondary border-secondary/30">
-              L: {generatedMeal.macros.fats}g
-            </Badge>
-            <Badge className="bg-muted/50 border-muted">
-              {generatedMeal.macros.calories} kcal
-            </Badge>
+            <Badge className="bg-primary/20 text-primary border-primary/30">P: {generatedMeal.macros.protein}g</Badge>
+            <Badge className="bg-accent/20 text-accent border-accent/30">G: {generatedMeal.macros.carbs}g</Badge>
+            <Badge className="bg-secondary/20 text-secondary border-secondary/30">L: {generatedMeal.macros.fats}g</Badge>
+            <Badge className="bg-muted/50 border-muted">{generatedMeal.macros.calories} kcal</Badge>
           </div>
-
           {generatedMeal.ingredients && (
             <div>
-              <p className="text-xs font-semibold mb-1">Ingrédients :</p>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                {generatedMeal.ingredients.map((ing, i) => (
-                  <li key={i}>• {ing}</li>
-                ))}
-              </ul>
+              <p className="text-xs font-semibold mb-1">{t("mealGenerator.ingredients", { defaultValue: "Ingredients:" })}</p>
+              <ul className="text-xs text-muted-foreground space-y-1">{generatedMeal.ingredients.map((ing, i) => (<li key={i}>• {ing}</li>))}</ul>
             </div>
           )}
-
           {generatedMeal.instructions && (
             <div>
-              <p className="text-xs font-semibold mb-1">Instructions :</p>
-              <ol className="text-xs text-muted-foreground space-y-1">
-                {generatedMeal.instructions.map((inst, i) => (
-                  <li key={i}>{i + 1}. {inst}</li>
-                ))}
-              </ol>
+              <p className="text-xs font-semibold mb-1">{t("mealGenerator.instructions", { defaultValue: "Instructions:" })}</p>
+              <ol className="text-xs text-muted-foreground space-y-1">{generatedMeal.instructions.map((inst, i) => (<li key={i}>{i + 1}. {inst}</li>))}</ol>
             </div>
           )}
         </div>

@@ -21,7 +21,7 @@ import { TrainingSkeleton } from "@/components/LoadingSkeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { getDateLocale } from "@/lib/dateLocale";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -51,10 +51,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTranslation } from "react-i18next";
 
 const Training = () => {
+  const { t, i18n } = useTranslation("training");
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const dateLocale = getDateLocale(i18n.language);
   const {
     loading,
     isGenerating,
@@ -81,10 +84,8 @@ const Training = () => {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isReady, setIsReady] = useState(false);
 
-  // Wait for data to be fully loaded before showing content
   useEffect(() => {
     if (!loading) {
-      // Small delay to ensure smooth transition
       const timer = setTimeout(() => setIsReady(true), 100);
       return () => clearTimeout(timer);
     }
@@ -92,26 +93,10 @@ const Training = () => {
   }, [loading]);
 
   const generatingSteps = [
-    {
-      icon: Brain,
-      text: "Analyse de ton profil et objectifs",
-      subtext: "Récupération de tes données...",
-    },
-    {
-      icon: Target,
-      text: "Sélection des meilleurs exercices",
-      subtext: "Adaptation à ton niveau...",
-    },
-    {
-      icon: Sparkles,
-      text: "Personnalisation intelligente",
-      subtext: "Optimisation des séries et répétitions...",
-    },
-    {
-      icon: Dumbbell,
-      text: "Création de tes séances sur mesure",
-      subtext: "Finalisation du programme...",
-    },
+    { icon: Brain, text: t("generatingOverlay.step1"), subtext: t("generatingOverlay.step1sub") },
+    { icon: Target, text: t("generatingOverlay.step2"), subtext: t("generatingOverlay.step2sub") },
+    { icon: Sparkles, text: t("generatingOverlay.step3"), subtext: t("generatingOverlay.step3sub") },
+    { icon: Dumbbell, text: t("generatingOverlay.step4"), subtext: t("generatingOverlay.step4sub") },
   ];
 
   // Animate progress when generating
@@ -179,7 +164,6 @@ const Training = () => {
 
   const handleFeedbackComplete = async () => {
     setShowFeedbackModal(false);
-    // Refresh data to show newly generated sessions
     await refreshData();
   };
 
@@ -200,12 +184,7 @@ const Training = () => {
   }
 
   return (
-    <div
-      className={cn(
-        "min-h-screen bg-background pb-24 transition-opacity duration-300",
-        isReady ? "opacity-100" : "opacity-0",
-      )}
-    >
+    <div className={cn("min-h-screen bg-background pb-24 transition-opacity duration-300", isReady ? "opacity-100" : "opacity-0")}>
       {/* Enhanced Generating Overlay */}
       {isGenerating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
@@ -227,12 +206,10 @@ const Training = () => {
             </div>
 
             <h3 className="text-2xl text-center font-bold max-w-fit text-center mb-2 mx-auto">
-              Création de ton programme
+              {t("generatingOverlay.title")}
             </h3>
 
-            <p className="text-muted-foreground text-sm mb-8">
-              L'IA analyse tes objectifs pour créer le programme parfait
-            </p>
+            <p className="text-muted-foreground text-sm mb-8">{t("generatingOverlay.subtitle")}</p>
 
             {/* Steps list */}
             <div className="space-y-3 mb-8 text-left">
@@ -297,7 +274,7 @@ const Training = () => {
             <div className="space-y-2">
               <Progress value={generatingProgress} className="h-2" />
               <p className="text-xs text-muted-foreground">
-                Quelques secondes...
+                {t("generatingOverlay.wait")}
               </p>
             </div>
           </Card>
@@ -318,7 +295,7 @@ const Training = () => {
               <h1
                 className={`${isMobile ? "text-2xl" : "text-3xl"} font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent`}
               >
-                Mes Entraînements
+                {t("title")}
               </h1>
             </div>
             <TooltipProvider>
@@ -331,16 +308,11 @@ const Training = () => {
                     onClick={() => navigate("/settings/training-program")}
                   >
                     <SettingsIcon className="w-5 h-5" />
-                    {isMobile && (
-                      <span className="ml-2">Modifier mes préférences</span>
-                    )}
+                    {isMobile && <span className="ml-2">{t("modifyPreferences")}</span>}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>
-                    Pour modifier tes préférences (fréquence, durée), va dans
-                    Paramètres
-                  </p>
+                  <p>{t("preferencesTooltip")}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -354,13 +326,8 @@ const Training = () => {
                   <TrendingUp className="w-5 h-5 text-green-500" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm">
-                    Bravo, semaine complétée ! 🎉
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Tu as terminé toutes tes séances. Continue sur cette lancée
-                    !
-                  </p>
+                  <p className="font-semibold text-sm">{t("weekComplete")}</p>
+                  <p className="text-xs text-muted-foreground">{t("weekCompleteDesc")}</p>
                 </div>
               </div>
             </Card>
@@ -374,13 +341,8 @@ const Training = () => {
                   <AlertCircle className="w-5 h-5 text-yellow-500" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm">
-                    Check-in hebdomadaire requis
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    2 minutes pour faire le point et débloquer ta prochaine
-                    semaine d'entraînement.
-                  </p>
+                  <p className="font-semibold text-sm">{t("checkinRequired")}</p>
+                  <p className="text-xs text-muted-foreground">{t("checkinRequiredDesc")}</p>
                 </div>
               </div>
               <Button
@@ -389,7 +351,7 @@ const Training = () => {
                 className="mt-3 w-full bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20"
                 onClick={() => setShowFeedbackModal(true)}
               >
-                Faire mon check-in →
+                {t("doCheckin")}
               </Button>
             </Card>
           )}
@@ -429,11 +391,11 @@ const Training = () => {
             <>
               <EmptyState
                 icon={Dumbbell}
-                title="Aucune séance cette semaine"
+                title={t("noSessions")}
                 description={
                   currentWeek === 0
-                    ? "Génère ton programme hebdomadaire pour commencer tes entraînements"
-                    : "Cette semaine n'a pas encore été générée"
+                    ? t("noSessionsDesc")
+                    : t("noSessionsHistoryDesc")
                 }
               />
               {currentWeek === 0 && !needsCheckIn && (
@@ -442,7 +404,7 @@ const Training = () => {
                     <>
                       <Loader2 className="w-8 h-8 animate-spin text-primary" />
                       <p className="text-muted-foreground text-sm">
-                        Génération de ton programme...
+                        {t("generating")}
                       </p>
                     </>
                   ) : (
@@ -452,7 +414,7 @@ const Training = () => {
                       size={isMobile ? "default" : "lg"}
                       className="rounded-xl bg-gradient-to-r from-primary to-secondary"
                     >
-                      Générer mon programme
+                      {t("generateProgram")}
                     </Button>
                   )}
                 </div>
@@ -473,7 +435,7 @@ const Training = () => {
               >
                 <div className="flex items-center gap-2">
                   <BarChart3 className="w-5 h-5 text-primary" />
-                  <span>Progression & Historique</span>
+                  <span>{t("progressionHistory")}</span>
                 </div>
                 <ChevronDown
                   className={cn(
@@ -491,7 +453,7 @@ const Training = () => {
               {historicalPrograms.length > 0 && (
                 <Card className="p-4 bg-card/50 border-white/10">
                   <h3 className="text-sm font-semibold mb-3 text-muted-foreground">
-                    Historique
+                    {i18n.language === "en" ? "History" : i18n.language === "nl" ? "Geschiedenis" : "Historique"}
                   </h3>
                   <div className="space-y-2">
                     {historicalPrograms.slice(0, 4).map((program) => (
@@ -501,11 +463,11 @@ const Training = () => {
                       >
                         <span>
                           {format(new Date(program.week_start_date), "dd MMM", {
-                            locale: fr,
+                            locale: dateLocale,
                           })}{" "}
                           -{" "}
                           {format(new Date(program.week_end_date), "dd MMM", {
-                            locale: fr,
+                            locale: dateLocale,
                           })}
                         </span>
                         <span className="text-muted-foreground">
@@ -534,16 +496,12 @@ const Training = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Régénérer cette semaine ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Les séances non complétées seront supprimées.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{i18n.language === "en" ? "Regenerate this week?" : i18n.language === "nl" ? "Deze week opnieuw genereren?" : "Régénérer cette semaine ?"}</AlertDialogTitle>
+            <AlertDialogDescription>{i18n.language === "en" ? "Uncompleted sessions will be deleted." : i18n.language === "nl" ? "Niet-voltooide sessies worden verwijderd." : "Les séances non complétées seront supprimées."}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRegenerate}>
-              Régénérer
-            </AlertDialogAction>
+            <AlertDialogCancel>{t("common:common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRegenerate}>{i18n.language === "en" ? "Regenerate" : i18n.language === "nl" ? "Opnieuw genereren" : "Régénérer"}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

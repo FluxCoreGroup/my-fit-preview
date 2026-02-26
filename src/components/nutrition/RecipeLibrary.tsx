@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Search, ChevronDown, Clock, Flame } from "lucide-react";
 import { recipes, Recipe } from "@/data/recipes";
+import { useTranslation } from "react-i18next";
 
 export const RecipeLibrary = () => {
+  const { t } = useTranslation("nutrition");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -20,48 +22,23 @@ export const RecipeLibrary = () => {
 
   return (
     <Card className="p-4 bg-card/50 backdrop-blur-xl border-border/50">
-      <h3 className="text-sm font-bold mb-3">Bibliothèque de recettes</h3>
-      
+      <h3 className="text-sm font-bold mb-3">{t("recipeLibrary.title", { defaultValue: "Recipe library" })}</h3>
       <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher une recette..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8 h-9 text-sm"
-          />
+          <Input placeholder={t("recipeLibrary.search", { defaultValue: "Search a recipe..." })} value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-9 text-sm" />
         </div>
-
         <div className="flex gap-1 flex-wrap">
-          <Badge
-            variant={selectedCategory === null ? "default" : "outline"}
-            className="cursor-pointer text-xs"
-            onClick={() => setSelectedCategory(null)}
-          >
-            Tous
+          <Badge variant={selectedCategory === null ? "default" : "outline"} className="cursor-pointer text-xs" onClick={() => setSelectedCategory(null)}>
+            {t("recipeLibrary.all", { defaultValue: "All" })}
           </Badge>
           {categories.map(cat => (
-            <Badge
-              key={cat}
-              variant={selectedCategory === cat ? "default" : "outline"}
-              className="cursor-pointer text-xs capitalize"
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat}
-            </Badge>
+            <Badge key={cat} variant={selectedCategory === cat ? "default" : "outline"} className="cursor-pointer text-xs capitalize" onClick={() => setSelectedCategory(cat)}>{cat}</Badge>
           ))}
         </div>
-
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {filtered.map(recipe => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
-          ))}
-          {filtered.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-4">
-              Aucune recette trouvée
-            </p>
-          )}
+          {filtered.map(recipe => (<RecipeCard key={recipe.id} recipe={recipe} />))}
+          {filtered.length === 0 && <p className="text-xs text-muted-foreground text-center py-4">{t("recipeLibrary.noResults", { defaultValue: "No recipe found" })}</p>}
         </div>
       </div>
     </Card>
@@ -69,6 +46,7 @@ export const RecipeLibrary = () => {
 };
 
 const RecipeCard = ({ recipe }: { recipe: Recipe }) => {
+  const { t } = useTranslation("nutrition");
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -79,67 +57,35 @@ const RecipeCard = ({ recipe }: { recipe: Recipe }) => {
             <div className="text-left flex-1">
               <h4 className="font-semibold text-xs">{recipe.name}</h4>
               <div className="flex gap-2 mt-1 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1 min-w-fit">
-                  <Clock className="h-3 w-3" />
-                  {recipe.prepTime}min
-                </span>
-                <span className="flex items-center gap-1 min-w-fit">
-                  <Flame className="h-3 w-3" />
-                  {recipe.kcal}kcal
-                </span>
+                <span className="flex items-center gap-1 min-w-fit"><Clock className="h-3 w-3" />{recipe.prepTime}min</span>
+                <span className="flex items-center gap-1 min-w-fit"><Flame className="h-3 w-3" />{recipe.kcal}kcal</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex gap-2 items-center">
-                <Badge className="text-xs bg-primary/20 text-primary border-primary/30">
-                  P: {recipe.protein}g
-                </Badge>
-                <Badge className="text-xs bg-accent/20 text-accent border-accent/30">
-                  G: {recipe.carbs}g
-                </Badge>
-                <Badge className="text-xs bg-secondary/20 text-secondary border-secondary/30">
-                  L: {recipe.fats}g
-                </Badge>
+                <Badge className="text-xs bg-primary/20 text-primary border-primary/30">P: {recipe.protein}g</Badge>
+                <Badge className="text-xs bg-accent/20 text-accent border-accent/30">G: {recipe.carbs}g</Badge>
+                <Badge className="text-xs bg-secondary/20 text-secondary border-secondary/30">L: {recipe.fats}g</Badge>
               </div>
               <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
             </div>
           </div>
         </div>
       </CollapsibleTrigger>
-      
       <CollapsibleContent>
         <div className="mt-2 p-3 rounded-lg bg-background/30 border border-border/30 space-y-2">
           <div className="grid grid-cols-3 gap-2 text-xs text-center">
-            <div>
-              <div className="font-semibold text-primary">{recipe.protein}g</div>
-              <div className="text-muted-foreground">Protéines</div>
-            </div>
-            <div>
-              <div className="font-semibold text-accent">{recipe.carbs}g</div>
-              <div className="text-muted-foreground">Glucides</div>
-            </div>
-            <div>
-              <div className="font-semibold text-secondary">{recipe.fats}g</div>
-              <div className="text-muted-foreground">Lipides</div>
-            </div>
+            <div><div className="font-semibold text-primary">{recipe.protein}g</div><div className="text-muted-foreground">{t("proteins")}</div></div>
+            <div><div className="font-semibold text-accent">{recipe.carbs}g</div><div className="text-muted-foreground">{t("carbs")}</div></div>
+            <div><div className="font-semibold text-secondary">{recipe.fats}g</div><div className="text-muted-foreground">{t("fats")}</div></div>
           </div>
-          
           <div>
-            <p className="text-xs font-semibold mb-1">Ingrédients :</p>
-            <ul className="text-xs text-muted-foreground space-y-0.5">
-              {recipe.ingredients.map((ing, i) => (
-                <li key={i}>• {ing}</li>
-              ))}
-            </ul>
+            <p className="text-xs font-semibold mb-1">{t("mealGenerator.ingredients", { defaultValue: "Ingredients:" })}</p>
+            <ul className="text-xs text-muted-foreground space-y-0.5">{recipe.ingredients.map((ing, i) => (<li key={i}>• {ing}</li>))}</ul>
           </div>
-          
           <div>
-            <p className="text-xs font-semibold mb-1">Préparation :</p>
-            <ol className="text-xs text-muted-foreground space-y-0.5">
-              {recipe.instructions.map((step, i) => (
-                <li key={i}>{i + 1}. {step}</li>
-              ))}
-            </ol>
+            <p className="text-xs font-semibold mb-1">{t("recipeLibrary.preparation", { defaultValue: "Preparation:" })}</p>
+            <ol className="text-xs text-muted-foreground space-y-0.5">{recipe.instructions.map((step, i) => (<li key={i}>{i + 1}. {step}</li>))}</ol>
           </div>
         </div>
       </CollapsibleContent>

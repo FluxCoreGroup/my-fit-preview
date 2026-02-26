@@ -2,8 +2,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Home, MessageSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const NotFound = () => {
+  const { t } = useTranslation("common");
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -19,32 +21,13 @@ const NotFound = () => {
             <AlertCircle className="w-16 h-16 text-destructive" />
           </div>
         </div>
-        
         <div className="space-y-2">
           <h1 className="text-6xl font-bold text-foreground">404</h1>
-          <p className="text-xl text-muted-foreground">
-            Oups, tu n'es pas sensé arriver là
-          </p>
+          <p className="text-xl text-muted-foreground">{t("notFound.description")}</p>
         </div>
-
         <div className="flex flex-col sm:flex-row gap-3 pt-4">
-          <Button 
-            onClick={() => navigate("/")}
-            className="flex-1"
-            size="lg"
-          >
-            <Home className="mr-2" />
-            Retour à l'accueil
-          </Button>
-          
-          <Button 
-            onClick={() => navigate("/support")}
-            variant="outline"
-            className="flex-1"
-            size="lg"
-          >
-            <MessageSquare className="mr-2" />
-            Signaler aux staffs
+          <Button onClick={() => navigate("/")} className="flex-1" size="lg">
+            <Home className="mr-2" />{t("notFound.backHome")}
           </Button>
         </div>
       </div>
