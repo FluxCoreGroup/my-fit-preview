@@ -2,6 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Sparkles, Share2, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 interface PostWorkoutShareModalProps {
   open: boolean;
@@ -29,95 +30,63 @@ export const PostWorkoutShareModal = ({
   durationSeconds = 0,
 }: PostWorkoutShareModalProps) => {
   const { toast } = useToast();
+  const { t } = useTranslation("training");
 
-  const durationLine =
-    durationSeconds > 0
-      ? ` en ${formatDuration(durationSeconds)}`
-      : "";
+  const durationLine = durationSeconds > 0 ? ` ${t("share.in")} ${formatDuration(durationSeconds)}` : "";
 
   const shareText =
-    `🏋️ Séance validée.\n\n` +
-    `${setsCompleted} séries réalisées${durationLine}.\n\n` +
-    `Une de plus vers l'objectif.\n` +
-    `Qui s'entraîne aujourd'hui ?\n\n` +
+    `🏋️ ${t("share.sessionValidated")}\n\n` +
+    `${setsCompleted} ${t("share.setsCompleted")}${durationLine}.\n\n` +
+    `${t("share.oneMoreToGoal")}\n` +
+    `${t("share.whoTrainsToday")}\n\n` +
     `👉 https://www.pulse-ai.app`;
 
   const handleShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({
-          title: "Ma séance Pulse.ai",
-          text: shareText,
-          url: "https://www.pulse-ai.app",
-        });
+        await navigator.share({ title: t("share.shareTitle"), text: shareText, url: "https://www.pulse-ai.app" });
         onClose();
-      } catch {
-        // user cancelled share sheet
-      }
+      } catch { /* cancelled */ }
     } else {
       try {
         await navigator.clipboard.writeText(shareText);
-        toast({
-          title: "Copié !",
-          description: "Colle ton message sur tes réseaux sociaux 💪",
-        });
+        toast({ title: t("share.copied"), description: t("share.copiedDesc") });
         onClose();
       } catch {
-        toast({
-          title: "Erreur",
-          description: "Impossible de copier le texte.",
-          variant: "destructive",
-        });
+        toast({ title: t("share.error"), description: t("share.copyError"), variant: "destructive" });
       }
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent
-        withClose={false}
-        className="max-w-sm bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 p-0"
-      >
-        {/* Header */}
+      <DialogContent withClose={false} className="max-w-sm bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 p-0">
         <div className="bg-gradient-to-r from-primary/20 to-secondary/20 px-6 py-5 flex flex-col items-center gap-1 rounded-t-lg">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            <DialogTitle className="text-lg font-bold">Séance enregistrée !</DialogTitle>
+            <DialogTitle className="text-lg font-bold">{t("share.sessionSaved")}</DialogTitle>
             <Sparkles className="w-5 h-5 text-secondary" />
           </div>
           <DialogHeader>
             <DialogDescription className="text-center text-muted-foreground text-sm">
-              Partage ta progression avec ta communauté 🚀
+              {t("share.shareProgress")}
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="px-6 pb-6 pt-4 space-y-4">
-          {/* Preview du texte */}
           <div className="bg-muted/40 border border-border/40 rounded-xl p-4 space-y-1">
-            <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">
-              Aperçu du message
-            </p>
-            <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">
-              {shareText}
-            </pre>
+            <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">{t("share.preview")}</p>
+            <pre className="text-sm text-foreground whitespace-pre-wrap font-sans leading-relaxed">{shareText}</pre>
           </div>
 
-          {/* Boutons */}
-          <Button
-            onClick={handleShare}
-            className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity rounded-xl py-5 text-base font-semibold shadow-lg shadow-primary/20"
-          >
+          <Button onClick={handleShare} className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity rounded-xl py-5 text-base font-semibold shadow-lg shadow-primary/20">
             <Share2 className="w-4 h-4 mr-2" />
-            Partager ma séance
+            {t("share.shareSession")}
           </Button>
 
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            className="w-full text-muted-foreground hover:text-foreground"
-          >
-            Continuer sans partager
+          <Button variant="ghost" onClick={onClose} className="w-full text-muted-foreground hover:text-foreground">
+            {t("share.continueWithout")}
             <ArrowRight className="w-4 h-4 ml-1" />
           </Button>
         </div>

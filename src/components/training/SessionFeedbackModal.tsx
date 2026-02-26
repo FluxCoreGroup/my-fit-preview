@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Smile, Meh, Frown, Angry, HelpCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PostWorkoutShareModal } from "@/components/training/PostWorkoutShareModal";
+import { useTranslation } from "react-i18next";
 
 interface SessionFeedbackModalProps {
   open: boolean;
@@ -35,6 +36,7 @@ export const SessionFeedbackModal = ({
   totalSets,
   durationSeconds = 0,
 }: SessionFeedbackModalProps) => {
+  const { t } = useTranslation("training");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -46,24 +48,23 @@ export const SessionFeedbackModal = ({
   const [savedDifficulty, setSavedDifficulty] = useState<string>("");
 
   const difficultyOptions = [
-    { value: 1, icon: Smile, label: "Facile", color: "text-green-500" },
-    { value: 2, icon: Meh, label: "Modéré", color: "text-yellow-500" },
-    { value: 3, icon: Frown, label: "Dur", color: "text-orange-500" },
-    { value: 4, icon: Angry, label: "Très dur", color: "text-red-500" },
+    { value: 1, icon: Smile, label: t("feedback.easy"), color: "text-green-500" },
+    { value: 2, icon: Meh, label: t("feedback.moderate"), color: "text-yellow-500" },
+    { value: 3, icon: Frown, label: t("feedback.hard"), color: "text-orange-500" },
+    { value: 4, icon: Angry, label: t("feedback.veryHard"), color: "text-red-500" },
   ];
 
-  // Show adjustment hint based on RPE
   const getRpeHint = (rpeVal: number) => {
-    if (rpeVal >= 9) return "💡 RPE élevé détecté — ta prochaine séance sera automatiquement allégée.";
-    if (rpeVal <= 5) return "💡 Séance facile — tu peux progresser sur la prochaine.";
+    if (rpeVal >= 9) return t("feedback.rpeHintHigh");
+    if (rpeVal <= 5) return t("feedback.rpeHintLow");
     return null;
   };
 
   const handleSubmit = async () => {
     if (!user || difficulty === null) {
       toast({
-        title: "Erreur",
-        description: "Merci de sélectionner une difficulté",
+        title: t("feedback.error"),
+        description: t("feedback.selectDifficulty"),
         variant: "destructive"
       });
       return;
@@ -72,7 +73,6 @@ export const SessionFeedbackModal = ({
     setIsSubmitting(true);
 
     try {
-      // Save feedback (satisfaction column removed — not in DB)
       await supabase.from('feedback').insert({
         user_id: user.id,
         session_id: sessionId,
@@ -81,7 +81,6 @@ export const SessionFeedbackModal = ({
         comments: comments || null
       });
 
-      // Save exercise logs with weights
       if (exerciseLogs.length > 0) {
         await supabase.from('exercise_logs').insert(
           exerciseLogs.map(log => ({
@@ -96,8 +95,8 @@ export const SessionFeedbackModal = ({
       }
 
       toast({
-        title: "🎉 Bravo !",
-        description: "Ta séance a été enregistrée avec succès.",
+        title: t("feedback.successTitle"),
+        description: t("feedback.successDesc"),
       });
 
       setSavedDifficulty(difficultyOptions.find(d => d.value === difficulty)?.label || "");
@@ -105,8 +104,8 @@ export const SessionFeedbackModal = ({
     } catch (error) {
       console.error("Error saving feedback:", error);
       toast({
-        title: "Erreur",
-        description: "Impossible de sauvegarder le feedback",
+        title: t("feedback.error"),
+        description: t("feedback.saveError"),
         variant: "destructive"
       });
     } finally {
@@ -120,24 +119,22 @@ export const SessionFeedbackModal = ({
     <>
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent withClose={false} className="max-w-md bg-gradient-to-br from-card to-card/95 backdrop-blur-xl border-border/20 p-0 max-h-screen">
-        {/* Header with gradient accent */}
         <div className="bg-gradient-to-r from-primary/20 to-secondary/20 px-6 h-24 flex flex-col justify-center items-center">
           <DialogHeader className="space-y-1">
             <div className="flex items-center gap-2 mx-auto">
               <Sparkles className="w-4 h-4 text-primary" />
-              <DialogTitle className="text-lg">Séance terminée !</DialogTitle>
+              <DialogTitle className="text-lg">{t("feedback.sessionDone")}</DialogTitle>
             </div>
             <DialogDescription className="text-muted-foreground text-sm">
-              Bravo, tu as tout donné 💪
+              {t("feedback.congrats")}
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="px-6 pb-6 space-y-4">
-          {/* RPE Section */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <label className="text-base font-semibold">Effort ressenti (RPE)</label>
+              <label className="text-base font-semibold">{t("feedback.rpeLabel")}</label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -146,41 +143,29 @@ export const SessionFeedbackModal = ({
                   <TooltipContent side="top" className="max-w-xs border-border">
                     <p className="font-medium mb-1">Rate of Perceived Exertion</p>
                     <p className="text-xs text-muted-foreground">
-                      Échelle de 1 à 10 mesurant l'intensité ressentie.<br />
-                      <span className="text-primary">6-7</span> = modéré, <span className="text-primary">8</span> = difficile, <span className="text-primary">9-10</span> = maximal
+                      {t("feedback.rpeTooltip")}
                     </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </div>
             <div className="space-y-3 bg-muted/30 rounded-xl p-4">
-              <Slider
-                value={rpe}
-                onValueChange={setRpe}
-                min={1}
-                max={10}
-                step={1}
-                className="w-full"
-              />
+              <Slider value={rpe} onValueChange={setRpe} min={1} max={10} step={1} className="w-full" />
               <div className="flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">Facile</span>
+                <span className="text-xs text-muted-foreground">{t("feedback.easy")}</span>
                 <span className="text-2xl font-bold text-primary">{rpe[0]}</span>
-                <span className="text-xs text-muted-foreground">Maximal</span>
+                <span className="text-xs text-muted-foreground">{t("feedback.maximal")}</span>
               </div>
             </div>
-            {/* Immediate adjustment hint */}
             {rpeHint && (
-              <p className="text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
-                {rpeHint}
-              </p>
+              <p className="text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">{rpeHint}</p>
             )}
           </div>
 
           <Separator className="bg-border/50" />
 
-          {/* Difficulty Section */}
           <div className="space-y-3">
-            <label className="text-base font-semibold block">Comment c'était ?</label>
+            <label className="text-base font-semibold block">{t("feedback.howWasIt")}</label>
             <div className="grid grid-cols-4 gap-2">
               {difficultyOptions.map((option) => {
                 const Icon = option.icon;
@@ -191,9 +176,7 @@ export const SessionFeedbackModal = ({
                     variant="outline"
                     className={cn(
                       "flex flex-col h-auto py-3 transition-all border-2",
-                      isSelected 
-                        ? "border-primary bg-primary/10 shadow-md" 
-                        : "border-border/50 hover:border-primary/50 hover:bg-primary/5"
+                      isSelected ? "border-primary bg-primary/10 shadow-md" : "border-border/50 hover:border-primary/50 hover:bg-primary/5"
                     )}
                     onClick={() => setDifficulty(option.value)}
                   >
@@ -207,13 +190,10 @@ export const SessionFeedbackModal = ({
 
           <Separator className="bg-border/50" />
 
-          {/* Comments Section */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-muted-foreground block">
-              Commentaires (optionnel)
-            </label>
+            <label className="text-sm font-medium text-muted-foreground block">{t("feedback.commentsLabel")}</label>
             <Textarea
-              placeholder="Ressenti général, difficultés, remarques..."
+              placeholder={t("feedback.commentsPlaceholder")}
               value={comments}
               onChange={(e) => setComments(e.target.value)}
               rows={3}
@@ -221,13 +201,12 @@ export const SessionFeedbackModal = ({
             />
           </div>
 
-          {/* Submit Button */}
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || difficulty === null}
             className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity rounded-xl py-6 text-base font-semibold shadow-lg shadow-primary/20"
           >
-            {isSubmitting ? "Enregistrement..." : "Enregistrer et retourner au Hub"}
+            {isSubmitting ? t("feedback.saving") : t("feedback.saveAndReturn")}
           </Button>
         </div>
       </DialogContent>

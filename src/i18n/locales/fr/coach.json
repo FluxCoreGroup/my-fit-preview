@@ -26,19 +26,21 @@
     "julieDesc": "Je vous accompagne dans vos choix alimentaires, vos plans repas et votre équilibre nutritionnel."
   },
   "welcome": {
-    "greeting": "Salut, je suis {{name}} 👋",
-    "startWith": "Commencez par une de ces questions"
+    "greeting": "Salut, je suis {{name}}",
+    "startWith": "Commencez par une de ces questions",
+    "online": "En ligne"
   },
+  "alex": { "role": "Coach Sportif" },
+  "julie": { "role": "Nutritionniste" },
   "header": {
     "online": "En ligne"
   },
   "conversations": {
-    "newConversation": "Nouvelle conversation",
+    "new": "Nouvelle conversation",
+    "count": "{{count}} conversation(s)",
     "pinned": "Épinglées",
-    "noConversations": "Aucune conversation",
-    "createNew": "Créez-en une nouvelle pour commencer",
-    "count": "{{count}} conversation",
-    "countPlural": "{{count}} conversations",
+    "empty": "Aucune conversation",
+    "emptyHint": "Créez-en une nouvelle pour commencer",
     "rename": "Renommer",
     "pin": "Épingler",
     "unpin": "Désépingler",
@@ -52,12 +54,12 @@
     "trainingSessions": "Tes séances d'entraînement",
     "goalsSettings": "Tes objectifs et paramètres",
     "weeklyCheckins": "Tes check-ins hebdomadaires",
-    "accept": "Autoriser",
+    "authorize": "Autoriser",
     "decline": "Répondre sans mes données"
   },
   "dataSources": {
     "title": "Données consultées",
-    "subtitle": "Ces données ont été utilisées pour la réponse",
+    "description": "Ces données ont été utilisées pour la réponse",
     "weightHistory": "Historique poids",
     "recentSessions": "Séances récentes",
     "checkinStats": "Statistiques check-in",
