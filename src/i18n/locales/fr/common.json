@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "training": "Entraînements",
+    "nutrition": "Nutrition",
+    "support": "Support",
+    "settings": "Paramètres",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "admin": "Admin",
+    "back": "Retour",
+    "goToHub": "Aller au Hub",
+    "takeQuiz": "Faire le quiz",
+    "tryNow": "Essayer maintenant",
+    "startFree": "Commencer gratuitement"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "yes": "Oui",
+    "no": "Non",
+    "minutes": "min",
+    "preferenceUpdated": "Préférence mise à jour",
+    "updateError": "Erreur lors de la mise à jour"
+  },
+  "language": {
+    "fr": "Français",
+    "en": "English",
+    "nl": "Nederlands"
+  }
+}

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
-import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, ArrowRight, ShieldCheck } from "lucide-react";
+import { Dumbbell, ArrowLeft, LogOut, Settings, Menu, ArrowRight, ShieldCheck, Globe } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -11,7 +11,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface HeaderProps {
   variant?: "marketing" | "onboarding" | "app";
@@ -23,13 +30,19 @@ interface HeaderProps {
   onNext?: () => void;
 }
 
-export const Header = ({ variant = "marketing", showBack = false, backLabel = "Retour", onBack, hideAuthButton = false, disableNavigation = false, onNext }: HeaderProps) => {
+const LANGUAGES = [
+  { code: "fr", label: "FR" },
+  { code: "en", label: "EN" },
+  { code: "nl", label: "NL" },
+];
+
+export const Header = ({ variant = "marketing", showBack = false, backLabel, onBack, hideAuthButton = false, disableNavigation = false, onNext }: HeaderProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  // Moved to top level (required — no hooks after conditional returns)
   const [scrolled, setScrolled] = useState(false);
   const { isAdmin } = useAdminRole();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -47,7 +60,33 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
-  // Header App (pour dashboard, session, etc.)
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
+  const LanguageSelector = ({ className }: { className?: string }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className={className}>
+          <Globe className="w-4 h-4 mr-1" />
+          {i18n.language?.substring(0, 2).toUpperCase() || "FR"}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {LANGUAGES.map((lang) => (
+          <DropdownMenuItem
+            key={lang.code}
+            onClick={() => changeLanguage(lang.code)}
+            className={cn(i18n.language?.startsWith(lang.code) && "font-bold text-primary")}
+          >
+            {t(`language.${lang.code}`)}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
+  // Header App
   if (variant === "app") {
     return (
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
@@ -59,28 +98,28 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
 
           <nav className="hidden md:flex items-center gap-6">
             <Link to="/hub" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Dashboard
+              {t("nav.dashboard")}
             </Link>
             <Link to="/training" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Entraînements
+              {t("nav.training")}
             </Link>
             <Link to="/nutrition" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Nutrition
+              {t("nav.nutrition")}
             </Link>
             <Link to="/settings/support" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Support
+              {t("nav.support")}
             </Link>
             {isAdmin && (
               <Link to="/admin" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                Admin
+                {t("nav.admin")}
               </Link>
             )}
           </nav>
 
           <div className="flex items-center gap-2">
-            {/* Desktop actions */}
             <div className="hidden md:flex items-center gap-2">
+              <LanguageSelector />
               <Link to="/settings">
                 <Button variant="ghost" size="sm">
                   <Settings className="w-4 h-4" />
@@ -91,7 +130,6 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
               </Button>
             </div>
 
-            {/* Mobile menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="sm">
@@ -106,59 +144,33 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col gap-4 mt-8">
-                  <Link 
-                    to="/hub" 
-                    onClick={closeMobileMenu}
-                    className="text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Dashboard
+                  <Link to="/hub" onClick={closeMobileMenu} className="text-lg font-medium hover:text-primary transition-colors py-2">
+                    {t("nav.dashboard")}
                   </Link>
-                  <Link 
-                    to="/training" 
-                    onClick={closeMobileMenu}
-                    className="text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Entraînements
+                  <Link to="/training" onClick={closeMobileMenu} className="text-lg font-medium hover:text-primary transition-colors py-2">
+                    {t("nav.training")}
                   </Link>
-                  <Link 
-                    to="/nutrition" 
-                    onClick={closeMobileMenu}
-                    className="text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Nutrition
+                  <Link to="/nutrition" onClick={closeMobileMenu} className="text-lg font-medium hover:text-primary transition-colors py-2">
+                    {t("nav.nutrition")}
                   </Link>
-                  <Link 
-                    to="/settings/support" 
-                    onClick={closeMobileMenu}
-                    className="text-lg font-medium hover:text-primary transition-colors py-2"
-                  >
-                    Support
+                  <Link to="/settings/support" onClick={closeMobileMenu} className="text-lg font-medium hover:text-primary transition-colors py-2">
+                    {t("nav.support")}
                   </Link>
                   {isAdmin && (
-                    <Link 
-                      to="/admin" 
-                      onClick={closeMobileMenu}
-                      className="text-lg font-medium text-primary hover:text-primary/80 transition-colors py-2 flex items-center gap-2"
-                    >
+                    <Link to="/admin" onClick={closeMobileMenu} className="text-lg font-medium text-primary hover:text-primary/80 transition-colors py-2 flex items-center gap-2">
                       <ShieldCheck className="w-5 h-5" />
-                      Admin
+                      {t("nav.admin")}
                     </Link>
                   )}
                   <div className="border-t pt-4 mt-4 space-y-4">
-                    <Link 
-                      to="/settings" 
-                      onClick={closeMobileMenu}
-                      className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2"
-                    >
+                    <LanguageSelector className="w-full justify-start text-lg" />
+                    <Link to="/settings" onClick={closeMobileMenu} className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2">
                       <Settings className="w-5 h-5" />
-                      Paramètres
+                      {t("nav.settings")}
                     </Link>
-                    <button 
-                      onClick={() => { closeMobileMenu(); signOut(); }}
-                      className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2 w-full text-left"
-                    >
+                    <button onClick={() => { closeMobileMenu(); signOut(); }} className="flex items-center gap-3 text-lg font-medium hover:text-primary transition-colors py-2 w-full text-left">
                       <LogOut className="w-5 h-5" />
-                      Déconnexion
+                      {t("nav.logout")}
                     </button>
                   </div>
                 </nav>
@@ -170,7 +182,7 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
     );
   }
 
-  // Header Onboarding (pour start, preview, auth)
+  // Header Onboarding
   if (variant === "onboarding") {
     return (
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur-lg">
@@ -183,7 +195,7 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
           ) : showBack ? (
             <Button variant="ghost" size="sm" onClick={handleBack}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">{backLabel}</span>
+              <span className="hidden sm:inline">{backLabel || t("nav.back")}</span>
             </Button>
           ) : (
             <Link to="/" className="flex items-center gap-2 font-bold text-xl">
@@ -196,44 +208,20 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
             <div className="flex items-center gap-3">
               {user ? (
                 <Link to="/hub">
-                  <Button size="sm">Dashboard</Button>
+                  <Button size="sm">{t("nav.dashboard")}</Button>
                 </Link>
               ) : (
                 <Button 
                   size="icon" 
                   onClick={() => {
-                    // Si callback onNext fourni (ex: /start), l'utiliser
-                    if (onNext) {
-                      onNext();
-                      return;
-                    }
-                    
-                    // Sinon, vérifier si données onboarding complètes
+                    if (onNext) { onNext(); return; }
                     const dataStr = localStorage.getItem("onboardingData");
-                    if (!dataStr) {
-                      navigate("/start");
-                      return;
-                    }
-                    
+                    if (!dataStr) { navigate("/start"); return; }
                     try {
                       const data = JSON.parse(dataStr);
-                      // Vérifier les champs requis pour /preview
-                      const isComplete = !!(
-                        data.birthDate &&
-                        data.sex &&
-                        data.height &&
-                        data.weight &&
-                        data.goal && data.goal.length > 0 &&
-                        data.goalHorizon &&
-                        data.activityLevel &&
-                        data.frequency &&
-                        data.sessionDuration &&
-                        data.location
-                      );
+                      const isComplete = !!(data.birthDate && data.sex && data.height && data.weight && data.goal && data.goal.length > 0 && data.goalHorizon && data.activityLevel && data.frequency && data.sessionDuration && data.location);
                       navigate(isComplete ? "/preview" : "/start");
-                    } catch {
-                      navigate("/start");
-                    }
+                    } catch { navigate("/start"); }
                   }}
                   className="w-10 h-10 rounded-full gradient-hero text-primary-foreground shadow-glow hover:opacity-90 transition-all"
                 >
@@ -247,63 +235,38 @@ export const Header = ({ variant = "marketing", showBack = false, backLabel = "R
     );
   }
 
-  // Header Marketing (pour landing) - Simplifié et transparent
+  // Header Marketing
   return (
     <header className={cn(
       "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-      scrolled 
-        ? "bg-background/90 backdrop-blur-lg border-b shadow-sm" 
-        : "bg-transparent"
+      scrolled ? "bg-background/90 backdrop-blur-lg border-b shadow-sm" : "bg-transparent"
     )}>
       <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between relative">
-        {/* Logo gauche */}
         <Link to="/" className="flex items-center gap-2">
-          <Dumbbell className={cn(
-            "w-7 h-7 transition-colors duration-300",
-            scrolled ? "text-primary" : "text-primary-foreground"
-          )} />
+          <Dumbbell className={cn("w-7 h-7 transition-colors duration-300", scrolled ? "text-primary" : "text-primary-foreground")} />
         </Link>
         
-        {/* Titre centré */}
         <div className="absolute left-1/2 -translate-x-1/2">
-          <span className={cn(
-            "text-xl font-bold transition-colors duration-300",
-            scrolled ? "text-foreground" : "text-primary-foreground"
-          )}>
+          <span className={cn("text-xl font-bold transition-colors duration-300", scrolled ? "text-foreground" : "text-primary-foreground")}>
             Pulse.ai
           </span>
         </div>
         
-        {/* Bouton connexion droite */}
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          <LanguageSelector className={cn(
+            "transition-all duration-300",
+            scrolled ? "" : "text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10"
+          )} />
           {user ? (
             <Link to="/hub">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className={cn(
-                  "transition-all duration-300",
-                  scrolled 
-                    ? "" 
-                    : "border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-                )}
-              >
-                Dashboard
+              <Button variant="outline" size="sm" className={cn("transition-all duration-300", scrolled ? "" : "border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground")}>
+                {t("nav.dashboard")}
               </Button>
             </Link>
           ) : (
             <Link to="/auth">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className={cn(
-                  "transition-all duration-300",
-                  scrolled 
-                    ? "" 
-                    : "text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10"
-                )}
-              >
-                Connexion
+              <Button variant="ghost" size="sm" className={cn("transition-all duration-300", scrolled ? "" : "text-primary-foreground/90 hover:text-primary-foreground hover:bg-primary-foreground/10")}>
+                {t("nav.login")}
               </Button>
             </Link>
           )}
