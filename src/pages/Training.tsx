@@ -453,7 +453,7 @@ const Training = () => {
               {historicalPrograms.length > 0 && (
                 <Card className="p-4 bg-card/50 border-white/10">
                   <h3 className="text-sm font-semibold mb-3 text-muted-foreground">
-                    {i18n.language === "en" ? "History" : i18n.language === "nl" ? "Geschiedenis" : "Historique"}
+                    {t("history")}
                   </h3>
                   <div className="space-y-2">
                     {historicalPrograms.slice(0, 4).map((program) => (
@@ -496,12 +496,12 @@ const Training = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{i18n.language === "en" ? "Regenerate this week?" : i18n.language === "nl" ? "Deze week opnieuw genereren?" : "Régénérer cette semaine ?"}</AlertDialogTitle>
-            <AlertDialogDescription>{i18n.language === "en" ? "Uncompleted sessions will be deleted." : i18n.language === "nl" ? "Niet-voltooide sessies worden verwijderd." : "Les séances non complétées seront supprimées."}</AlertDialogDescription>
+            <AlertDialogTitle>{t("regenerateTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("regenerateDesc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common:common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRegenerate}>{i18n.language === "en" ? "Regenerate" : i18n.language === "nl" ? "Opnieuw genereren" : "Régénérer"}</AlertDialogAction>
+            <AlertDialogAction onClick={handleRegenerate}>{t("regenerateBtn")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

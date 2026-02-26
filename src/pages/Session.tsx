@@ -24,7 +24,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 const Session = () => {
-  const { t, i18n } = useTranslation("training");
+  const { t } = useTranslation("training");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -241,16 +241,16 @@ const Session = () => {
       <AlertDialog open={showTutorial} onOpenChange={setShowTutorial}>
         <AlertDialogContent className="bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl border-border/20 w-[90%] rounded-lg max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>{i18n.language === "en" ? "Welcome! 🎯" : i18n.language === "nl" ? "Welkom! 🎯" : "Bienvenue ! 🎯"}</AlertDialogTitle>
+            <AlertDialogTitle>{t("tutorial.title")}</AlertDialogTitle>
             <AlertDialogDescription className="space-y-3 text-left pt-2">
-              <p className="flex items-start gap-2"><span className="text-primary font-bold">1.</span><span>{i18n.language === "en" ? 'Click "Set complete" after each set' : i18n.language === "nl" ? 'Klik op "Set voltooid" na elke set' : 'Clique sur "Série terminée" après chaque série'}</span></p>
-              <p className="flex items-start gap-2"><span className="text-primary font-bold">2.</span><span>{i18n.language === "en" ? "You can skip rest at any time" : i18n.language === "nl" ? "Je kunt de rust op elk moment overslaan" : "Tu peux passer le repos à tout moment"}</span></p>
-              <p className="flex items-start gap-2"><span className="text-primary font-bold">3.</span><span>{i18n.language === "en" ? "Use" : i18n.language === "nl" ? "Gebruik" : "Utilise"} <Lightbulb className="w-4 h-4 inline text-primary" /> {i18n.language === "en" ? "to see tips" : i18n.language === "nl" ? "om tips te zien" : "pour voir les conseils"}</span></p>
+              <p className="flex items-start gap-2"><span className="text-primary font-bold">1.</span><span>{t("tutorial.step1")}</span></p>
+              <p className="flex items-start gap-2"><span className="text-primary font-bold">2.</span><span>{t("tutorial.step2")}</span></p>
+              <p className="flex items-start gap-2"><span className="text-primary font-bold">3.</span><span>{t("tutorial.step3")}</span></p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction onClick={() => { localStorage.setItem("firstSessionTutorial", "seen"); setShowTutorial(false); }} className="bg-gradient-to-r from-primary to-secondary w-full">
-              {i18n.language === "en" ? "Let's go!" : i18n.language === "nl" ? "Laten we beginnen!" : "C'est parti !"}
+              {t("tutorial.letsGo")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
