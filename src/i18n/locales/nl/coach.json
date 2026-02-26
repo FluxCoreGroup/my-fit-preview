@@ -4,6 +4,66 @@
   "julieRole": "Voedingsdeskundige",
   "alexShortcuts": ["Pas mijn sessie aan", "Vervang een oefening", "Hersteltips"],
   "julieShortcuts": ["Genereer een voorbeelddag", "Vervang dit gerecht", "Snelle boodschappenlijst"],
+  "chat": {
+    "loadingConversation": "Gesprek laden...",
+    "writeTo": "Schrijf naar {{name}}...",
+    "sessionExpired": "Sessie verlopen",
+    "reconnect": "Log opnieuw in om verder te gaan",
+    "notAuthenticated": "Niet geauthenticeerd",
+    "loginToContinue": "Log in om verder te gaan",
+    "error": "Fout",
+    "cannotContactCoach": "Kan de AI-coach niet bereiken",
+    "cannotCreateConversation": "Kan het gesprek niet aanmaken",
+    "cannotSavePreference": "Kan je voorkeur niet opslaan",
+    "creditsExhausted": "Tegoeden op",
+    "creditsExhaustedDesc": "Neem contact op met support voor meer info.",
+    "subscriptionRequired": "Abonnement vereist",
+    "tooManyRequests": "Te veel verzoeken",
+    "tooManyRequestsDesc": "Probeer het zo opnieuw.",
+    "alexRole": "Sportcoach",
+    "alexDesc": "Ik help je bij het plannen van je trainingen, het aanpassen van je oefeningen en het bereiken van je fitnessdoelen.",
+    "julieRole": "Voedingsdeskundige",
+    "julieDesc": "Ik help je met je voedingskeuzes, maaltijdplannen en voedingsbalans."
+  },
+  "welcome": {
+    "greeting": "Hoi, ik ben {{name}} 👋",
+    "startWith": "Begin met een van deze vragen"
+  },
+  "header": {
+    "online": "Online"
+  },
+  "conversations": {
+    "newConversation": "Nieuw gesprek",
+    "pinned": "Vastgepind",
+    "noConversations": "Geen gesprekken",
+    "createNew": "Maak een nieuw gesprek aan om te beginnen",
+    "count": "{{count}} gesprek",
+    "countPlural": "{{count}} gesprekken",
+    "rename": "Hernoemen",
+    "pin": "Vastpinnen",
+    "unpin": "Losmaken",
+    "archive": "Archiveren",
+    "delete": "Verwijderen"
+  },
+  "consent": {
+    "title": "Toegang tot je gegevens",
+    "description": "Om je een persoonlijk antwoord te geven, heb ik toegang nodig tot:",
+    "weightHistory": "Je gewichtsgeschiedenis",
+    "trainingSessions": "Je trainingssessies",
+    "goalsSettings": "Je doelen en instellingen",
+    "weeklyCheckins": "Je wekelijkse check-ins",
+    "accept": "Toestaan",
+    "decline": "Antwoord zonder mijn gegevens"
+  },
+  "dataSources": {
+    "title": "Geraadpleegde gegevens",
+    "subtitle": "Deze gegevens werden gebruikt voor het antwoord",
+    "weightHistory": "Gewichtsgeschiedenis",
+    "recentSessions": "Recente sessies",
+    "checkinStats": "Check-in statistieken",
+    "nextSession": "Volgende sessie",
+    "nutritionTargets": "Voedingsdoelen"
+  },
   "coachsPage": {
     "badge": "Kunstmatige Intelligentie",
     "title": "Jouw AI Coaches",
@@ -34,6 +94,10 @@
     "talkToAlex": "Praat met Alex",
     "talkToJulie": "Praat met Julie",
     "startTrial": "Start mijn gratis proefperiode",
-    "testimonials": "Wat onze gebruikers zeggen"
+    "testimonials": "Wat onze gebruikers zeggen",
+    "footer": "© 2025 Pulse.ai - Alle rechten voorbehouden",
+    "pricing": "Prijzen",
+    "legal": "Juridische informatie",
+    "home": "Home"
   }
 }
